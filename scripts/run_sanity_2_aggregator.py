@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from timeformers.aggregator_train import train_set_aggregator_context
 from timeformers.aggregators import build_aggregator
 from timeformers.corpus import generate_examples
 from timeformers.dataset import MLMDataset
@@ -24,6 +25,10 @@ def main() -> None:
     parser.add_argument("--fidelity", type=float, default=0.75)
     parser.add_argument("--examples-per-subject-epoch", type=int, default=12)
     parser.add_argument("--semantic-epochs", type=int, default=5)
+    parser.add_argument("--aggregator-epochs", type=int, default=50)
+    parser.add_argument("--aggregator-lr", type=float, default=1e-3)
+    parser.add_argument("--contrastive-weight", type=float, default=1.0)
+    parser.add_argument("--skip-aggregator-training", action="store_true")
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--d-model", type=int, default=48)
@@ -65,9 +70,24 @@ def main() -> None:
     reps = extract_occurrence_representations(semantic, eval_ds, batch_size=args.batch_size, device=args.device)
 
     metrics = {"mean": d6_bimodality_silhouette(reps, aggregator=None, device=args.device)}
-    for name in ("attention", "set"):
+    for name in ("attention",):
         aggregator = build_aggregator(name, args.d_model, n_heads=args.heads)
         metrics[name] = d6_bimodality_silhouette(reps, aggregator=aggregator, device=args.device)
+
+    set_aggregator = build_aggregator("set", args.d_model, n_heads=args.heads)
+    if not args.skip_aggregator_training:
+        train_set_aggregator_context(
+            reps,
+            set_aggregator,
+            args.output_dir / "set_aggregator",
+            d_model=args.d_model,
+            device=args.device,
+            n_epochs=args.aggregator_epochs,
+            lr=args.aggregator_lr,
+            contrastive_weight=args.contrastive_weight,
+            verbose=not args.quiet,
+        )
+    metrics["set"] = d6_bimodality_silhouette(reps, aggregator=set_aggregator, device=args.device)
 
     metrics["passes_set_over_mean"] = metrics["set"]["d6_silhouette"] > metrics["mean"]["d6_silhouette"]
     (args.output_dir / "sanity_2_metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
