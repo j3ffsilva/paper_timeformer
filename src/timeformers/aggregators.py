@@ -17,6 +17,46 @@ class MeanAggregator(nn.Module):
         return {"R": occurrences.mean(dim=0)}
 
 
+class AttentionPoolingAggregator(nn.Module):
+    def __init__(self, d_model: int) -> None:
+        super().__init__()
+        self.score = nn.Linear(d_model, 1)
+
+    def forward(self, occurrences: Tensor) -> dict[str, Tensor]:
+        weights = torch.softmax(self.score(occurrences).squeeze(-1), dim=0)
+        return {"R": torch.sum(weights.unsqueeze(-1) * occurrences, dim=0), "weights": weights}
+
+
+class SetTransformerAggregator(nn.Module):
+    """Permutation-invariant set encoder with per-occurrence U outputs."""
+
+    def __init__(self, d_model: int, n_heads: int = 4, d_ff: int | None = None, dropout: float = 0.1) -> None:
+        super().__init__()
+        d_ff = d_ff or 2 * d_model
+        self.attn = nn.MultiheadAttention(d_model, n_heads, dropout=dropout, batch_first=True)
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.ff = nn.Sequential(nn.Linear(d_model, d_ff), nn.GELU(), nn.Linear(d_ff, d_model))
+
+    def forward(self, occurrences: Tensor) -> dict[str, Tensor]:
+        x = occurrences.unsqueeze(0)
+        attn_out, _ = self.attn(x, x, x, need_weights=False)
+        x = self.norm1(x + attn_out)
+        x = self.norm2(x + self.ff(x))
+        u = x.squeeze(0)
+        return {"R": u.mean(dim=0), "U": u}
+
+
+def build_aggregator(name: str, d_model: int, n_heads: int = 4) -> nn.Module:
+    if name == "mean":
+        return MeanAggregator()
+    if name == "attention":
+        return AttentionPoolingAggregator(d_model)
+    if name == "set":
+        return SetTransformerAggregator(d_model, n_heads=n_heads)
+    raise ValueError("Unknown aggregator. Choose mean, attention, or set.")
+
+
 @torch.no_grad()
 def aggregate_subject_periods(
     reps: dict[str, Tensor],

@@ -4,7 +4,9 @@ import numpy as np
 import torch
 from sklearn.linear_model import Ridge
 from sklearn.metrics import r2_score
+from sklearn.metrics import silhouette_score
 
+from .representations import group_representations_by_subject_epoch
 from .trajectory_losses import linear_cka
 
 
@@ -48,4 +50,55 @@ def masked_reconstruction_summary(result: dict[str, torch.Tensor], prefix: str =
         mask = class_ids == class_id
         if mask.any():
             metrics[f"{prefix}_loss_{name}"] = float(losses[mask].mean())
+    return metrics
+
+
+@torch.no_grad()
+def d6_bimodality_silhouette(
+    reps: dict[str, torch.Tensor],
+    aggregator: torch.nn.Module | None = None,
+    class_id: int = 2,
+    min_occurrences: int = 4,
+    late_half_only: bool = True,
+    device: str = "cpu",
+) -> dict[str, float]:
+    """Measure Bifurcating bimodality using U for set aggregators or h for mean."""
+    grouped = group_representations_by_subject_epoch(reps)
+    device_t = torch.device(device)
+    if aggregator is not None:
+        aggregator.eval()
+        aggregator.to(device_t)
+
+    all_scores = []
+    by_epoch: dict[int, list[float]] = {}
+    epochs = sorted({epoch for _, epoch in grouped})
+    cutoff = epochs[len(epochs) // 2] if late_half_only and epochs else None
+
+    for (_, epoch), group in grouped.items():
+        if cutoff is not None and epoch < cutoff:
+            continue
+        if int(torch.mode(group["class_id"]).values) != class_id:
+            continue
+        labels = group["true_context"].detach().cpu().numpy()
+        if len(labels) < min_occurrences or len(set(labels.tolist())) < 2:
+            continue
+
+        h = group["h"].to(device_t)
+        if aggregator is not None:
+            out = aggregator(h)
+            points = out.get("U", h).detach().cpu().numpy()
+        else:
+            points = h.detach().cpu().numpy()
+        if len(points) <= len(set(labels.tolist())):
+            continue
+        score = float(silhouette_score(points, labels, metric="cosine"))
+        all_scores.append(score)
+        by_epoch.setdefault(epoch, []).append(score)
+
+    metrics = {
+        "d6_silhouette": float(np.mean(all_scores)) if all_scores else float("nan"),
+        "d6_n_groups": float(len(all_scores)),
+    }
+    for epoch, scores in sorted(by_epoch.items()):
+        metrics[f"d6_silhouette_t{epoch}"] = float(np.mean(scores))
     return metrics
