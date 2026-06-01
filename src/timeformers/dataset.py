@@ -41,6 +41,7 @@ class MLMDataset(Dataset):
             TOKEN2ID[row.obj],
             SEP_ID,
         ]
+        context_ids = [ids[POS_VERB], ids[POS_OBJECT]]
         labels = [-100] * SEQ_LEN
         mask_pos = rng.choice([POS_VERB, POS_OBJECT])
         labels[mask_pos] = ids[mask_pos]
@@ -48,6 +49,7 @@ class MLMDataset(Dataset):
         subject_idx = int(row.subject[1:]) - 1
         return {
             "input_ids": torch.tensor(ids, dtype=torch.long),
+            "context_ids": torch.tensor(context_ids, dtype=torch.long),
             "labels": torch.tensor(labels, dtype=torch.long),
             "epoch_idx": torch.tensor(row.epoch, dtype=torch.long),
             "subject_idx": torch.tensor(subject_idx, dtype=torch.long),

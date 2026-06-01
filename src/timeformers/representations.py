@@ -9,7 +9,7 @@ from torch import Tensor
 from torch.utils.data import DataLoader
 
 
-REP_KEYS = ("h", "subject_idx", "epoch_idx", "true_context", "p_n1", "class_id")
+REP_KEYS = ("h", "context", "subject_idx", "epoch_idx", "true_context", "p_n1", "class_id")
 
 
 @torch.no_grad()
@@ -29,7 +29,10 @@ def extract_occurrence_representations(
     for batch in loader:
         pred = model(batch["input_ids"].to(device_t), batch["epoch_idx"].to(device_t))
         out["h"].append(pred["h_subj"].detach().cpu())
-        for key in REP_KEYS[1:]:
+        context_ids = batch["context_ids"].to(device_t)
+        context = model.token_emb(context_ids).mean(dim=1)
+        out["context"].append(context.detach().cpu())
+        for key in REP_KEYS[2:]:
             out[key].append(batch[key].detach().cpu())
 
     return {key: torch.cat(out[key], dim=0) for key in REP_KEYS}

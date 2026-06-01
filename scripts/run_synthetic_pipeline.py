@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from timeformers.aggregator_train import train_set_aggregator_context
+from timeformers.aggregator_ssl import train_set_aggregator_ssl
 from timeformers.aggregators import MeanAggregator, aggregate_subject_periods, build_aggregator
 from timeformers.corpus import generate_examples, write_examples, write_trajectories
 from timeformers.dataset import MLMDataset
@@ -62,7 +63,7 @@ def build_and_train_aggregator(args, reps: dict[str, torch.Tensor], name: str, c
     if name == "mean":
         return MeanAggregator()
     aggregator = build_aggregator(name, args.d_model, n_heads=args.heads)
-    if name == "set" and not args.skip_set_training:
+    if name == "set" and args.set_training == "supervised":
         train_set_aggregator_context(
             reps,
             aggregator,
@@ -72,6 +73,22 @@ def build_and_train_aggregator(args, reps: dict[str, torch.Tensor], name: str, c
             n_epochs=args.aggregator_epochs,
             lr=args.aggregator_lr,
             contrastive_weight=args.contrastive_weight,
+            verbose=not args.quiet,
+        )
+    elif name == "set" and args.set_training == "ssl":
+        train_set_aggregator_ssl(
+            reps,
+            aggregator,
+            config_dir / "set_aggregator_ssl",
+            d_model=args.d_model,
+            device=args.device,
+            n_epochs=args.aggregator_epochs,
+            lr=args.aggregator_lr,
+            variance_weight=args.ssl_variance_weight,
+            consistency_weight=args.ssl_consistency_weight,
+            context_weight=args.ssl_context_weight,
+            context_temperature=args.ssl_context_temperature,
+            context_topk=args.ssl_context_topk,
             verbose=not args.quiet,
         )
     return aggregator
@@ -173,6 +190,12 @@ def main() -> None:
     parser.add_argument("--student-lr", type=float, default=1e-3)
     parser.add_argument("--aggregator-lr", type=float, default=1e-3)
     parser.add_argument("--contrastive-weight", type=float, default=1.0)
+    parser.add_argument("--set-training", choices=["supervised", "ssl", "none"], default="supervised")
+    parser.add_argument("--ssl-variance-weight", type=float, default=1.0)
+    parser.add_argument("--ssl-consistency-weight", type=float, default=1.0)
+    parser.add_argument("--ssl-context-weight", type=float, default=1.0)
+    parser.add_argument("--ssl-context-temperature", type=float, default=0.2)
+    parser.add_argument("--ssl-context-topk", type=int, default=2)
     parser.add_argument("--beta", type=float, default=1.0)
     parser.add_argument("--tau-cka", type=float, default=0.7)
     parser.add_argument("--d-model", type=int, default=48)
@@ -185,6 +208,8 @@ def main() -> None:
     parser.add_argument("--skip-set-training", action="store_true")
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args()
+    if args.skip_set_training:
+        args.set_training = "none"
 
     torch.manual_seed(args.seed)
     args.output_dir.mkdir(parents=True, exist_ok=True)

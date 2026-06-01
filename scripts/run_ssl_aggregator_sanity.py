@@ -44,6 +44,9 @@ def main() -> None:
     parser.add_argument("--contrastive-weight", type=float, default=1.0)
     parser.add_argument("--ssl-variance-weight", type=float, default=1.0)
     parser.add_argument("--ssl-consistency-weight", type=float, default=1.0)
+    parser.add_argument("--ssl-context-weight", type=float, default=1.0)
+    parser.add_argument("--ssl-context-temperature", type=float, default=0.2)
+    parser.add_argument("--ssl-context-topk", type=int, default=2)
     parser.add_argument("--d-model", type=int, default=32)
     parser.add_argument("--layers", type=int, default=2)
     parser.add_argument("--heads", type=int, default=4)
@@ -101,6 +104,9 @@ def main() -> None:
         lr=args.aggregator_lr,
         variance_weight=args.ssl_variance_weight,
         consistency_weight=args.ssl_consistency_weight,
+        context_weight=args.ssl_context_weight,
+        context_temperature=args.ssl_context_temperature,
+        context_topk=args.ssl_context_topk,
         verbose=not args.quiet,
     )
     result_rows.append({"regime": "set_ssl", "seed": args.seed, **d6_bimodality_silhouette(reps, set_ssl, device=args.device)})
