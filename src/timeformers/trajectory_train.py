@@ -162,3 +162,36 @@ class TrajectoryStudentTrainer:
             losses.append(per_token[mask_positions].cpu())
             class_ids.append(batch["class_id"].cpu())
         return {"loss": torch.cat(losses, dim=0), "class_id": torch.cat(class_ids, dim=0)}
+
+    @torch.no_grad()
+    def evaluate_all_masked_reconstruction(self, dataset, batch_size: int = 64) -> dict[str, torch.Tensor]:
+        loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+        self.student.eval()
+        losses = []
+        class_ids = []
+        epoch_positions = []
+        for batch in loader:
+            values = batch["values"].to(self.device)
+            valid_mask = batch["valid_mask"].to(self.device)
+            target = self.teacher(values, valid_mask)["M"]
+            batch_losses = []
+            batch_positions = []
+            for pos in range(values.size(1)):
+                mask_positions = torch.zeros_like(valid_mask)
+                mask_positions[:, pos] = valid_mask[:, pos]
+                if not mask_positions.any():
+                    continue
+                pred = self.student(values, mask_positions, valid_mask)["M"]
+                per_token = (pred - target).pow(2).mean(dim=-1)
+                batch_losses.append(per_token[mask_positions].cpu())
+                batch_positions.append(batch["epoch_idx"][:, pos][mask_positions[:, pos].cpu()].cpu())
+            if batch_losses:
+                losses.append(torch.cat(batch_losses, dim=0))
+                epoch_positions.append(torch.cat(batch_positions, dim=0))
+                repeated_class = batch["class_id"].unsqueeze(1).expand_as(batch["valid_mask"])
+                class_ids.append(repeated_class[batch["valid_mask"]].cpu())
+        return {
+            "loss": torch.cat(losses, dim=0),
+            "class_id": torch.cat(class_ids, dim=0),
+            "epoch_idx": torch.cat(epoch_positions, dim=0),
+        }
