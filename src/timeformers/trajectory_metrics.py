@@ -1,0 +1,51 @@
+from __future__ import annotations
+
+import numpy as np
+import torch
+from sklearn.linear_model import Ridge
+from sklearn.metrics import r2_score
+
+from .trajectory_losses import linear_cka
+
+
+CLASS_NAMES = {0: "stable", 1: "drift", 2: "bifurcating", 3: "abrupt"}
+
+
+def flatten_valid(values: torch.Tensor, valid_mask: torch.Tensor) -> np.ndarray:
+    return values[valid_mask].detach().cpu().numpy()
+
+
+def flattened_targets(p_n1: torch.Tensor, valid_mask: torch.Tensor) -> np.ndarray:
+    return p_n1[valid_mask].detach().cpu().numpy()
+
+
+def probe_p_n1_r2(values: torch.Tensor, p_n1: torch.Tensor, valid_mask: torch.Tensor) -> float:
+    x = flatten_valid(values, valid_mask)
+    y = flattened_targets(p_n1, valid_mask)
+    if len(y) < 4:
+        return float("nan")
+    split = max(1, int(0.8 * len(y)))
+    model = Ridge(alpha=1.0)
+    model.fit(x[:split], y[:split])
+    pred = model.predict(x[split:])
+    return float(r2_score(y[split:], pred))
+
+
+def teacher_sanity_metrics(encoded: dict[str, torch.Tensor]) -> dict[str, float]:
+    cka = linear_cka(encoded["M"], encoded["R"], encoded["valid_mask"])
+    return {
+        "cka_M_R": float(cka),
+        "probe_r2_M": probe_p_n1_r2(encoded["M"], encoded["p_n1"], encoded["valid_mask"]),
+        "probe_r2_R": probe_p_n1_r2(encoded["R"], encoded["p_n1"], encoded["valid_mask"]),
+    }
+
+
+def masked_reconstruction_summary(result: dict[str, torch.Tensor], prefix: str = "d5a") -> dict[str, float]:
+    losses = result["loss"].detach().cpu()
+    class_ids = result["class_id"].detach().cpu()
+    metrics = {f"{prefix}_loss": float(losses.mean())}
+    for class_id, name in CLASS_NAMES.items():
+        mask = class_ids == class_id
+        if mask.any():
+            metrics[f"{prefix}_loss_{name}"] = float(losses[mask].mean())
+    return metrics
