@@ -121,6 +121,7 @@ def d6_bimodality_silhouette(
         aggregator.to(device_t)
 
     all_scores = []
+    all_variances = []
     by_epoch: dict[int, list[float]] = {}
     epochs = sorted({epoch for _, epoch in grouped})
     cutoff = epochs[len(epochs) // 2] if late_half_only and epochs else None
@@ -144,10 +145,12 @@ def d6_bimodality_silhouette(
             continue
         score = float(silhouette_score(points, labels, metric="cosine"))
         all_scores.append(score)
+        all_variances.append(float(np.mean(np.var(points, axis=0))))
         by_epoch.setdefault(epoch, []).append(score)
 
     metrics = {
         "d6_silhouette": float(np.mean(all_scores)) if all_scores else float("nan"),
+        "d6_point_variance": float(np.mean(all_variances)) if all_variances else float("nan"),
         "d6_n_groups": float(len(all_scores)),
     }
     for epoch, scores in sorted(by_epoch.items()):
