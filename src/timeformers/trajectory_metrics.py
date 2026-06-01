@@ -5,6 +5,7 @@ import torch
 from sklearn.linear_model import Ridge
 from sklearn.metrics import r2_score
 from sklearn.metrics import silhouette_score
+from scipy import stats
 
 from .representations import group_representations_by_subject_epoch
 from .trajectory_losses import linear_cka
@@ -40,6 +41,56 @@ def teacher_sanity_metrics(encoded: dict[str, torch.Tensor]) -> dict[str, float]
         "probe_r2_M": probe_p_n1_r2(encoded["M"], encoded["p_n1"], encoded["valid_mask"]),
         "probe_r2_R": probe_p_n1_r2(encoded["R"], encoded["p_n1"], encoded["valid_mask"]),
     }
+
+
+def cosine_axis_scores(values: torch.Tensor, p_n1: torch.Tensor, valid_mask: torch.Tensor) -> torch.Tensor:
+    flat = values[valid_mask]
+    target = p_n1[valid_mask]
+    n1 = flat[target >= 0.5]
+    n2 = flat[target < 0.5]
+    if n1.numel() == 0 or n2.numel() == 0:
+        return torch.full_like(p_n1, float("nan"), dtype=torch.float32)
+    proto_n1 = torch.nn.functional.normalize(n1.mean(dim=0), dim=0)
+    proto_n2 = torch.nn.functional.normalize(n2.mean(dim=0), dim=0)
+    normed = torch.nn.functional.normalize(values, dim=-1)
+    return normed @ proto_n1 - normed @ proto_n2
+
+
+def d2_context_drift_metrics(
+    values: torch.Tensor,
+    p_n1: torch.Tensor,
+    class_id: torch.Tensor,
+    valid_mask: torch.Tensor,
+    prefix: str,
+) -> dict[str, float]:
+    scores = cosine_axis_scores(values, p_n1, valid_mask)
+    metrics: dict[str, float] = {}
+    for cid, name in CLASS_NAMES.items():
+        subject_mask = class_id == cid
+        if not subject_mask.any():
+            continue
+        deltas = []
+        rhos = []
+        for idx in torch.nonzero(subject_mask, as_tuple=False).flatten():
+            valid = valid_mask[idx]
+            if int(valid.sum()) < 3:
+                continue
+            s = scores[idx][valid].detach().cpu().numpy()
+            target = p_n1[idx][valid].detach().cpu().numpy()
+            if np.isnan(s).any():
+                continue
+            deltas.append(float(s[-1] - s[0]))
+            if len(set(np.round(target, 6))) > 1:
+                rho, _ = stats.spearmanr(s, target)
+                if not np.isnan(rho):
+                    rhos.append(float(rho))
+        metrics[f"{prefix}_d2_delta_{name}"] = float(np.mean(deltas)) if deltas else float("nan")
+        metrics[f"{prefix}_d2_spearman_{name}"] = float(np.mean(rhos)) if rhos else float("nan")
+    return metrics
+
+
+def cka_metric(a: torch.Tensor, b: torch.Tensor, valid_mask: torch.Tensor, prefix: str) -> dict[str, float]:
+    return {f"{prefix}_cka": float(linear_cka(a, b, valid_mask))}
 
 
 def masked_reconstruction_summary(result: dict[str, torch.Tensor], prefix: str = "d5a") -> dict[str, float]:
