@@ -62,8 +62,8 @@ def encode_student(student: TrajectoryStudent, dataset: TrajectoryDataset, devic
 def build_and_train_aggregator(args, reps: dict[str, torch.Tensor], name: str, config_dir: Path):
     if name == "mean":
         return MeanAggregator()
-    aggregator = build_aggregator(name, args.d_model, n_heads=args.heads)
-    if name == "set" and args.set_training == "supervised":
+    aggregator = build_aggregator(name, args.d_model, n_heads=args.heads, num_slots=args.num_slots)
+    if name in {"set", "set_slots"} and args.set_training == "supervised":
         train_set_aggregator_context(
             reps,
             aggregator,
@@ -75,7 +75,7 @@ def build_and_train_aggregator(args, reps: dict[str, torch.Tensor], name: str, c
             contrastive_weight=args.contrastive_weight,
             verbose=not args.quiet,
         )
-    elif name == "set" and args.set_training == "ssl":
+    elif name in {"set", "set_slots"} and args.set_training == "ssl":
         train_set_aggregator_ssl(
             reps,
             aggregator,
@@ -108,9 +108,10 @@ def run_config(args, reps: dict[str, torch.Tensor], aggregator_name: str, tempor
     aggregated = aggregate_subject_periods(reps, aggregator, device=args.device)
     sequences = build_trajectory_sequences(aggregated)
     trajectory_ds = TrajectoryDataset(sequences)
+    d_aggregated = sequences.values.size(-1)
 
     teacher = TrajectoryTeacher(
-        d_in=args.d_model,
+        d_in=d_aggregated,
         d_traj=args.d_traj,
         encoder_variant=temporal_name,
         max_len=sequences.values.size(1),
@@ -128,7 +129,7 @@ def run_config(args, reps: dict[str, torch.Tensor], aggregator_name: str, tempor
     teacher_encoded = teacher_trainer.encode(trajectory_ds, batch_size=args.batch_size)
 
     student = TrajectoryStudent(
-        d_in=args.d_model,
+        d_in=d_aggregated,
         d_traj=args.d_traj,
         encoder_variant=temporal_name,
         max_len=sequences.values.size(1),
@@ -200,6 +201,7 @@ def main() -> None:
     parser.add_argument("--tau-cka", type=float, default=0.7)
     parser.add_argument("--d-model", type=int, default=48)
     parser.add_argument("--d-traj", type=int, default=16)
+    parser.add_argument("--num-slots", type=int, default=2)
     parser.add_argument("--layers", type=int, default=2)
     parser.add_argument("--heads", type=int, default=4)
     parser.add_argument("--d-ff", type=int, default=96)

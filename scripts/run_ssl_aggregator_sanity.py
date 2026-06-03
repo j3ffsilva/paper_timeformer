@@ -48,6 +48,7 @@ def main() -> None:
     parser.add_argument("--ssl-context-temperature", type=float, default=0.2)
     parser.add_argument("--ssl-context-topk", type=int, default=2)
     parser.add_argument("--d-model", type=int, default=32)
+    parser.add_argument("--num-slots", type=int, default=2)
     parser.add_argument("--layers", type=int, default=2)
     parser.add_argument("--heads", type=int, default=4)
     parser.add_argument("--d-ff", type=int, default=64)
@@ -93,6 +94,11 @@ def main() -> None:
     set_raw = build_aggregator("set", args.d_model, n_heads=args.heads)
     result_rows.append({"regime": "set_raw", "seed": args.seed, **d6_bimodality_silhouette(reps, set_raw, device=args.device)})
 
+    set_slots_raw = build_aggregator("set_slots", args.d_model, n_heads=args.heads, num_slots=args.num_slots)
+    result_rows.append(
+        {"regime": "set_slots_raw", "seed": args.seed, **d6_bimodality_silhouette(reps, set_slots_raw, device=args.device)}
+    )
+
     set_ssl = build_aggregator("set", args.d_model, n_heads=args.heads)
     train_set_aggregator_ssl(
         reps,
@@ -110,6 +116,26 @@ def main() -> None:
         verbose=not args.quiet,
     )
     result_rows.append({"regime": "set_ssl", "seed": args.seed, **d6_bimodality_silhouette(reps, set_ssl, device=args.device)})
+
+    set_slots_ssl = build_aggregator("set_slots", args.d_model, n_heads=args.heads, num_slots=args.num_slots)
+    train_set_aggregator_ssl(
+        reps,
+        set_slots_ssl,
+        args.output_dir / "set_slots_ssl",
+        d_model=args.d_model,
+        device=args.device,
+        n_epochs=args.aggregator_epochs,
+        lr=args.aggregator_lr,
+        variance_weight=args.ssl_variance_weight,
+        consistency_weight=args.ssl_consistency_weight,
+        context_weight=args.ssl_context_weight,
+        context_temperature=args.ssl_context_temperature,
+        context_topk=args.ssl_context_topk,
+        verbose=not args.quiet,
+    )
+    result_rows.append(
+        {"regime": "set_slots_ssl", "seed": args.seed, **d6_bimodality_silhouette(reps, set_slots_ssl, device=args.device)}
+    )
 
     set_supervised = build_aggregator("set", args.d_model, n_heads=args.heads)
     train_set_aggregator_context(

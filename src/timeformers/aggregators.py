@@ -47,14 +47,42 @@ class SetTransformerAggregator(nn.Module):
         return {"R": u.mean(dim=0), "U": u}
 
 
-def build_aggregator(name: str, d_model: int, n_heads: int = 4) -> nn.Module:
+class SetSlotsAggregator(SetTransformerAggregator):
+    """Set encoder that keeps multiple period-level slots instead of one mean."""
+
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int = 4,
+        d_ff: int | None = None,
+        dropout: float = 0.1,
+        num_slots: int = 2,
+    ) -> None:
+        super().__init__(d_model=d_model, n_heads=n_heads, d_ff=d_ff, dropout=dropout)
+        self.num_slots = num_slots
+        self.slot_queries = nn.Parameter(torch.randn(num_slots, d_model) * 0.02)
+        self.slot_attn = nn.MultiheadAttention(d_model, n_heads, dropout=dropout, batch_first=True)
+        self.slot_norm = nn.LayerNorm(d_model)
+
+    def forward(self, occurrences: Tensor) -> dict[str, Tensor]:
+        encoded = super().forward(occurrences)
+        u = encoded["U"]
+        queries = self.slot_queries.unsqueeze(0)
+        slots, _ = self.slot_attn(queries, u.unsqueeze(0), u.unsqueeze(0), need_weights=False)
+        slots = self.slot_norm(slots.squeeze(0))
+        return {"R": slots.reshape(-1), "U": u, "slots": slots}
+
+
+def build_aggregator(name: str, d_model: int, n_heads: int = 4, num_slots: int = 2) -> nn.Module:
     if name == "mean":
         return MeanAggregator()
     if name == "attention":
         return AttentionPoolingAggregator(d_model)
     if name == "set":
         return SetTransformerAggregator(d_model, n_heads=n_heads)
-    raise ValueError("Unknown aggregator. Choose mean, attention, or set.")
+    if name == "set_slots":
+        return SetSlotsAggregator(d_model, n_heads=n_heads, num_slots=num_slots)
+    raise ValueError("Unknown aggregator. Choose mean, attention, set, or set_slots.")
 
 
 @torch.no_grad()
