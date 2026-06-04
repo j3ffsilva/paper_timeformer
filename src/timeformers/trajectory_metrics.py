@@ -11,7 +11,7 @@ from .representations import group_representations_by_subject_epoch
 from .trajectory_losses import linear_cka
 
 
-CLASS_NAMES = {0: "stable", 1: "drift", 2: "bifurcating", 3: "abrupt"}
+from .corpus import CLASS_NAMES
 
 
 def flatten_valid(values: torch.Tensor, valid_mask: torch.Tensor) -> np.ndarray:

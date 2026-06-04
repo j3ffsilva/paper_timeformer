@@ -8,6 +8,8 @@ import torch
 from torch import Tensor
 from torch.utils.data import DataLoader
 
+from .dataset import OBJECT_IDS, POS_OBJECT, POS_VERB, VERB_IDS
+
 
 REP_KEYS = ("h", "context", "subject_idx", "epoch_idx", "true_context", "p_n1", "class_id")
 
@@ -18,8 +20,11 @@ def extract_occurrence_representations(
     dataset,
     batch_size: int = 256,
     device: str = "cpu",
+    target: str = "subject",
 ) -> dict[str, Tensor]:
     """Extract h_s^i(t) for every occurrence in a dataset."""
+    if target not in {"subject", "masked_context", "prediction_distribution"}:
+        raise ValueError(f"Unknown representation target: {target!r}")
     device_t = torch.device(device)
     model.eval()
     model.to(device_t)
@@ -28,7 +33,15 @@ def extract_occurrence_representations(
 
     for batch in loader:
         pred = model(batch["input_ids"].to(device_t), batch["epoch_idx"].to(device_t))
-        out["h"].append(pred["h_subj"].detach().cpu())
+        if target == "subject":
+            h = pred["h_subj"]
+        elif target == "masked_context":
+            h = pred["hidden"][:, [POS_VERB, POS_OBJECT], :].mean(dim=1)
+        else:
+            verb_probabilities = torch.softmax(pred["logits"][:, POS_VERB, VERB_IDS], dim=-1)
+            object_probabilities = torch.softmax(pred["logits"][:, POS_OBJECT, OBJECT_IDS], dim=-1)
+            h = torch.cat([verb_probabilities, object_probabilities], dim=-1)
+        out["h"].append(h.detach().cpu())
         context_ids = batch["context_ids"].to(device_t)
         context = model.token_emb(context_ids).mean(dim=1)
         out["context"].append(context.detach().cpu())
@@ -44,7 +57,7 @@ def save_representations(reps: dict[str, Tensor], path: Path) -> None:
 
 
 def load_representations(path: Path) -> dict[str, Tensor]:
-    loaded = torch.load(path, map_location="cpu")
+    loaded = torch.load(path, map_location="cpu", weights_only=True)
     missing = [key for key in REP_KEYS if key not in loaded]
     if missing:
         raise ValueError(f"Representation file is missing keys: {missing}")
@@ -65,3 +78,20 @@ def group_representations_by_subject_epoch(reps: dict[str, Tensor]) -> dict[tupl
     for key, indices in iter_subject_epoch_groups(reps):
         grouped[key] = {name: value[indices] for name, value in reps.items()}
     return grouped
+
+
+def subject_centroids(reps: dict[str, Tensor]) -> dict[str, Tensor]:
+    """Aggregate occurrence representations into one centroid per subject."""
+    centroids = []
+    subject_ids = []
+    class_ids = []
+    for subject in torch.unique(reps["subject_idx"], sorted=True):
+        mask = reps["subject_idx"] == subject
+        centroids.append(reps["h"][mask].mean(dim=0))
+        subject_ids.append(subject)
+        class_ids.append(torch.mode(reps["class_id"][mask]).values)
+    return {
+        "h": torch.stack(centroids),
+        "subject_idx": torch.stack(subject_ids),
+        "class_id": torch.stack(class_ids),
+    }

@@ -11,6 +11,7 @@ N_EPOCHS = 10
 N_SUBJECTS = 40
 N_PER_CLASS = 10
 SUBJECT_CLASSES = ("stable", "drift", "bifurcating", "abrupt")
+CLASS_NAMES = {i: name for i, name in enumerate(SUBJECT_CLASSES)}
 
 SUBJECTS = [f"S{i}" for i in range(1, N_SUBJECTS + 1)]
 VERBS_N1 = [f"V{i}" for i in range(1, 5)]
@@ -41,6 +42,8 @@ def subject_class(subject_index: int) -> str:
 
 
 def generate_trajectories(seed: int, n_epochs: int = N_EPOCHS) -> dict[str, list[float]]:
+    if n_epochs < 5:
+        raise ValueError("n_epochs must be at least 5 to generate all trajectory classes")
     rng = random.Random(seed)
     trajectories: dict[str, list[float]] = {}
     stable_values = [0.62 + i * (0.36 / max(N_PER_CLASS - 1, 1)) for i in range(N_PER_CLASS)]
@@ -110,6 +113,30 @@ def generate_examples(
                 rows.append(Example(epoch, subject, verb, obj, true_context, split, p_n1, cls))
     rng.shuffle(rows)
     return rows, trajectories
+
+
+def examples_for_epoch(rows: list[Example], epoch: int, split: str | None = None) -> list[Example]:
+    return [row for row in rows if row.epoch == epoch and (split is None or row.split == split)]
+
+
+def generate_fixed_probe_examples(epoch: int = 0) -> list[Example]:
+    """Build balanced, deterministic contexts shared by every model checkpoint."""
+    rows = []
+    contexts = list(zip(VERBS_N1, OBJS_N1)) + list(zip(VERBS_N2, OBJS_N2))
+    for subject_index, subject in enumerate(SUBJECTS):
+        cls = subject_class(subject_index)
+        for context_index, (verb, obj) in enumerate(contexts):
+            true_context = 0 if context_index < len(VERBS_N1) else 1
+            rows.append(Example(epoch, subject, verb, obj, true_context, "probe", 0.5, cls))
+    return rows
+
+
+def generate_subject_probe_examples(epoch: int = 0) -> list[Example]:
+    """Build one neutral context-masked probe per subject."""
+    return [
+        Example(epoch, subject, VERBS_N1[0], OBJS_N1[0], 0, "probe", 0.5, subject_class(subject_index))
+        for subject_index, subject in enumerate(SUBJECTS)
+    ]
 
 
 def write_examples(rows: list[Example], path: Path) -> None:

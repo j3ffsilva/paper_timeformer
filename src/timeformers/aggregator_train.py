@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from itertools import chain
 from pathlib import Path
 
 import torch
@@ -8,6 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from .representations import group_representations_by_subject_epoch
+from .train import _should_log
 
 
 def supervised_contrastive_loss(points: torch.Tensor, labels: torch.Tensor, temperature: float = 0.2) -> torch.Tensor:
@@ -73,7 +75,7 @@ def train_set_aggregator_context(
             loss = ce + contrastive_weight * contrastive
             opt.zero_grad()
             loss.backward()
-            nn.utils.clip_grad_norm_(list(aggregator.parameters()) + list(head.parameters()), 1.0)
+            nn.utils.clip_grad_norm_(chain(aggregator.parameters(), head.parameters()), 1.0)
             opt.step()
 
             totals["loss"] += float(loss.detach())
@@ -84,7 +86,7 @@ def train_set_aggregator_context(
 
         record = {"epoch": epoch, **{key: value / max(n_groups, 1) for key, value in totals.items()}}
         history.append(record)
-        if verbose and (epoch == 0 or epoch == n_epochs - 1 or (epoch + 1) % 10 == 0):
+        if verbose and _should_log(epoch, n_epochs):
             print(
                 f"  aggregator epoch {epoch:03d} loss={record['loss']:.4f} "
                 f"acc={record['acc']:.4f}"

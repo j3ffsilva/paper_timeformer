@@ -8,6 +8,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from .trajectory_losses import anti_identity_loss, masked_mse
+from .train import _should_log
 
 
 class TrajectoryTeacherTrainer:
@@ -57,7 +58,7 @@ class TrajectoryTeacherTrainer:
 
             record = {"epoch": epoch, **{key: value / max(n_batches, 1) for key, value in totals.items()}}
             history.append(record)
-            if verbose and (epoch == 0 or epoch == n_epochs - 1 or (epoch + 1) % 10 == 0):
+            if verbose and _should_log(epoch, n_epochs):
                 print(
                     f"  teacher epoch {epoch:03d} loss={record['loss']:.4f} "
                     f"recon={record['recon']:.4f} cka={record['cka']:.4f}"
@@ -139,7 +140,7 @@ class TrajectoryStudentTrainer:
 
             record = {"epoch": epoch, "loss": total / max(n_batches, 1)}
             history.append(record)
-            if verbose and (epoch == 0 or epoch == n_epochs - 1 or (epoch + 1) % 10 == 0):
+            if verbose and _should_log(epoch, n_epochs):
                 print(f"  student epoch {epoch:03d} loss={record['loss']:.4f}")
 
         torch.save(self.student.state_dict(), self.output_dir / "student.pt")

@@ -53,7 +53,7 @@ class TemporalEncoder(nn.Module):
 
 
 class TrajectoryTeacher(nn.Module):
-    def __init__(self, d_in: int, d_traj: int = 32, encoder_variant: str = "linear", max_len: int = 32) -> None:
+    def __init__(self, d_in: int, d_traj: int = 32, encoder_variant: str = "bidirectional", max_len: int = 32) -> None:
         super().__init__()
         self.encoder = TemporalEncoder(d_in, d_model=d_traj, variant=encoder_variant, max_len=max_len)
         self.decoder = nn.Sequential(nn.LayerNorm(d_traj), nn.Linear(d_traj, d_in))

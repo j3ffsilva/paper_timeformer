@@ -2,33 +2,16 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import sys
 from pathlib import Path
 
-import torch
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from timeformers.aggregator_ssl import train_set_aggregator_ssl
-from timeformers.aggregator_train import train_set_aggregator_context
 from timeformers.aggregators import build_aggregator
-from timeformers.corpus import generate_examples
-from timeformers.dataset import MLMDataset
-from timeformers.models import build_model
-from timeformers.representations import extract_occurrence_representations
-from timeformers.train import Trainer
+from timeformers.experiment import build_and_train_aggregator, prepare_synthetic_representations, write_csv
 from timeformers.trajectory_metrics import d6_bimodality_silhouette
-
-
-def write_csv(rows: list[dict], path: Path) -> None:
-    fields = sorted({key for row in rows for key in row})
-    with path.open("w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
 
 
 def main() -> None:
@@ -47,6 +30,7 @@ def main() -> None:
     parser.add_argument("--ssl-context-weight", type=float, default=1.0)
     parser.add_argument("--ssl-context-temperature", type=float, default=0.2)
     parser.add_argument("--ssl-context-topk", type=int, default=2)
+    parser.add_argument("--ssl-subset-fraction", type=float, default=0.75)
     parser.add_argument("--d-model", type=int, default=32)
     parser.add_argument("--num-slots", type=int, default=2)
     parser.add_argument("--layers", type=int, default=2)
@@ -57,35 +41,7 @@ def main() -> None:
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args()
 
-    torch.manual_seed(args.seed)
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    rows, _ = generate_examples(
-        seed=args.seed,
-        fidelity=args.fidelity,
-        examples_per_subject_epoch=args.examples_per_subject_epoch,
-    )
-    train_ds = MLMDataset(rows, split="train", seed=args.seed)
-    test_ds = MLMDataset(rows, split="test", seed=args.seed + 99)
-    eval_ds = MLMDataset(rows, split=None, seed=args.seed + 123)
-
-    semantic = build_model(
-        "TokenTime",
-        d_model=args.d_model,
-        n_layers=args.layers,
-        n_heads=args.heads,
-        d_ff=args.d_ff,
-    )
-    Trainer(semantic, args.output_dir / "semantic_encoder", device=args.device).train(
-        train_ds,
-        test_ds,
-        n_epochs=args.semantic_epochs,
-        batch_size=args.batch_size,
-        lr=args.lr,
-        seed=args.seed,
-        lambda_traj=0.0,
-        verbose=not args.quiet,
-    )
-    reps = extract_occurrence_representations(semantic, eval_ds, batch_size=args.batch_size, device=args.device)
+    reps = prepare_synthetic_representations(args, args.output_dir)
 
     result_rows = []
     mean_metrics = d6_bimodality_silhouette(reps, aggregator=None, device=args.device)
@@ -99,55 +55,34 @@ def main() -> None:
         {"regime": "set_slots_raw", "seed": args.seed, **d6_bimodality_silhouette(reps, set_slots_raw, device=args.device)}
     )
 
-    set_ssl = build_aggregator("set", args.d_model, n_heads=args.heads)
-    train_set_aggregator_ssl(
+    args.set_training = "ssl"
+    set_ssl = build_and_train_aggregator(
+        args,
         reps,
-        set_ssl,
-        args.output_dir / "set_ssl",
-        d_model=args.d_model,
-        device=args.device,
-        n_epochs=args.aggregator_epochs,
-        lr=args.aggregator_lr,
-        variance_weight=args.ssl_variance_weight,
-        consistency_weight=args.ssl_consistency_weight,
-        context_weight=args.ssl_context_weight,
-        context_temperature=args.ssl_context_temperature,
-        context_topk=args.ssl_context_topk,
-        verbose=not args.quiet,
+        "set",
+        args.output_dir,
+        artifact_dir=args.output_dir / "set_ssl",
     )
     result_rows.append({"regime": "set_ssl", "seed": args.seed, **d6_bimodality_silhouette(reps, set_ssl, device=args.device)})
 
-    set_slots_ssl = build_aggregator("set_slots", args.d_model, n_heads=args.heads, num_slots=args.num_slots)
-    train_set_aggregator_ssl(
+    set_slots_ssl = build_and_train_aggregator(
+        args,
         reps,
-        set_slots_ssl,
-        args.output_dir / "set_slots_ssl",
-        d_model=args.d_model,
-        device=args.device,
-        n_epochs=args.aggregator_epochs,
-        lr=args.aggregator_lr,
-        variance_weight=args.ssl_variance_weight,
-        consistency_weight=args.ssl_consistency_weight,
-        context_weight=args.ssl_context_weight,
-        context_temperature=args.ssl_context_temperature,
-        context_topk=args.ssl_context_topk,
-        verbose=not args.quiet,
+        "set_slots",
+        args.output_dir,
+        artifact_dir=args.output_dir / "set_slots_ssl",
     )
     result_rows.append(
         {"regime": "set_slots_ssl", "seed": args.seed, **d6_bimodality_silhouette(reps, set_slots_ssl, device=args.device)}
     )
 
-    set_supervised = build_aggregator("set", args.d_model, n_heads=args.heads)
-    train_set_aggregator_context(
+    args.set_training = "supervised"
+    set_supervised = build_and_train_aggregator(
+        args,
         reps,
-        set_supervised,
-        args.output_dir / "set_supervised",
-        d_model=args.d_model,
-        device=args.device,
-        n_epochs=args.aggregator_epochs,
-        lr=args.aggregator_lr,
-        contrastive_weight=args.contrastive_weight,
-        verbose=not args.quiet,
+        "set",
+        args.output_dir,
+        artifact_dir=args.output_dir / "set_supervised",
     )
     result_rows.append(
         {"regime": "set_supervised", "seed": args.seed, **d6_bimodality_silhouette(reps, set_supervised, device=args.device)}

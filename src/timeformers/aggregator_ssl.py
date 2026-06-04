@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from itertools import chain
 from pathlib import Path
 
 import torch
@@ -8,6 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from .representations import group_representations_by_subject_epoch
+from .train import _should_log
 from .trajectory_losses import variance_regularizer
 
 
@@ -25,10 +27,10 @@ class OccurrenceDecoder(nn.Module):
         return self.net(x)
 
 
-def _sample_subset(h: torch.Tensor, min_size: int = 2) -> torch.Tensor:
+def _sample_subset(h: torch.Tensor, min_size: int = 2, fraction: float = 0.75) -> torch.Tensor:
     if h.size(0) <= min_size:
         return h
-    keep = max(min_size, int(round(0.75 * h.size(0))))
+    keep = max(min_size, int(round(fraction * h.size(0))))
     idx = torch.randperm(h.size(0), device=h.device)[:keep]
     return h[idx]
 
@@ -70,6 +72,7 @@ def train_set_aggregator_ssl(
     context_weight: float = 1.0,
     context_temperature: float = 0.2,
     context_topk: int = 2,
+    subset_fraction: float = 0.75,
     verbose: bool = True,
 ) -> list[dict[str, float]]:
     """Self-supervised set training with local-context similarity as signal."""
@@ -102,8 +105,8 @@ def train_set_aggregator_ssl(
                 topk=context_topk,
             )
 
-            view_a = _sample_subset(h)
-            view_b = _sample_subset(h)
+            view_a = _sample_subset(h, fraction=subset_fraction)
+            view_b = _sample_subset(h, fraction=subset_fraction)
             pool_a = aggregator(view_a)["R"]
             pool_b = aggregator(view_b)["R"]
             consistency = 1.0 - F.cosine_similarity(pool_a, pool_b, dim=0)
@@ -116,7 +119,7 @@ def train_set_aggregator_ssl(
             )
             opt.zero_grad()
             loss.backward()
-            nn.utils.clip_grad_norm_(list(aggregator.parameters()) + list(decoder.parameters()), 1.0)
+            nn.utils.clip_grad_norm_(chain(aggregator.parameters(), decoder.parameters()), 1.0)
             opt.step()
 
             totals["loss"] += float(loss.detach())
@@ -128,7 +131,7 @@ def train_set_aggregator_ssl(
 
         record = {"epoch": epoch, **{key: value / max(n_groups, 1) for key, value in totals.items()}}
         history.append(record)
-        if verbose and (epoch == 0 or epoch == n_epochs - 1 or (epoch + 1) % 10 == 0):
+        if verbose and _should_log(epoch, n_epochs):
             print(
                 f"  aggregator-ssl epoch {epoch:03d} loss={record['loss']:.4f} "
                 f"recon={record['recon']:.4f} var={record['variance']:.4f} ctx={record['context']:.4f}"

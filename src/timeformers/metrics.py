@@ -10,7 +10,7 @@ from scipy import stats
 from torch.utils.data import DataLoader
 
 
-CLASS_NAMES = {0: "stable", 1: "drift", 2: "bifurcating", 3: "abrupt"}
+from .corpus import CLASS_NAMES
 
 
 @torch.no_grad()

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import sys
 from pathlib import Path
@@ -12,15 +11,7 @@ import torch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from timeformers.aggregator_train import train_set_aggregator_context
-from timeformers.aggregator_ssl import train_set_aggregator_ssl
-from timeformers.aggregators import MeanAggregator, aggregate_subject_periods, build_aggregator
-from timeformers.corpus import generate_examples, write_examples, write_trajectories
-from timeformers.dataset import MLMDataset
-from timeformers.models import build_model
-from timeformers.representations import extract_occurrence_representations, save_representations
-from timeformers.train import Trainer
-from timeformers.trajectories import TrajectoryDataset, build_trajectory_sequences
+from timeformers.experiment import build_trajectory_dataset, encode_student, prepare_synthetic_representations, write_csv
 from timeformers.trajectory_metrics import (
     cka_metric,
     d2_context_drift_metrics,
@@ -45,69 +36,18 @@ def parse_configs(value: str) -> list[tuple[str, str]]:
     return configs
 
 
-@torch.no_grad()
-def encode_student(student: TrajectoryStudent, dataset: TrajectoryDataset, device: str, batch_size: int) -> torch.Tensor:
-    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    device_t = torch.device(device)
-    student.eval()
-    student.to(device_t)
-    outputs = []
-    for batch in loader:
-        values = batch["values"].to(device_t)
-        valid_mask = batch["valid_mask"].to(device_t)
-        outputs.append(student.encoder(values, valid_mask).cpu())
-    return torch.cat(outputs, dim=0)
-
-
-def build_and_train_aggregator(args, reps: dict[str, torch.Tensor], name: str, config_dir: Path):
-    if name == "mean":
-        return MeanAggregator()
-    aggregator = build_aggregator(name, args.d_model, n_heads=args.heads, num_slots=args.num_slots)
-    if name in {"set", "set_slots"} and args.set_training == "supervised":
-        train_set_aggregator_context(
-            reps,
-            aggregator,
-            config_dir / "set_aggregator",
-            d_model=args.d_model,
-            device=args.device,
-            n_epochs=args.aggregator_epochs,
-            lr=args.aggregator_lr,
-            contrastive_weight=args.contrastive_weight,
-            verbose=not args.quiet,
-        )
-    elif name in {"set", "set_slots"} and args.set_training == "ssl":
-        train_set_aggregator_ssl(
-            reps,
-            aggregator,
-            config_dir / "set_aggregator_ssl",
-            d_model=args.d_model,
-            device=args.device,
-            n_epochs=args.aggregator_epochs,
-            lr=args.aggregator_lr,
-            variance_weight=args.ssl_variance_weight,
-            consistency_weight=args.ssl_consistency_weight,
-            context_weight=args.ssl_context_weight,
-            context_temperature=args.ssl_context_temperature,
-            context_topk=args.ssl_context_topk,
-            verbose=not args.quiet,
-        )
-    return aggregator
-
-
 def run_config(args, reps: dict[str, torch.Tensor], aggregator_name: str, temporal_name: str) -> dict[str, float | str]:
     config_name = f"{aggregator_name}_{temporal_name}"
     config_dir = args.output_dir / config_name
     config_dir.mkdir(parents=True, exist_ok=True)
 
-    aggregator = build_and_train_aggregator(args, reps, aggregator_name, config_dir)
+    aggregator, trajectory_ds = build_trajectory_dataset(args, reps, aggregator_name, config_dir)
     d6 = d6_bimodality_silhouette(
         reps,
         aggregator=None if aggregator_name == "mean" else aggregator,
         device=args.device,
     )
-    aggregated = aggregate_subject_periods(reps, aggregator, device=args.device)
-    sequences = build_trajectory_sequences(aggregated)
-    trajectory_ds = TrajectoryDataset(sequences)
+    sequences = trajectory_ds.sequences
     d_aggregated = sequences.values.size(-1)
 
     teacher = TrajectoryTeacher(
@@ -162,17 +102,10 @@ def run_config(args, reps: dict[str, torch.Tensor], aggregator_name: str, tempor
         **d2_context_drift_metrics(m_student, sequences.p_n1, sequences.class_id, sequences.valid_mask, "m"),
         **d2_context_drift_metrics(token_time, sequences.p_n1, sequences.class_id, sequences.valid_mask, "token_time"),
         **cka_metric(sequences.values, m_student, sequences.valid_mask, "R_m"),
+        "d_aggregated": d_aggregated,
     }
     (config_dir / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
     return metrics
-
-
-def write_csv(rows: list[dict[str, float | str]], path: Path) -> None:
-    fields = sorted({key for row in rows for key in row})
-    with path.open("w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
 
 
 def main() -> None:
@@ -197,6 +130,7 @@ def main() -> None:
     parser.add_argument("--ssl-context-weight", type=float, default=1.0)
     parser.add_argument("--ssl-context-temperature", type=float, default=0.2)
     parser.add_argument("--ssl-context-topk", type=int, default=2)
+    parser.add_argument("--ssl-subset-fraction", type=float, default=0.75)
     parser.add_argument("--beta", type=float, default=1.0)
     parser.add_argument("--tau-cka", type=float, default=0.7)
     parser.add_argument("--d-model", type=int, default=48)
@@ -213,38 +147,7 @@ def main() -> None:
     if args.skip_set_training:
         args.set_training = "none"
 
-    torch.manual_seed(args.seed)
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    rows, trajectories = generate_examples(
-        seed=args.seed,
-        fidelity=args.fidelity,
-        examples_per_subject_epoch=args.examples_per_subject_epoch,
-    )
-    write_examples(rows, args.output_dir / "data" / "corpus.tsv")
-    write_trajectories(trajectories, args.output_dir / "data" / "trajectories.json")
-
-    train_ds = MLMDataset(rows, split="train", seed=args.seed)
-    test_ds = MLMDataset(rows, split="test", seed=args.seed + 99)
-    eval_ds = MLMDataset(rows, split=None, seed=args.seed + 123)
-    semantic = build_model(
-        "TokenTime",
-        d_model=args.d_model,
-        n_layers=args.layers,
-        n_heads=args.heads,
-        d_ff=args.d_ff,
-    )
-    Trainer(semantic, args.output_dir / "semantic_encoder", device=args.device).train(
-        train_ds,
-        test_ds,
-        n_epochs=args.semantic_epochs,
-        batch_size=args.batch_size,
-        lr=args.lr,
-        seed=args.seed,
-        lambda_traj=0.0,
-        verbose=not args.quiet,
-    )
-    reps = extract_occurrence_representations(semantic, eval_ds, batch_size=args.batch_size, device=args.device)
-    save_representations(reps, args.output_dir / "occurrence_representations.pt")
+    reps = prepare_synthetic_representations(args, args.output_dir, save_artifacts=True)
 
     results = [run_config(args, reps, aggregator, temporal) for aggregator, temporal in parse_configs(args.configs)]
     write_csv(results, args.output_dir / "pipeline_results.csv")

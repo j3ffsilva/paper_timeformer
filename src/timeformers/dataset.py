@@ -23,6 +23,8 @@ POS_VERB = 2
 POS_OBJECT = 3
 SEQ_LEN = 5
 VOCAB_SIZE = len(VOCAB_TOKENS)
+VERB_IDS = [TOKEN2ID[token] for token in VERBS_N1 + VERBS_N2]
+OBJECT_IDS = [TOKEN2ID[token] for token in OBJS_N1 + OBJS_N2]
 CLASS2ID = {name: idx for idx, name in enumerate(SUBJECT_CLASSES)}
 ID2CLASS = {idx: name for name, idx in CLASS2ID.items()}
 
@@ -51,6 +53,63 @@ class MLMDataset(Dataset):
             "input_ids": torch.tensor(ids, dtype=torch.long),
             "context_ids": torch.tensor(context_ids, dtype=torch.long),
             "labels": torch.tensor(labels, dtype=torch.long),
+            "epoch_idx": torch.tensor(row.epoch, dtype=torch.long),
+            "subject_idx": torch.tensor(subject_idx, dtype=torch.long),
+            "true_context": torch.tensor(row.true_context, dtype=torch.long),
+            "p_n1": torch.tensor(row.p_n1, dtype=torch.float32),
+            "class_id": torch.tensor(CLASS2ID[row.subject_class], dtype=torch.long),
+        }
+
+    def __len__(self) -> int:
+        return len(self.items)
+
+    def __getitem__(self, idx: int) -> dict[str, Tensor]:
+        return self.items[idx]
+
+
+class ContextPairMLMDataset(MLMDataset):
+    """Mask the full synthetic context so prediction must use the subject."""
+
+    def _make_item(self, row: Example, rng: random.Random) -> dict[str, Tensor]:
+        del rng
+        input_ids = torch.tensor(
+            [CLS_ID, TOKEN2ID[row.subject], MASK_ID, MASK_ID, SEP_ID],
+            dtype=torch.long,
+        )
+        labels = torch.full((SEQ_LEN,), -100, dtype=torch.long)
+        labels[POS_VERB] = TOKEN2ID[row.verb]
+        labels[POS_OBJECT] = TOKEN2ID[row.obj]
+        return {
+            "input_ids": input_ids,
+            "context_ids": torch.tensor([TOKEN2ID[row.verb], TOKEN2ID[row.obj]], dtype=torch.long),
+            "labels": labels,
+            "epoch_idx": torch.tensor(row.epoch, dtype=torch.long),
+            "subject_idx": torch.tensor(int(row.subject[1:]) - 1, dtype=torch.long),
+            "true_context": torch.tensor(row.true_context, dtype=torch.long),
+            "p_n1": torch.tensor(row.p_n1, dtype=torch.float32),
+            "class_id": torch.tensor(CLASS2ID[row.subject_class], dtype=torch.long),
+        }
+
+
+class RepresentationDataset(Dataset):
+    """Unmasked examples for extracting contextual representations."""
+
+    def __init__(self, rows: list[Example], split: str | None = None) -> None:
+        self.rows = [r for r in rows if split is None or r.split == split]
+        self.items = [self._make_item(row) for row in self.rows]
+
+    def _make_item(self, row: Example) -> dict[str, Tensor]:
+        ids = [
+            CLS_ID,
+            TOKEN2ID[row.subject],
+            TOKEN2ID[row.verb],
+            TOKEN2ID[row.obj],
+            SEP_ID,
+        ]
+        subject_idx = int(row.subject[1:]) - 1
+        return {
+            "input_ids": torch.tensor(ids, dtype=torch.long),
+            "context_ids": torch.tensor([ids[POS_VERB], ids[POS_OBJECT]], dtype=torch.long),
             "epoch_idx": torch.tensor(row.epoch, dtype=torch.long),
             "subject_idx": torch.tensor(subject_idx, dtype=torch.long),
             "true_context": torch.tensor(row.true_context, dtype=torch.long),
