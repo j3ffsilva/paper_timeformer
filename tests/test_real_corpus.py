@@ -15,6 +15,9 @@ class RealCorpusTest(unittest.TestCase):
     def test_tokenize_keeps_lowercase_words(self) -> None:
         self.assertEqual(tokenize("The broadcast's meaning changed."), ["the", "broadcast's", "meaning", "changed"])
 
+    def test_tokenize_keeps_semeval_target_pos_tokens(self) -> None:
+        self.assertEqual(tokenize("attack_nn circle_vb changed."), ["attack_nn", "circle_vb", "changed"])
+
     def test_read_period_corpora_accepts_period_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

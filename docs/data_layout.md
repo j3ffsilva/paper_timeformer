@@ -42,6 +42,25 @@ data/raw/semeval2020_task1/semeval2020_ulscd_eng/
   truth/graded.txt
 ```
 
+Preparação para o runner diacrônico:
+
+```bash
+python3 scripts/prepare_semeval2020_task1.py
+```
+
+Layout processado esperado:
+
+```text
+data/processed/semeval2020_task1/eng_lemma/
+  corpus/
+    1810-1860.txt
+    1960-2010.txt
+  targets.txt
+  anchors.txt
+  truth.tsv
+  metadata.json
+```
+
 ## Smoke Diacrônico
 
 O corpus mínimo usado para validar a integração do pipeline fica em:

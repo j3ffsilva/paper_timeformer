@@ -11,7 +11,7 @@ from torch.utils.data import Dataset
 
 
 SPECIAL_TOKENS = ("[PAD]", "[CLS]", "[SEP]", "[MASK]", "[UNK]")
-TOKEN_RE = re.compile(r"[a-z]+(?:'[a-z]+)?")
+TOKEN_RE = re.compile(r"[a-z]+(?:_[a-z]+)?(?:'[a-z]+)?")
 
 
 @dataclass(frozen=True)
