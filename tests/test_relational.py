@@ -10,7 +10,10 @@ from timeformers.relational import (
     cosine_similarity_matrix,
     jensen_shannon_divergence_rows,
     jensen_shannon_similarity_matrix,
+    log_pmi_profiles,
     normalized_euclidean_similarity_matrix,
+    pmi_cosine_displacement,
+    ppmi_jsd_displacement,
 )
 from timeformers.relational_metrics import (
     placebo_reference_relational_change,
@@ -146,6 +149,72 @@ class RelationalMetricsTest(unittest.TestCase):
         self.assertEqual(reps["h"].shape[1], 16)
         self.assertTrue(torch.allclose(verb_distribution.sum(dim=1), torch.ones(len(dataset)), atol=1e-5))
         self.assertTrue(torch.allclose(object_distribution.sum(dim=1), torch.ones(len(dataset)), atol=1e-5))
+
+
+class LogPMIProfileTest(unittest.TestCase):
+    def setUp(self) -> None:
+        torch.manual_seed(11)
+        self.vocab_size = 50
+        self.n_words = 6
+
+    def test_neutral_token_has_zero_pmi(self) -> None:
+        # If q_t(w)[v] == p_t[v] for every v, PMI should be zero everywhere.
+        p = torch.ones(self.vocab_size) / self.vocab_size
+        q = p.unsqueeze(0).expand(self.n_words, -1)
+        R = log_pmi_profiles(q, p)
+        self.assertTrue(torch.allclose(R, torch.zeros_like(R), atol=1e-5))
+
+    def test_specific_token_has_positive_pmi(self) -> None:
+        # A word strongly associated with token 0 should have positive PMI for token 0.
+        p = torch.ones(self.vocab_size) / self.vocab_size
+        q = torch.full((self.n_words, self.vocab_size), 1.0 / self.vocab_size)
+        q[0, 0] = 0.9
+        q[0] = q[0] / q[0].sum()
+        R = log_pmi_profiles(q, p)
+        self.assertGreater(float(R[0, 0]), 0.0)
+        # Other words should still have near-zero PMI for token 0
+        self.assertAlmostEqual(float(R[1, 0]), 0.0, places=3)
+
+    def test_orthogonal_rotation_preserves_pmi_cosine(self) -> None:
+        # PMI profiles are in R^vocab — they don't live in embedding space,
+        # so this test instead checks that identical distributions give zero displacement.
+        p = torch.softmax(torch.randn(self.vocab_size), dim=0)
+        q = torch.softmax(torch.randn(self.n_words, self.vocab_size), dim=1)
+        R = log_pmi_profiles(q, p)
+        displacement = pmi_cosine_displacement(R, R)
+        self.assertTrue(torch.allclose(displacement, torch.zeros_like(displacement), atol=1e-5))
+
+    def test_changed_profile_has_positive_displacement(self) -> None:
+        p = torch.ones(self.vocab_size) / self.vocab_size
+        # Word 0: shifts from tokens 0-4 to tokens 25-29 (semantic change)
+        # Word 1: stays associated with tokens 0-4 in both periods (stable)
+        q_t0 = torch.full((self.n_words, self.vocab_size), 0.01)
+        q_t0[0, :5] = 0.1       # word 0 in period t0: tokens 0-4
+        q_t0[1, :5] = 0.1       # word 1 in period t0: tokens 0-4 (stable)
+        q_t0 = q_t0 / q_t0.sum(dim=1, keepdim=True)
+        q_t1 = torch.full((self.n_words, self.vocab_size), 0.01)
+        q_t1[0, 25:30] = 0.1   # word 0 in period t1: tokens 25-29 (changed)
+        q_t1[1, :5] = 0.1       # word 1 in period t1: tokens 0-4 (stable)
+        q_t1 = q_t1 / q_t1.sum(dim=1, keepdim=True)
+        R_t0 = log_pmi_profiles(q_t0, p)
+        R_t1 = log_pmi_profiles(q_t1, p)
+        cos_disp = pmi_cosine_displacement(R_t0, R_t1)
+        jsd_disp = ppmi_jsd_displacement(R_t0, R_t1)
+        # Word 0 (changed) should have larger displacement than word 1 (stable)
+        self.assertGreater(float(cos_disp[0]), float(cos_disp[1]))
+        self.assertGreater(float(jsd_disp[0]), float(jsd_disp[1]))
+        self.assertGreater(float(jsd_disp[0]), 0.01)
+
+    def test_ppmi_jsd_is_bounded(self) -> None:
+        p = torch.softmax(torch.randn(self.vocab_size), dim=0)
+        q_t0 = torch.softmax(torch.randn(self.n_words, self.vocab_size), dim=1)
+        q_t1 = torch.softmax(torch.randn(self.n_words, self.vocab_size), dim=1)
+        R_t0 = log_pmi_profiles(q_t0, p)
+        R_t1 = log_pmi_profiles(q_t1, p)
+        jsd = ppmi_jsd_displacement(R_t0, R_t1)
+        import math
+        self.assertTrue((jsd >= 0).all())
+        self.assertTrue((jsd <= math.log(2) + 1e-5).all())
 
 
 if __name__ == "__main__":
