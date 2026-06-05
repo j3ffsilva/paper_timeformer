@@ -15,6 +15,126 @@ PERIODS = {
     }
 }
 
+DEFAULT_STOPWORDS = {
+    "'s",
+    "a",
+    "about",
+    "above",
+    "after",
+    "again",
+    "against",
+    "all",
+    "also",
+    "am",
+    "an",
+    "and",
+    "any",
+    "are",
+    "as",
+    "at",
+    "be",
+    "because",
+    "been",
+    "before",
+    "being",
+    "below",
+    "between",
+    "both",
+    "but",
+    "by",
+    "can",
+    "could",
+    "do",
+    "does",
+    "doing",
+    "down",
+    "during",
+    "each",
+    "for",
+    "from",
+    "had",
+    "has",
+    "have",
+    "having",
+    "he",
+    "her",
+    "here",
+    "hers",
+    "herself",
+    "him",
+    "himself",
+    "his",
+    "how",
+    "i",
+    "if",
+    "in",
+    "into",
+    "is",
+    "it",
+    "its",
+    "itself",
+    "just",
+    "me",
+    "may",
+    "more",
+    "most",
+    "my",
+    "n't",
+    "no",
+    "nor",
+    "not",
+    "now",
+    "of",
+    "only",
+    "on",
+    "one",
+    "or",
+    "our",
+    "out",
+    "over",
+    "own",
+    "s",
+    "she",
+    "should",
+    "so",
+    "some",
+    "such",
+    "than",
+    "that",
+    "the",
+    "their",
+    "them",
+    "then",
+    "there",
+    "these",
+    "they",
+    "this",
+    "those",
+    "through",
+    "to",
+    "under",
+    "until",
+    "up",
+    "upon",
+    "very",
+    "was",
+    "we",
+    "were",
+    "what",
+    "when",
+    "where",
+    "which",
+    "while",
+    "who",
+    "whom",
+    "why",
+    "will",
+    "with",
+    "would",
+    "you",
+    "your",
+}
+
 
 def read_lines(path: Path, *, max_lines: int | None = None) -> list[str]:
     lines = []
@@ -75,6 +195,11 @@ def select_anchors(
     *,
     min_count: int,
     max_anchors: int,
+    exclude_stopwords: bool = False,
+    min_length: int = 1,
+    max_period_count: int | None = None,
+    max_period_fraction: float | None = None,
+    alpha_only: bool = False,
 ) -> list[str]:
     shared = set(counts_by_period[0])
     for counts in counts_by_period[1:]:
@@ -83,9 +208,24 @@ def select_anchors(
     for token in shared:
         if token in targets:
             continue
+        if exclude_stopwords and token in DEFAULT_STOPWORDS:
+            continue
+        if alpha_only and not token.isalpha():
+            continue
+        if len(token) < min_length:
+            continue
         period_counts = [counts[token] for counts in counts_by_period]
         if min(period_counts) < min_count:
             continue
+        if max_period_count is not None and max(period_counts) > max_period_count:
+            continue
+        if max_period_fraction is not None:
+            too_frequent = any(
+                count / max(sum(period_counts_for_period.values()), 1) > max_period_fraction
+                for count, period_counts_for_period in zip(period_counts, counts_by_period)
+            )
+            if too_frequent:
+                continue
         candidates.append((sum(period_counts), min(period_counts), token))
     candidates.sort(reverse=True)
     return [token for _, _, token in candidates[:max_anchors]]
@@ -123,6 +263,11 @@ def prepare(args: argparse.Namespace) -> None:
         set(targets),
         min_count=args.anchor_min_count,
         max_anchors=args.max_anchors,
+        exclude_stopwords=args.exclude_stopwords,
+        min_length=args.anchor_min_length,
+        max_period_count=args.anchor_max_period_count,
+        max_period_fraction=args.anchor_max_period_fraction,
+        alpha_only=args.anchor_alpha_only,
     )
     if not anchors:
         raise ValueError("No anchors selected; lower --anchor-min-count")
@@ -141,6 +286,11 @@ def prepare(args: argparse.Namespace) -> None:
         "n_targets": len(targets),
         "n_anchors": len(anchors),
         "anchor_min_count": args.anchor_min_count,
+        "anchor_min_length": args.anchor_min_length,
+        "anchor_max_period_count": args.anchor_max_period_count,
+        "anchor_max_period_fraction": args.anchor_max_period_fraction,
+        "anchor_alpha_only": args.anchor_alpha_only,
+        "exclude_stopwords": args.exclude_stopwords,
         "max_anchors": args.max_anchors,
         "max_lines": args.max_lines,
         "target_coverage": {
@@ -167,6 +317,11 @@ def main() -> None:
     parser.add_argument("--language", default="eng")
     parser.add_argument("--corpus-kind", choices=["lemma", "token"], default="lemma")
     parser.add_argument("--anchor-min-count", type=int, default=500)
+    parser.add_argument("--anchor-min-length", type=int, default=1)
+    parser.add_argument("--anchor-max-period-count", type=int, default=None)
+    parser.add_argument("--anchor-max-period-fraction", type=float, default=None)
+    parser.add_argument("--anchor-alpha-only", action="store_true")
+    parser.add_argument("--exclude-stopwords", action="store_true")
     parser.add_argument("--max-anchors", type=int, default=1000)
     parser.add_argument("--max-lines", type=int, default=None)
     args = parser.parse_args()

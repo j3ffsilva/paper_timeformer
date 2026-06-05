@@ -48,6 +48,20 @@ Preparação para o runner diacrônico:
 python3 scripts/prepare_semeval2020_task1.py
 ```
 
+Para gerar uma versão com âncoras de conteúdo, removendo palavras funcionais
+frequentes:
+
+```bash
+python3 scripts/prepare_semeval2020_task1.py \
+  --output-dir data/processed/semeval2020_task1/eng_lemma_content \
+  --exclude-stopwords \
+  --anchor-alpha-only \
+  --anchor-min-count 50 \
+  --anchor-min-length 3 \
+  --anchor-max-period-fraction 0.005 \
+  --max-anchors 300
+```
+
 Layout processado esperado:
 
 ```text
@@ -127,6 +141,10 @@ original, e as distribuições previstas sobre âncoras são agregadas por
 palavra/período. O score principal recomendado é `direct_jsd`, isto é,
 `JSD(q_t0(w), q_t1(w))` calculado diretamente entre os dois perfis de âncoras
 da mesma palavra.
+
+O runner também exporta `top_anchors.csv`, com as âncoras mais prováveis por
+alvo e período. Esse arquivo deve ser inspecionado antes de interpretar
+qualquer métrica agregada.
 
 ## Convenção de Scripts
 

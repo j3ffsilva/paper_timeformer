@@ -48,6 +48,29 @@ def write_csv(rows: list[dict], path: Path) -> None:
         writer.writerows(rows)
 
 
+def write_top_anchor_csv(profiles: list[dict], path: Path, *, top_k: int) -> None:
+    rows = []
+    for profile in profiles:
+        distributions = profile["distributions"]
+        anchors = profile["anchors"]
+        targets = profile["targets"]
+        k = min(top_k, len(anchors))
+        values, indices = torch.topk(distributions, k=k, dim=1)
+        for target_index, target in enumerate(targets):
+            for rank in range(k):
+                anchor_index = int(indices[target_index, rank])
+                rows.append(
+                    {
+                        "period": profile["period"],
+                        "target": target,
+                        "rank": rank + 1,
+                        "anchor": anchors[anchor_index],
+                        "probability": float(values[target_index, rank]),
+                    }
+                )
+    write_csv(rows, path)
+
+
 def build_model(args, vocab_size: int, pad_id: int) -> RealStaticMLM:
     return RealStaticMLM(
         vocab_size=vocab_size,
@@ -252,6 +275,7 @@ def main() -> None:
     parser.add_argument("--max-windows-per-period", type=int, default=None)
     parser.add_argument("--probe-mode", choices=["occurrence", "template"], default="occurrence")
     parser.add_argument("--max-probe-occurrences-per-target", type=int, default=None)
+    parser.add_argument("--top-anchors-k", type=int, default=10)
     parser.add_argument("--base-epochs", type=int, default=2)
     parser.add_argument("--epochs-per-period", type=int, default=1)
     parser.add_argument("--batch-size", type=int, default=128)
@@ -364,6 +388,7 @@ def main() -> None:
     profiles = extract_period_profiles(args, corpora, token_to_id, targets, anchors)
     rows = relational_rows(profiles)
     write_csv(rows, args.output_dir / "diachronic_relational_changes.csv")
+    write_top_anchor_csv(profiles, args.output_dir / "top_anchors.csv", top_k=args.top_anchors_k)
     elapsed = time.perf_counter() - started
     log(args, f"[done] elapsed={elapsed:.1f}s")
     print(f"Wrote {args.output_dir / 'diachronic_relational_changes.csv'}")
