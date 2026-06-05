@@ -1,163 +1,289 @@
-**O problema que queremos resolver**
-
-Imagine que você tem um dicionário que foi atualizado ao longo de 100 anos. A palavra *gay* em 1920 significava alegre. Em 1980 significava outra coisa. Se você perguntar a um modelo de linguagem moderno "o que *gay* significa em 1920?", ele vai te dar uma representação — um vetor de números — que provavelmente é quase idêntica à representação de *gay* em 1980. O modelo aprendeu a palavra, não a palavra num momento específico.
-
-Traceabilidade temporal é a propriedade que queremos que um modelo tenha: *gay@1920* e *gay@1980* deveriam ocupar lugares diferentes no espaço geométrico das representações. Como se cada palavra tivesse um endereço que muda ao longo do tempo, e você pudesse consultar o endereço antigo diretamente.
-
-O Paper 1 mostrou que modelos treinados com MLM (mascarar uma palavra e tentar adivinhá-la a partir do contexto) não desenvolvem essa propriedade de forma confiável. O objetivo deles é bom para entender contexto local — "qual palavra encaixa nesta sentença?" — mas não para posicionar palavras geometricamente de forma consistente ao longo do tempo. É como contratar alguém para organizar livros por assunto mas sem nunca pedir para eles manter um índice histórico de onde cada livro ficou em cada ano.
+# O projeto em linguagem simples
 
 ---
 
-**A ideia central: dois tipos de representação**
+## O problema que queremos resolver
 
-Nossa proposta é que para rastrear uma palavra no tempo você precisa de dois tipos de informação, que são complementares.
+Imagine que você tem um dicionário que foi atualizado ao longo de 100 anos. A palavra *gay* em 1920 significava alegre. Em 1980, a palavra tinha adquirido um segundo significado, relacionado à identidade sexual, e esse passou a ser o sentido dominante. Se você perguntar a um modelo de linguagem moderno "o que *gay* significa em 1920?", ele vai te dar uma resposta influenciada por tudo que o modelo aprendeu — incluindo os décadas de uso posterior que o modelo viu no treinamento.
 
-O primeiro tipo é **onde a palavra está agora**, no período que você está consultando. Isso é o que os modelos atuais fazem bem. Se você encontra a palavra *vírus* numa sentença que fala de computadores e malware, o modelo sabe que estamos falando de vírus digital. Se a sentença fala de infecção e bactérias, é vírus biológico. O contexto da sentença informa a posição semântica no período. Chamamos essa representação de **h_s(t)** — o vetor que descreve onde o token S está no período t.
+O que queremos estudar é justamente isso: **como as palavras mudam de comportamento semântico ao longo do tempo**, e se um modelo de linguagem treinado cronologicamente capta essas mudanças de forma mensurável e interpretável.
 
-O segundo tipo é **como a palavra chegou até aqui** — a trajetória que ela percorreu. Imagine que você está tentando entender por que *broadcast* hoje significa postar nas redes sociais. A resposta exige saber de onde veio: semear sementes, depois transmitir rádio, depois televisão, e finalmente comunicação digital. Nenhuma sentença individual te dá isso. Você precisa de uma representação que olha para o arco inteiro da trajetória da palavra. Chamamos essa representação de **m_s(t)**.
-
-A proposta é que token@tempo seja o par `(h_s(t), m_s(t))`. Um endereço atual mais uma descrição do caminho percorrido. Como se para localizar alguém você precisasse não só do endereço de hoje mas de um resumo de todas as cidades onde ela morou.
+Não estamos tentando fazer o modelo "saber" sobre 1920 e 1980 ao mesmo tempo. Estamos tentando treinar o modelo da mesma forma que um ser humano aprende: exposto primeiro ao vocabulário de uma época, depois ao da próxima, e depois ao da seguinte — em ordem cronológica — e perguntar: as representações internas do modelo mudaram de formas que refletem as mudanças semânticas reais que sabemos que ocorreram?
 
 ---
 
-**Como construímos h_s(t)**
+## A jornada das ideias: de onde viemos e por que mudamos
 
-Essa parte já existe no Paper 1 e não muda. Você pega o modelo Token-Time — um transformer padrão onde cada token recebe, além do seu embedding normal, um vetor que codifica em qual período temporal a sentença está. Você treina esse modelo com MLM sobre um corpus fatiado por período. No final, para qualquer sentença no período t, você passa ela pelo modelo e pega o vetor que corresponde à posição da palavra que te interessa. Esse vetor é h_s(t).
+### Primeira tentativa: condicionar o Transformer por tempo
 
-Um exemplo concreto: você tem 1000 sentenças com a palavra *gay* dos anos 1920, e 1000 dos anos 1980. Cada sentença é processada com o rótulo do período correspondente. O modelo aprende que em 1920 *gay* aparece com palavras como *cheerful*, *merry*, *laughter*; em 1980 aparece com palavras muito diferentes. Mas como o Paper 1 mostrou, essa separação contextual não garante que os vetores de *gay@1920* e *gay@1980* fiquem em vizinhanças diferentes no espaço geométrico. O modelo sabe usar o contexto para desambiguar, mas não necessariamente posiciona os dois vetores longe um do outro.
+O Paper 1 comparou diferentes formas de "marcar" cada sentença com o período a que ela pertence antes de ela entrar no Transformer. A ideia era: se o modelo sabe que está lendo uma sentença de 1920, vai produzir representações diferentes de quando lê uma sentença de 1980.
 
----
+Fizemos isso de três formas diferentes — adicionando o período ao embedding dos tokens, multiplicando os embeddings por pesos dependentes do período, e concatenando o período ao embedding antes de uma projeção. O Paper 1 mostrou que as três formas produziram resultados essencialmente equivalentes: o modelo conseguia usar o período como informação, mas os três mecanismos não se diferenciaram de forma relevante.
 
-**Como construímos m_s(t) — o agregador por período**
+Isso foi um achado importante: **não é o mecanismo de condicionamento que importa, mas se faz sentido condicionar o Transformer por período desta forma**.
 
-O primeiro passo para construir a representação de trajetória é resumir como a palavra se comportou em cada período. Para cada período t em que a palavra S aparece, você coleta todos os vetores h_s(t) de todas as ocorrências dessa palavra naquele período, e os resume num único vetor R_s(t).
+### Segundo planejamento: separar posição semântica de trajetória
 
-A versão mais simples é tirar a média: R_s(t) = média de todos os h_s(t) daquele período. Isso é o que o Paper 1 chamou de mean-prototype, e funciona bem quando a palavra tem um sentido dominante no período. Mas falha quando a palavra tem dois sentidos coexistentes. Imagine *gay* em um período de transição — metade das ocorrências vêm do sentido antigo, metade do novo. A média dos dois vetores cai no meio, num ponto que não representa nenhum dos dois sentidos. Como se você tentasse descrever um casal misturando as características dos dois numa média — o resultado não se parece com nenhum deles.
+No segundo planejamento, propusemos que a representação de uma palavra no tempo fosse um par: a posição semântica atual (o que o modelo de linguagem normal produziria) mais um vetor de trajetória separado que capturia "como a palavra chegou até aqui". Propusemos aprender esse vetor de trajetória através de um teacher e um student — com masked trajectory distillation.
 
-Para lidar com isso, usamos um Set Transformer como agregador. Em vez de simplesmente fazer a média, o Set Transformer processa o conjunto inteiro de ocorrências — todas de uma vez, levando em conta as relações entre elas. Antes de comprimir para um único vetor, ele produz uma versão contextualizada de cada ocorrência, onde cada vetor foi ajustado à luz de todos os outros. Se metade das ocorrências está num cluster e metade está em outro, o Set Transformer tem a capacidade arquitetural de preservar essa estrutura ao comprimir, em vez de apagar com a média.
+O problema que identificamos: ao condicionar o Transformer por tempo (como no Paper 1), o próprio espaço semântico se deforma a cada período. Não existe um sistema de coordenadas fixo. *gay@1920* e *gay@1980* existem em espaços que foram co-treinados com a informação de período — você não pode subtrair um do outro e chamar o resultado de "deslocamento semântico" de forma confiável, porque o espaço em si também se moveu.
 
-Imagine que você quer resumir uma turma de 30 alunos. A média das notas é uma informação — mas se há um grupo de alunos excelentes e outro de alunos que lutam, a média esconde isso. Um resumo que preserva "há dois grupos bem distintos" é mais informativo. O Set Transformer tenta fazer isso para os sentidos de uma palavra num período.
+Analogy concreta: imagine que você quer medir quanto uma pessoa se deslocou entre dois pontos numa cidade. Se a cidade inteira se reorganizou entre as suas visitas (ruas mudaram de lugar, o centro se moveu), a diferença de coordenadas no mapa não reflete o deslocamento real da pessoa. O que queremos é uma medida que não dependa de o mapa permanecer fixo.
 
-Um detalhe técnico importante: o Set Transformer produz, antes do vetor final R_s(t), um conjunto de vetores intermediários — um por ocorrência, que chamamos de u_s^i(t). Esses vetores intermediários são o que usamos para medir se a bimodalidade foi preservada. O vetor final R_s(t) é o resumo comprimido que entra na etapa seguinte.
+### Terceiro planejamento: espaço congelado em t0 com deslocamentos externos
 
----
+Então pensamos: e se treinarmos o Transformer somente nos textos do período inicial, congelarmos os pesos, e aprendermos um módulo separado que "empurra" cada palavra para onde ela ficaria em períodos posteriores?
 
-**A sequência de representações e o que não fazer**
+A ideia é limpa: espaço semântico de referência fixo em t0, deslocamento aprendido para cada período posterior. Mas identificamos um problema prático: se o Transformer foi treinado somente em textos de 1920 e você o aplica em textos de 1990, ele estará operando fora de distribuição — processando vocabulário, construções sintáticas e contextos que nunca viu. As representações que produz para textos de 1990 não têm a mesma qualidade de interpretação que as de textos de 1920. O deslocamento que você calcularia misturaria mudança semântica real com degradação da qualidade do modelo fora de distribuição.
 
-Com R_s(t) calculado para cada período em que S aparece, você tem uma sequência ao longo do tempo. Por exemplo, para *gay* no COHA (que cobre décadas de 1810 a 2000), você teria algo como R_gay(1810s), R_gay(1820s), ..., R_gay(2000s).
+### A proposta atual: treinamento contínuo com análise relacional
 
-Dois princípios de construção importam aqui.
+A ideia que estamos investigando agora é diferente de todas as anteriores em um aspecto fundamental: **o Transformer não recebe nenhuma informação temporal**. Ele é um modelo padrão, treinado da forma mais simples possível.
 
-O primeiro é que a trajetória só existe onde a palavra existe. Se *internet* não aparece no corpus dos anos 1970, não tentamos extrapolar como ela "teria sido" naquele período. Extrapolar criaria trajetórias fictícias que o modelo depois tentaria modelar como se fossem reais — como inventar a história de alguém antes de ela nascer. A trajetória começa quando a palavra aparece pela primeira vez e termina na última ocorrência.
+O que fazemos é treinar o mesmo modelo continuamente, em ordem cronológica — primeiro com os textos de D_0, depois continuando com os textos de D_1, depois D_2, e assim por diante. Depois de cada período, salvamos um snapshot do modelo (um *checkpoint*). No final, temos 10 checkpoints: theta_0, theta_1, ..., theta_9.
 
-O segundo é que para décadas intermediárias onde a palavra tem poucas ou nenhuma ocorrência mas está "dentro" do período coberto, usamos interpolação linear entre as décadas vizinhas. Se temos R_s(1890s) e R_s(1910s) mas não R_s(1900s), assumimos que R_s(1900s) é o ponto médio. É o prior mais conservador possível — assume mudança gradual quando não temos evidência do contrário. Mudanças abruptas que coincidem com décadas sem ocorrência vão ser suavizadas, e documentamos isso como limitação.
+```
+theta_0 = treinamento em D_0
+theta_1 = continuação de theta_0 em D_1
+theta_2 = continuação de theta_1 em D_2
+...
+```
 
-Uma coisa que consideramos mas descartamos: calcular deltas — δ_s(t) = R_s(t) − R_s(t−1) — e passar os deltas para o encoder temporal em vez das representações diretamente. O problema é que delta pressupõe que subtrair dois vetores produz algo significativo como "deslocamento". Isso é verdade para médias simples (centroides vivem num espaço euclidiano bem comportado), mas não é garantido para saídas do Set Transformer, que podem codificar a estrutura do conjunto de formas não-lineares. Dois vetores de períodos diferentes do Set Transformer podem ser incomaráveis por subtração. Então passamos a sequência inteira de R_s(t) diretamente para o encoder temporal e deixamos ele aprender o que significa mudança.
-
----
-
-**O encoder temporal e o objetivo de treinamento**
-
-Agora temos a sequência Seq_s = (R_s(t_a), R_s(t_a+1), ..., R_s(t_b)) — a trajetória de S ao longo dos períodos em que aparece. Queremos aprender uma representação m_s(t) que capture o estado dessa trajetória em cada ponto.
-
-Fazemos isso em dois passos, com um teacher e um student — uma estrutura clássica de knowledge distillation.
-
-**O teacher** é treinado primeiro, sobre trajetórias completas, sem máscara. Ele recebe a sequência inteira e produz representações M_s(t) para cada período. O objetivo do teacher é duplo: reconstruir a sequência de entrada (como um autoencoder) e, ao mesmo tempo, ser penalizado se as suas representações forem muito parecidas com a entrada. Essa segunda parte — a regularização anti-identidade — é o que impede o teacher de "trapacear" simplesmente copiando a entrada. Sem ela, um autoencoder com capacidade suficiente aprende identidade (a saída é igual à entrada) e nada de útil foi comprimido. Com a regularização, o teacher é forçado a produzir uma representação que é diferente da sequência bruta mas ainda captura sua estrutura essencial.
-
-Um exemplo simples de regularização anti-identidade: imagine que você pediu para alguém resumir um livro de 500 páginas, mas eles simplesmente te devolveram as 500 páginas. Isso satisfaz "incluir todas as informações" mas não cumpre o objetivo de resumo. A penalização mede o quanto a saída se parece com a entrada e aumenta o custo quando a similaridade é alta, forçando uma compressão real.
-
-Depois de treinar, congelamos o teacher. As representações que ele produz — M_s^teacher(t) — viram os alvos fixos para o próximo passo.
-
-**O student** aprende com a trajetória mascarada. Você pega a sequência Seq_s, esconde um período t_k (substitui por um token especial [MASK]), e pede para o student reconstruir M_s^teacher(t_k) — a representação que o teacher teria produzido para aquele período se visse a sequência completa. O student vê toda a trajetória exceto o período mascarado, e aprende a prever o que aquele período deveria ser.
-
-Como o teacher está congelado, o alvo não muda durante o treinamento do student. Não há risco de colapso trivial onde teacher e student entram em conluio para produzir representações sem sentido — o teacher é uma referência fixa, como um gabarito.
-
-A escolha mais importante: o student é **bidirecional**. Ele vê tanto o passado quanto o futuro da trajetória ao redor do período mascarado. Por quê isso importa? Considere uma palavra que muda de significado abruptamente numa única década — como se *gay* tivesse mudado completamente de 1940 para 1950, sem transição gradual. Se você só vê o passado, até 1940 parece que a trajetória vai continuar igual. Mas se você vê que a partir de 1950 o comportamento é radicalmente diferente, você consegue identificar que houve uma ruptura em 1940–1950 mesmo sem ver aquele período diretamente. A bidirecionalidade é necessária para capturar mudanças abruptas.
+A pergunta é: os checkpoints theta_0 e theta_9 representam as palavras de forma diferente, de maneiras que refletem as mudanças semânticas reais que aconteceram no corpus?
 
 ---
 
-**O benchmark sintético e as quatro classes**
+## A ideia central: mudança relacional, não mudança de coordenadas
 
-Para testar tudo isso de forma controlada, usamos um corpus sintético onde sabemos exatamente qual deveria ser a trajetória de cada palavra. O corpus é composto de sentenças sujeito-verbo-objeto muito simples, com dois grupos de verbos e objetos: N1 (verbos V1–V4, objetos O1–O4) e N2 (verbos V5–V8, objetos O5–O8).
+Aqui está o ponto mais importante de toda a proposta, e vale gastar tempo para entendê-lo bem.
 
-A "trajetória semântica" de um sujeito é simplesmente com qual frequência ele aparece em sentenças do tipo N1 vs. N2 ao longo do tempo. Se um sujeito aparece quase sempre com verbos e objetos de N1 no início e quase sempre com N2 no final, sua trajetória é uma migração de N1 para N2.
+Quando um Transformer é treinado, ele organiza as palavras num espaço de alta dimensão. Palavras semanticamente relacionadas ficam próximas; palavras não relacionadas ficam distantes. Mas esse espaço não é fixo de um checkpoint para o outro — ele pode rodar, refletir, expandir ou reorganizar durante o treinamento.
 
-Há um ruído intencional: 25% das vezes, o verbo ou objeto é sorteado da vizinhança errada. Isso simula o fato de que no mundo real uma palavra com um sentido pode às vezes aparecer em contextos inesperados.
+Exemplo trivial: imagine um espaço bidimensional onde no checkpoint t0 temos:
 
-As quatro classes de trajetória são:
+```
+gato:     [1, 0]
+cachorro: [0, 1]
+carro:    [-1, 0]
+```
 
-**Stable** — a palavra fica no mesmo lugar o tempo todo. P(N1|s,t) é aproximadamente constante ao longo dos 10 períodos. Como *cadeira* — sempre significa o mesmo.
+Depois de treinar mais, o espaço inteiro rotaciona 90 graus, e no checkpoint t1 temos:
 
-**Drift** — a palavra migra gradualmente de N1 para N2. Começa com quase 100% de ocorrências em N1 e termina com quase 100% em N2, numa rampa suave. Como *broadcast* ao longo de décadas.
+```
+gato:     [0, 1]
+cachorro: [-1, 0]
+carro:    [0, -1]
+```
 
-**Bifurcating** — a palavra começa em N1 e vai para um estado misto, onde 50% das ocorrências são N1 e 50% são N2. Simula uma palavra que desenvolveu dois sentidos coexistentes, como *gay* num período de transição.
+Se olharmos para os vetores absolutos, *gato* "se moveu" de `[1, 0]` para `[0, 1]` — uma mudança aparente. Mas a distância entre gato e cachorro é a mesma nos dois checkpoints. A distância entre gato e carro é a mesma. **Nenhuma relação semântica mudou**. A rotação é um artefato do treinamento, não uma mudança de significado.
 
-**Abrupt** — a palavra está em N1 até um certo período t_k, e depois muda completamente para N2 num salto único. Como se uma palavra mudasse de significado da noite para o dia, talvez por uma mudança cultural ou tecnológica repentina.
+Portanto: **não queremos medir mudança de coordenadas absolutas**. Queremos medir mudança de relações.
 
-As classes Drift e Abrupt são as que testam a representação de trajetória de formas distintas. Drift é suave e previsível — até uma representação simples deve captá-la. Abrupt é o caso difícil, que só uma arquitetura bidirecional consegue reconstruir adequadamente quando o período da ruptura é mascarado.
+O perfil relacional de uma palavra num checkpoint é simplesmente o conjunto de similaridades dela com todas as outras palavras naquele checkpoint:
 
----
+```
+r_t(banco) = {
+    dinheiro: 0.90,
+    rio: 0.20,
+    cadeira: 0.10,
+    conta: 0.85,
+    ...
+}
+```
 
-**Os diagnósticos**
+Se no próximo checkpoint esse perfil for:
 
-Temos seis formas de avaliar se o modelo está funcionando.
+```
+r_{t+1}(banco) = {
+    dinheiro: 0.40,
+    rio: 0.85,
+    cadeira: 0.10,
+    conta: 0.40,
+    ...
+}
+```
 
-**D1** é o mais simples: treinamos um classificador linear sobre h_s(t) ou m_s(t) para prever se o sujeito estava numa sentença N1 ou N2. Se a representação separar os dois, o classificador tem boa acurácia. Mas aprendemos no Paper 1 que isso é necessário mas não suficiente — um modelo pode codificar o período sem posicionar os vetores nos lugares certos geometricamente.
+Então houve mudança semântica: *banco* se afastou de *dinheiro* e *conta*, e se aproximou de *rio*. Não importa se o vetor absoluto de *banco* rotacionou, refletiu ou mudou de escala — o que importa é que suas vizinhanças mudaram.
 
-**D2** é o principal: para cada período e cada sujeito, pega os 10 vetores mais parecidos com h_s(t) no espaço de representações e mede quantos são de sentença N1. Se a proporção acompanha P(N1|s,t) ao longo do tempo — começa alta para sujeitos Drift e cai até o final — então a representação está geometricamente correta. O resultado esperado é que m_s(t) tenha um D2 melhor do que h_s(t), especialmente em condições difíceis.
+A medida de mudança é a diferença entre os perfis relacionais:
 
-**D3** faz o seguinte: pega a mesma sentença, muda só o rótulo de período, e verifica se a representação muda de vizinhança. Modelos que ignoram o período dão taxa zero — sempre o mesmo resultado independente do período injetado.
+```
+delta_rel(banco, t0, t1) = r_{t1}(banco) - r_{t0}(banco)
+= {
+    dinheiro: -0.50,   ← afastou
+    rio: +0.65,        ← aproximou
+    cadeira: 0.00,     ← estável
+    conta: -0.45,      ← afastou
+}
+```
 
-**D4** testa generalização: treinamos o modelo nos períodos t0–t7, e avaliamos em t8–t9 que o modelo nunca viu. Um modelo que internalizou a *direção* da trajetória deve conseguir generalizar para períodos novos.
-
-**D5a** é o diagnóstico do objetivo de treinamento do student. Você pega a trajetória completa de um sujeito, mascara um período, e verifica se o student consegue reconstruir o que o teacher produziria. Em sujeitos Abrupt, a ruptura abrupta em t_k deve ser reconstruível se o student bidirecional viu t_{k+1} e percebeu que a trajetória mudou completamente. Um student causal ou linear não conseguiria — ele só viu o passado e projetaria continuação.
-
-**D6** testa a bimodalidade em sujeitos Bifurcating. Para sujeitos que têm dois sentidos coexistentes nos períodos tardios, os vetores intermediários do Set Transformer deveriam formar dois grupos distintos — um para as ocorrências N1 e outro para N2. Medimos isso com silhouette: se as ocorrências N1 estão mais perto entre si do que das ocorrências N2, e vice-versa, o silhouette é alto. Se tudo está misturado num centroide, o silhouette é baixo. A média simples falha porque produz um único vetor médio; o Set Transformer tem a capacidade de manter os dois grupos separados.
-
----
-
-**As verificações de sanidade — as portas que precisam abrir**
-
-Antes de qualquer experimento completo, há três verificações sequenciais que funcionam como portas de entrada. Se uma falhar, paramos para diagnosticar antes de avançar.
-
-**Verificação 0 — o teacher é semanticamente informativo?** Treinamos o teacher com a regularização anti-identidade e verificamos duas coisas: as representações M_s(t) que ele produz são suficientemente diferentes das representações de entrada R_s(t)? E um probe linear sobre M_s(t) consegue prever P(N1|s,t) melhor do que um probe direto sobre R_s(t)? Se a segunda resposta for "não", o teacher não extraiu nada de útil da trajetória e o Passo 2 não tem base.
-
-**Verificação 1 — as representações carregam sinal temporal?** A versão mais simples do sistema — encoder linear sem memória, agregador de média — consegue melhorar D2 sobre h_s(t) sozinho para sujeitos Drift? Se essa versão mínima já não captura a deriva gradual, nada de mais sofisticado vai ajudar. Também verificamos o complemento: para sujeitos Stable, a representação de trajetória deve ser estatisticamente indistinguível de h_s(t). Se o encoder está "inventando" trajetória onde não existe, está injetando ruído.
-
-**Verificação 2 — o Set Transformer preserva bimodalidade?** Para sujeitos Bifurcating, os embeddings intermediários do Set Transformer nos períodos tardios formam dois grupos distintos (silhouette alto)? Se não, o argumento de que o centroide é o gargalo não se sustenta, e podemos usar mean pooling para tudo.
-
-Somente após essas três verificações passarem avançamos para as ablações completas e para o corpus natural.
-
----
-
-**O corpus natural e a avaliação extrínseca**
-
-O COHA — Corpus of Historical American English — cobre décadas de 1810 a 2000 e é o mesmo corpus usado por Hamilton et al. nos experimentos seminais de LSCD. Usamos as palavras-alvo do SemEval-2020 que tenham ocorrências em pelo menos 3 décadas distintas como conjunto de avaliação.
-
-Para cada palavra-alvo, construímos a sequência de representações por década, interpolando onde necessário e sem extrapolar além das datas de cobertura. Rodamos os diagnósticos D2, D3, D4 e D6 sobre h_s, m_s e o par completo.
-
-A avaliação extrínseca no SemEval-2020 pergunta: dado um conjunto de palavras com mudança semântica anotada por humanos, o modelo consegue rankear as palavras da que mudou mais para a que mudou menos? Usamos a norma do deslocamento em m_s como medida de mudança e comparamos com Hamilton et al. como baseline.
-
-Incluímos também uma análise qualitativa de trajetórias para palavras com histórico semântico conhecido — *gay*, *broadcast*, *mouse* — plotando as posições de h_s(t) e m_s(t) ao longo das décadas num espaço bidimensional (via PCA). Isso serve como salvaguarda: se a métrica de ranking for insensível a um ganho real, a visualização pode mostrar que as trajetórias de m_s são mais coerentes e suaves do que as de h_s.
-
----
-
-**Uma nuance filosófica sobre m_s(t)**
-
-Vale mencionar algo que pode parecer estranho à primeira leitura: porque o student é bidirecional, m_s@1900 para uma palavra específica depende do que o modelo sabe sobre os períodos posteriores. Se você treinar com dados até 1950, m_s@1900 é diferente do que se você treinar com dados até 2000 — porque o contexto futuro disponível muda.
-
-Isso é incomum para um historiador: normalmente o "estado de algo em 1900" não deveria depender do que aconteceu em 1950. Mas m_s(t) não é uma representação causal — não está prevendo o futuro. É uma descrição retrospectiva de uma trajetória já observada. Como um biógrafo que escreve sobre a infância de alguém sabendo o que ela se tornaria — a descrição da infância é influenciada pelo conhecimento do arco completo, e isso é uma característica do método, não um defeito.
+Esse vetor de diferenças é diretamente interpretável: cada dimensão corresponde a uma palavra de referência e diz se a relação com ela aumentou ou diminuiu.
 
 ---
 
-**Como tudo se encaixa numa linha**
+## Como extraímos as representações: o probe preditivo
 
-O Paper 1 mostrou que o MLM cria representações que respondem ao período mas não posicionam os vetores geometricamente de forma consistente ao longo do tempo. O problema está no objetivo, não na arquitetura.
+Para construir o perfil relacional de uma palavra num checkpoint, precisamos de uma representação por palavra. O Transformer produz representações contextuais — cada ocorrência de uma palavra produz um vetor diferente dependendo da sentença em que aparece. Precisamos resumir isso num único ponto por palavra por checkpoint.
 
-O Paper 2 propõe que token@tempo = (h_s(t), m_s(t)). h_s(t) vem do mesmo modelo do Paper 1 — boa desambiguação contextual, posição semântica no período. m_s(t) é novo — estado da trajetória, aprendido via masked trajectory distillation sobre sequências de representações por período.
+Experimentamos várias abordagens e encontramos uma que funciona muito melhor que as outras.
 
-O Set Transformer agrega as ocorrências por período sem perder bimodalidade. A sequência de representações é passada diretamente para o encoder temporal — sem calcular deltas, porque subtrair representações de conjunto não tem garantia semântica. O teacher self-supervised aprende a estrutura da trajetória sem rótulos externos. O student bidirecional reconstrói períodos mascarados usando contexto passado e futuro, o que é necessário para capturar rupturas abruptas.
+A abordagem que funciona: consultamos o checkpoint com uma **sentença-sonda**. Para cada palavra S, criamos a entrada:
 
-As verificações de sanidade garantem que cada peça do pipeline funciona antes de avançar para a próxima. O cronograma é construído em torno dessas verificações como portas sequenciais: sem certeza de que o teacher é informativo, não há razão para treinar o student; sem certeza de que o student captura Abrupt melhor que linear, não há razão para ir para o COHA.
+```
+[CLS] S [MASK] [MASK] [SEP]
+```
 
-Se as verificações passarem e os resultados no COHA e SemEval mostrarem que token@time melhora traceabilidade sobre h_s(t) sozinho, o paper demonstra empiricamente a tese: representações explícitas de trajetória melhoram traceabilidade temporal além de snapshots.
+O verbo e o objeto estão mascarados. O Transformer processa essa entrada e, nas posições mascaradas, produz estados ocultos que representam **o que o modelo prevê como contextos típicos de S**. Tomamos a média desses dois estados ocultos como a representação de S nesse checkpoint.
+
+Por que isso funciona? Porque captura exatamente o que queremos: que contextos o modelo associa a esta palavra, segundo o que aprendeu até agora. Se o modelo aprendeu que *gay* aparece com *cheerful*, *merry*, *laughter*, os estados ocultos nas posições mascaradas vão refletir isso. Depois de treinar nos textos de décadas posteriores, os estados vão refletir os novos contextos.
+
+Comparamos com outras abordagens:
+
+| Representação | O que mede | Resultado |
+|---|---|---|
+| Estado na posição do sujeito (h_subj) | Como o modelo codifica a palavra internamente | Sinal fraco — não discrimina bem |
+| Centroides de ocorrências reais do corpus | Média das representações do sujeito em contextos reais | Sinal muito fraco — praticamente zero |
+| Probe preditivo (estados em [MASK][MASK]) | O que o modelo prevê como contextos típicos | Sinal forte — discrimina muito bem |
+
+A diferença é grande: com o probe preditivo, o alinhamento entre a mudança relacional observada e a mudança esperada pelo gerador sintético é de +0.94 a +0.96. Com as outras abordagens, o valor fica próximo de zero. Isso nos diz que o sinal de mudança semântica está codificado principalmente no comportamento preditivo do modelo, não diretamente no vetor do sujeito.
+
+---
+
+## O corpus sintético: por que e como funciona
+
+Para testar se a abordagem funciona, usamos um corpus onde sabemos exatamente quais palavras deveriam mudar e em que direção. Assim, podemos comparar o que o método detecta com o que de fato foi plantado.
+
+O corpus é construído com sentenças muito simples: sujeito + verbo + objeto. Há 40 sujeitos (S1 a S40), 8 verbos (V1–V8) e 8 objetos (O1–O8). Os verbos e objetos se dividem em dois grupos: N1 (V1–V4, O1–O4) e N2 (V5–V8, O5–O8).
+
+A "trajetória semântica" de cada sujeito é controlada pela probabilidade com que aparece em sentenças N1 versus N2 ao longo do tempo. Essa probabilidade é chamada de p_n1.
+
+Os 40 sujeitos se dividem em quatro classes de 10:
+
+**Stable** — p_n1 permanece constante ao longo dos 10 períodos. A palavra não muda de comportamento contextual. Como *cadeira* — sempre significa o mesmo, sempre aparece nos mesmos contextos.
+
+**Drift** — p_n1 começa alto (≈ 0.93) e termina baixo (≈ 0.10). A palavra migra gradualmente de contextos N1 para contextos N2. Como *broadcast* migrando de "semear grãos" para "transmitir rádio" e depois "publicar nas redes".
+
+**Bifurcating** — p_n1 começa alto e vai para um platô intermediário (≈ 0.50). A palavra desenvolve dois sentidos coexistentes. Como *gay* em um período de transição: metade das ocorrências em contextos do sentido antigo, metade em contextos do novo.
+
+**Abrupt** — p_n1 permanece alto até um período t_k, depois cai abruptamente para quase zero. A mudança é súbita, não gradual. Como se uma palavra mudasse de sentido dominante de um período para o próximo sem transição.
+
+Há um ruído intencional de 25%: mesmo que p_n1 seja 0.9, 10% das sentenças por acaso vão usar verbos e objetos de N2. Isso simula o fato de que no mundo real as palavras raramente aparecem exclusivamente em um tipo de contexto.
+
+---
+
+## O experimento: três regimes comparados
+
+Para ter confiança nos resultados, não rodamos apenas o experimento principal. Rodamos três regimes em paralelo e comparamos os resultados.
+
+**Regime 1 — continual_real:** o Transformer é treinado em D_0, depois continua em D_1, D_2, ..., D_9. Cada período tem o corpus com as probabilidades corretas para aquele momento. Este é o experimento que queremos validar.
+
+**Regime 2 — continual_placebo:** o Transformer é treinado em D_0, depois continua treinando em D_0, D_0, D_0, ..., D_0 — o mesmo corpus repetido 10 vezes. O corpus nunca muda. Se o método detectar "mudança semântica" aqui, é sinal de alarme — a "mudança" seria um artefato do treinamento contínuo, não de mudança no corpus.
+
+**Regime 3 — frozen:** usamos o checkpoint theta_0 (o modelo treinado somente em D_0) para extrair as representações de todos os períodos, sem nunca atualizar os pesos. Como esperado, as representações são idênticas em todos os períodos — o que confirma que a extração de probes é determinística e que as mudanças observadas nos outros regimes vêm de fato de mudanças no modelo.
+
+A comparação entre real e placebo nos permite calcular o **sinal excedente** — a mudança que só existe quando o corpus muda, além da deriva que ocorre apenas por continuar otimizando:
+
+```
+excedente = mudança(real) - mudança(placebo)
+```
+
+Se o excedente for positivo e alinhar com a direção esperada, temos evidência de que o modelo está capturando mudança semântica real, não ruído de treinamento.
+
+---
+
+## O oráculo: como sabemos qual direção é a "correta"
+
+No corpus sintético, sabemos exatamente o que cada sujeito deveria fazer. Se S5 tem p_n1 que vai de 0.92 para 0.08, esperamos que S5 se afaste de outros sujeitos que também têm p_n1 alto e se aproxime de sujeitos que têm p_n1 baixo.
+
+Construímos um perfil relacional *oráculo* para cada período, baseado diretamente nos valores de p_n1 plantados. Dois sujeitos com p_n1 parecido deveriam ser semanticamente próximos; dois sujeitos com p_n1 muito diferente deveriam ser semanticamente distantes.
+
+A métrica principal é o **cosseno direcional**: quão parecida é a *direção* da mudança relacional observada (excedente do real sobre o placebo) com a *direção* que o oráculo prediz?
+
+Exemplo concreto: para o sujeito S5 (Drift, vai de p_n1=0.92 para p_n1=0.08), o oráculo diz que, de t0 para t9:
+- S5 deveria se afastar dos sujeitos Stable que têm p_n1 ≈ 0.7 (pois S5 foi para 0.08)
+- S5 deveria se afastar dos outros sujeitos Drift que também foram para p_n1 baixo (eles estão no mesmo "canto" que S5, e esse canto específico de p_n1 baixo era antes compartilhado com N1 — agora mudou)
+- S5 deveria se aproximar de outros sujeitos que têm p_n1 baixo
+
+Se o probe preditivo do modelo no checkpoint theta_9 mostrar exatamente esse padrão — S5 perdeu similaridade com quem tinha p_n1 alto e ganhou similaridade com quem tem p_n1 baixo — então o cosseno direcional entre o excedente e o oráculo é próximo de 1.
+
+O resultado observado em uma seed foi +0.70 a +0.80 para todas as quatro classes. É promissor, mas ainda é apenas uma seed.
+
+---
+
+## Uma nuance importante: palavras "estáveis" também mudam seu perfil relacional
+
+Há uma sutileza que vale entender: uma palavra classificada como *Stable* no gerador (p_n1 constante) pode ter seu perfil relacional alterado mesmo sem mudar seu próprio comportamento.
+
+Imagine que em t0, tanto S_estavel quanto S_drift estão na "vizinhança N1" do espaço:
+
+```
+t0: S_estavel ↔ S_drift: muito similares (ambos têm p_n1 alto ≈ 0.9)
+```
+
+Em t9, S_drift foi para p_n1 = 0.1. S_estavel ainda tem p_n1 ≈ 0.8. Agora eles estão em pontas opostas:
+
+```
+t9: S_estavel ↔ S_drift: muito diferentes (um tem 0.8, outro tem 0.1)
+```
+
+O perfil relacional de S_estavel mudou — mas por causa do movimento de S_drift, não por causa de mudança em S_estavel. Isso é semanticamente correto: se *gay* começa a aparecer em contextos muito diferentes dos que aparecem com palavras como *cheerful*, a distância semântica entre *gay* e *cheerful* aumenta — mesmo que *cheerful* não tenha mudado nada.
+
+O paper precisa ser explícito sobre isso: medir mudança relacional de uma palavra estável não é zero quando as vizinhanças se reorganizam ao redor dela. Isso é uma característica do método, não um defeito. É análogo a dizer "a posição geopolítica do Brasil mudou depois que os vizinhos redefiniram suas fronteiras" — mesmo sem o Brasil fazer nada.
+
+---
+
+## Controles e o que cada um testa
+
+**Por que o placebo tem direção positiva mesmo sem mudar o corpus?**
+
+Observamos que o regime placebo (D_0 repetido) também mostra algum alinhamento com o oráculo — em torno de +0.55 a +0.68. Isso é mais alto do que esperaríamos por acaso e precisa de explicação.
+
+A hipótese mais provável: conforme o modelo continua treinando em D_0, ele melhora progressivamente sua estimativa das probabilidades p_n1 de cada sujeito. À medida que suas estimativas melhoram, a matriz de similaridade entre sujeitos passa a refletir melhor a estrutura real de p_n1. O oráculo de períodos posteriores ainda preserva parte da estrutura de t0 (as palavras Stable não mudaram, as Bifurcating convergiram para 0.5, e parte das relações persistem). Por isso, a melhora do placebo se alinha parcialmente com o oráculo de períodos posteriores.
+
+Isso não invalida o resultado — o *excedente* (real menos placebo) ainda é positivo e substancial. Mas significa que a subtração placebo é uma correção parcial, não perfeita. Para aumentar a confiança, adicionaremos um terceiro controle:
+
+**Permutação de períodos:** rodamos o regime com os períodos em ordem embaralhada — D_5, D_2, D_8, D_3, ..., em vez de D_0, D_1, D_2, D_3, .... Se o sinal do método depende da *ordem cronológica*, ele deve degradar quando a ordem for embaralhada. Se o sinal for robusto mesmo com ordem embaralhada, então não estamos capturando mudança temporal — estamos apenas capturando que o corpus de períodos diferentes é variado. Este controle ainda não foi rodado e é crítico antes de qualquer conclusão forte.
+
+---
+
+## O que os resultados atuais mostram e o que ainda precisamos verificar
+
+**Com uma seed, observamos:**
+
+- Para t0 → t9, o alinhamento direcional do excedente com o oráculo é forte (+0.70–0.79) nos quatro classes.
+- O probe preditivo (estados em posições mascaradas) é claramente superior a todas as outras representações.
+- O controle frozen confirma que a extração de probes é determinística — zero variação entre períodos com o mesmo modelo.
+- Os períodos iniciais (t1, t2) mostram sinal fraco ou negativo nos consecutivos — possivelmente instabilidade na transição inicial.
+
+**O que ainda precisamos verificar:**
+
+1. **Múltiplas seeds** — um resultado com uma seed pode ser coincidência. Precisamos ver se o padrão se replica em pelo menos 5 seeds distintas.
+2. **Permutação de períodos** — o controle mais crítico para confirmar que o sinal é cronologicamente específico.
+3. **Estabilidade do placebo** — entender melhor por que o placebo alinha tanto com o oráculo e se isso é removido adequadamente pelo excedente.
+
+---
+
+## Como o novo pipeline se compara com a tentativa anterior
+
+A tabela abaixo resume a diferença entre o planejamento anterior e o atual:
+
+| Aspecto | Planejamento anterior | Planejamento atual |
+|---|---|---|
+| Informação temporal ao modelo | Sim (period embedding) | Não |
+| Comparação de representações | Coordenadas absolutas | Perfis relacionais internos |
+| Componentes necessários | Transformer + agregador + teacher + student | Transformer padrão + análise posterior |
+| Como a trajetória é obtida | Aprendida via masked trajectory distillation | Derivada dos perfis relacionais de cada checkpoint |
+| Problema central | Espaço não-comparável entre períodos condicionados | Deriva de otimização que pode parecer mudança semântica |
+| Requisito de alinhamento | Implícito (todos treinados no mesmo espaço) | Nenhum (métricas são internas a cada checkpoint) |
+
+A simplificação é substancial. O pipeline atual tem menos componentes, menos hiperparâmetros, e a pergunta científica é mais diretamente testável: "o Transformer captura mudança semântica sem precisar de sinal temporal explícito, desde que seja treinado cronologicamente?"
+
+---
+
+## Como tudo se encaixa numa linha
+
+O Paper 1 mostrou que diferentes mecanismos de condicionamento temporal do Transformer são equivalentes entre si — o mecanismo não é o que importa.
+
+O Paper 2 parte de um ângulo diferente: e se removermos o condicionamento temporal completamente? Treinamos o modelo exatamente como se fosse um Transformer padrão, mas cronologicamente. Medimos mudança semântica não por coordenadas absolutas — que mudam por artefatos de treinamento além da semântica — mas por mudança de vizinhança interna, que é invariante a reorganizações globais do espaço.
+
+O resultado promissor de uma seed sugere que o modelo capta a estrutura semântica correta sem receber informação de período. O próximo passo é replicar em múltiplas seeds e rodar o controle de permutação de períodos. Se o sinal for robusto nesses dois testes, teremos evidência de que treinamento cronológico, por si só, é suficiente para rastrear mudança semântica relacional — sem period embeddings, sem teacher, sem student, sem alinhamento de espaços.
