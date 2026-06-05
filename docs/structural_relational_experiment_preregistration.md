@@ -740,7 +740,7 @@ Essas análises devem ser rotuladas explicitamente como exploratórias.
 
 ## Condições para avançar ao corpus real
 
-Antes de usar COHA ou outro corpus real, precisamos:
+Antes de usar SemEval-2020 Task 1 ou outro corpus real, precisamos:
 
 1. concluir o Experimento P;
 2. comparar continuidade cronológica com ao menos `independent_period`;

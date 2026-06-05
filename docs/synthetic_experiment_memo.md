@@ -167,7 +167,7 @@ Portanto, faz sentido avançar.
 4. Rodar ablação pequena de `lambda_traj` em torno da configuração vencedora:
    `0.25`, `0.5`, `1.0`, `2.0`.
 
-5. Só depois disso partir para COHA/SemEval, porque o desenho sintético já
+5. Só depois disso partir para SemEval/corpus real, porque o desenho sintético já
    terá virado protocolo fechado e defensável.
 
 ---

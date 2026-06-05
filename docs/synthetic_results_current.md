@@ -19,7 +19,7 @@ Separar estes regimes é essencial para a narrativa do paper:
 2. **Sanidade supervisionada sintética do agregador**
    - Set Transformer treinado com `true_context` (`N1/N2`) no sintético.
    - Serve para testar capacidade arquitetural de preservar bimodalidade.
-   - Não deve ser descrito como configuração principal para COHA.
+   - Não deve ser descrito como configuração principal para corpus real.
 
 3. **Upper bound supervisionado**
    - Futuro: variantes com `L_sup`.
@@ -100,6 +100,6 @@ Para próximos experimentos sintéticos, manter duas trilhas separadas:
   `true_context` apenas para demonstrar que o gargalo de bimodalidade pode
   ser removido quando o agregador recebe sinal apropriado.
 
-Antes de COHA, a prioridade científica é substituir a supervisão sintética
+Antes de corpus real, a prioridade científica é substituir a supervisão sintética
 do Set por um objetivo auto-supervisionado de agregador, ou então reduzir a
 reivindicação sobre Set Transformer a uma sanidade controlada.
