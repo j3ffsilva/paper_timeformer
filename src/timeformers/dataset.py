@@ -6,7 +6,7 @@ import torch
 from torch import Tensor
 from torch.utils.data import Dataset
 
-from .corpus import OBJS_N1, OBJS_N2, SUBJECTS, SUBJECT_CLASSES, VERBS_N1, VERBS_N2, Example
+from .corpus import ALL_SUBJECT_CLASSES, OBJS_N1, OBJS_N2, SUBJECTS, VERBS_N1, VERBS_N2, Example
 
 
 SPECIAL_TOKENS = ["[PAD]", "[CLS]", "[SEP]", "[MASK]", "[UNK]"]
@@ -25,7 +25,7 @@ SEQ_LEN = 5
 VOCAB_SIZE = len(VOCAB_TOKENS)
 VERB_IDS = [TOKEN2ID[token] for token in VERBS_N1 + VERBS_N2]
 OBJECT_IDS = [TOKEN2ID[token] for token in OBJS_N1 + OBJS_N2]
-CLASS2ID = {name: idx for idx, name in enumerate(SUBJECT_CLASSES)}
+CLASS2ID = {name: idx for idx, name in enumerate(ALL_SUBJECT_CLASSES)}
 ID2CLASS = {idx: name for name, idx in CLASS2ID.items()}
 
 

@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from timeformers.corpus import Example, SUBJECTS, generate_subject_probe_examples
+from timeformers.corpus import Example, SUBJECTS, generate_subject_probe_examples, generate_trajectories
 from timeformers.dataset import ContextPairMLMDataset, MASK_ID, POS_OBJECT, POS_VERB
 from timeformers.models import build_model
 from timeformers.relational import (
@@ -109,6 +109,17 @@ class RelationalMetricsTest(unittest.TestCase):
         self.assertEqual(len(rows), len(SUBJECTS))
         self.assertEqual({row.subject for row in rows}, set(SUBJECTS))
         self.assertEqual(len({(row.verb, row.obj) for row in rows}), 1)
+
+    def test_trajectory_scale_preserves_direction_and_scales_magnitude(self) -> None:
+        full = generate_trajectories(seed=7, trajectory_scale=1.0)
+        half = generate_trajectories(seed=7, trajectory_scale=0.5)
+
+        for subject in SUBJECTS:
+            self.assertAlmostEqual(half[subject][0], full[subject][0], places=4)
+            for period in range(1, len(full[subject])):
+                full_delta = full[subject][period] - full[subject][0]
+                half_delta = half[subject][period] - half[subject][0]
+                self.assertAlmostEqual(half_delta, 0.5 * full_delta, places=3)
 
     def test_prediction_probe_extracts_normalized_distributions(self) -> None:
         dataset = ContextPairMLMDataset(generate_subject_probe_examples())

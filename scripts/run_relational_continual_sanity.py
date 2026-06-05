@@ -355,6 +355,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Minimal continual relational-change falsification experiment.")
     parser.add_argument("--seed", type=int, default=1000)
     parser.add_argument("--fidelity", type=float, default=0.75)
+    parser.add_argument(
+        "--trajectory-scale",
+        type=float,
+        default=1.0,
+        help="Scale temporal changes around each subject's t0 value.",
+    )
     parser.add_argument("--examples-per-subject-epoch", type=int, default=12)
     parser.add_argument("--n-periods", type=int, default=10)
     parser.add_argument(
@@ -406,6 +412,7 @@ def main() -> None:
         fidelity=args.fidelity,
         examples_per_subject_epoch=args.examples_per_subject_epoch,
         n_epochs=args.n_periods,
+        trajectory_scale=args.trajectory_scale,
     )
     (args.output_dir / "trajectories.json").write_text(json.dumps(trajectories, indent=2), encoding="utf-8")
 

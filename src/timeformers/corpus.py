@@ -11,6 +11,8 @@ N_EPOCHS = 10
 N_SUBJECTS = 40
 N_PER_CLASS = 10
 SUBJECT_CLASSES = ("stable", "drift", "bifurcating", "abrupt")
+STRUCTURAL_CONDITIONS = ("gradual", "abrupt_persistent", "transient", "oscillating")
+ALL_SUBJECT_CLASSES = SUBJECT_CLASSES + STRUCTURAL_CONDITIONS + ("structural_anchor",)
 CLASS_NAMES = {i: name for i, name in enumerate(SUBJECT_CLASSES)}
 
 SUBJECTS = [f"S{i}" for i in range(1, N_SUBJECTS + 1)]
@@ -41,9 +43,15 @@ def subject_class(subject_index: int) -> str:
     return SUBJECT_CLASSES[min(class_idx, len(SUBJECT_CLASSES) - 1)]
 
 
-def generate_trajectories(seed: int, n_epochs: int = N_EPOCHS) -> dict[str, list[float]]:
+def generate_trajectories(
+    seed: int,
+    n_epochs: int = N_EPOCHS,
+    trajectory_scale: float = 1.0,
+) -> dict[str, list[float]]:
     if n_epochs < 5:
         raise ValueError("n_epochs must be at least 5 to generate all trajectory classes")
+    if trajectory_scale < 0:
+        raise ValueError("trajectory_scale must be non-negative")
     rng = random.Random(seed)
     trajectories: dict[str, list[float]] = {}
     stable_values = [0.62 + i * (0.36 / max(N_PER_CLASS - 1, 1)) for i in range(N_PER_CLASS)]
@@ -77,7 +85,9 @@ def generate_trajectories(seed: int, n_epochs: int = N_EPOCHS) -> dict[str, list
             end = rng.uniform(0.02, 0.12)
             switch = rng.randint(3, min(7, n_epochs - 2))
             traj = [start if t <= switch else end for t in range(n_epochs)]
-        trajectories[subject] = [round(max(0.0, min(1.0, v)), 4) for v in traj]
+        start = traj[0]
+        scaled = [start + trajectory_scale * (value - start) for value in traj]
+        trajectories[subject] = [round(max(0.0, min(1.0, value)), 4) for value in scaled]
     return trajectories
 
 
@@ -95,9 +105,10 @@ def generate_examples(
     examples_per_subject_epoch: int = 12,
     test_fraction: float = 0.2,
     n_epochs: int = N_EPOCHS,
+    trajectory_scale: float = 1.0,
 ) -> tuple[list[Example], dict[str, list[float]]]:
     rng = random.Random(seed)
-    trajectories = generate_trajectories(seed, n_epochs=n_epochs)
+    trajectories = generate_trajectories(seed, n_epochs=n_epochs, trajectory_scale=trajectory_scale)
     rows: list[Example] = []
 
     for subject_index, subject in enumerate(SUBJECTS):
