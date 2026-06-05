@@ -100,6 +100,19 @@ python3 scripts/evaluate_semeval2020_relational.py \
 O avaliador reporta Spearman contra o score graduado e métricas binárias
 contra o rótulo de mudança.
 
+Para diagnosticar se o ranking está capturando mudança semântica ou artefatos
+de frequência/cobertura, use:
+
+```bash
+python3 scripts/diagnose_semeval2020_relational.py \
+  --predictions outputs/semeval2020_eng_lemma_pilot_10k/diachronic_relational_changes.csv \
+  --profile-dir outputs/semeval2020_eng_lemma_pilot_10k/profiles/prediction_anchor_js \
+  --output-dir outputs/semeval2020_eng_lemma_pilot_10k/diagnostics_max
+```
+
+O diagnóstico une score relacional, gold do SemEval, frequência por período e
+entropia normalizada das distribuições sobre âncoras.
+
 ## Convenção de Scripts
 
 - Scripts sintéticos continuam usando `synthetic` no nome.
