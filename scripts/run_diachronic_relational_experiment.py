@@ -5,6 +5,7 @@ import argparse
 import csv
 import json
 import sys
+import time
 from pathlib import Path
 
 import torch
@@ -69,6 +70,11 @@ def maybe_limit_dataset(dataset, max_windows: int | None):
     return Subset(dataset, range(max_windows))
 
 
+def log(args, message: str) -> None:
+    if not args.quiet:
+        print(message, flush=True)
+
+
 @torch.no_grad()
 def prediction_distributions(
     model: RealStaticMLM,
@@ -98,9 +104,12 @@ def extract_period_profiles(args, token_to_id: dict[str, int], targets: list[str
     anchor_ids = [token_to_id[word] for word in anchors]
     profiles = []
     for period in range(args.n_periods):
+        started = time.perf_counter()
+        log(args, f"[profiles] period={period} loading checkpoint")
         model = build_model(args, len(token_to_id), token_to_id["[PAD]"])
         checkpoint = args.output_dir / "continual_real" / f"checkpoint_t{period:02d}.pt"
         model.load_state_dict(torch.load(checkpoint, map_location="cpu", weights_only=True))
+        log(args, f"[profiles] period={period} computing target-anchor distributions")
         distributions = prediction_distributions(
             model,
             targets,
@@ -123,6 +132,8 @@ def extract_period_profiles(args, token_to_id: dict[str, int], targets: list[str
         }
         torch.save(profile, path)
         profiles.append(profile)
+        elapsed = time.perf_counter() - started
+        log(args, f"[profiles] period={period} wrote {path} ({elapsed:.1f}s)")
     return profiles
 
 
@@ -186,12 +197,17 @@ def main() -> None:
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args()
 
+    started = time.perf_counter()
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    log(args, f"[setup] reading corpora from {args.input_dir}")
     corpora = read_period_corpora(args.input_dir)
     args.n_periods = len(corpora)
+    log(args, f"[setup] periods={', '.join(corpus.period for corpus in corpora)}")
     requested_targets = read_word_list(args.targets)
     requested_anchors = read_word_list(args.anchors)
+    log(args, f"[setup] requested targets={len(requested_targets)} anchors={len(requested_anchors)}")
     required = sorted(set(requested_targets + requested_anchors))
+    log(args, "[setup] building vocabulary")
     vocab, token_to_id = build_vocabulary(
         corpora,
         min_count=args.min_count,
@@ -217,7 +233,9 @@ def main() -> None:
         anchors = [word for word in candidates if word not in set(targets)][: args.max_anchors]
     if not targets or not anchors:
         raise ValueError("Need at least one target and one anchor word")
+    log(args, f"[setup] vocab={len(vocab)} targets={len(targets)} anchors={len(anchors)}")
 
+    log(args, "[setup] building MLM windows")
     full_datasets = [
         RealMLMDataset(
             corpus,
@@ -231,6 +249,11 @@ def main() -> None:
     datasets = [maybe_limit_dataset(dataset, args.max_windows_per_period) for dataset in full_datasets]
     if any(len(dataset) == 0 for dataset in datasets):
         raise ValueError("Every period must yield at least one training window")
+    for corpus, full_dataset, dataset in zip(corpora, full_datasets, datasets):
+        log(
+            args,
+            f"[setup] period={corpus.period} windows={len(dataset)} available={len(full_dataset)}",
+        )
 
     config = {
         **{key: str(value) if isinstance(value, Path) else value for key, value in vars(args).items()},
@@ -245,9 +268,14 @@ def main() -> None:
     (args.output_dir / "vocab.json").write_text(json.dumps(vocab, indent=2), encoding="utf-8")
     (args.output_dir / "targets.json").write_text(json.dumps(targets, indent=2), encoding="utf-8")
     (args.output_dir / "anchors.json").write_text(json.dumps(anchors, indent=2), encoding="utf-8")
+    log(args, f"[setup] wrote config and vocabulary to {args.output_dir}")
 
     checkpoints = checkpoint_paths(args.output_dir, args.n_periods)
-    if not args.reuse_checkpoints or not all(path.exists() for path in checkpoints):
+    checkpoint_ready = all(path.exists() for path in checkpoints)
+    if args.reuse_checkpoints and checkpoint_ready:
+        log(args, "[train] reusing existing checkpoints")
+    else:
+        log(args, "[train] training chronological checkpoints")
         model = build_model(args, len(vocab), token_to_id["[PAD]"])
         ContinualPeriodTrainer(model, args.output_dir / "continual_real", device=args.device).train(
             datasets,
@@ -260,10 +288,13 @@ def main() -> None:
             restore_best_model=False,
             verbose=not args.quiet,
         )
+        log(args, "[train] finished chronological training")
 
     profiles = extract_period_profiles(args, token_to_id, targets, anchors)
     rows = relational_rows(profiles)
     write_csv(rows, args.output_dir / "diachronic_relational_changes.csv")
+    elapsed = time.perf_counter() - started
+    log(args, f"[done] elapsed={elapsed:.1f}s")
     print(f"Wrote {args.output_dir / 'diachronic_relational_changes.csv'}")
 
 
