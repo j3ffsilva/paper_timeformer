@@ -85,6 +85,21 @@ Esse smoke não é evidência científica. Ele serve apenas para verificar que o
 treino contínuo, os probes relacionais e a exportação de deltas funcionam de
 ponta a ponta.
 
+## Avaliação SemEval
+
+Depois de rodar `scripts/run_diachronic_relational_experiment.py`, o ranking
+relacional pode ser comparado com o gold do SemEval:
+
+```bash
+python3 scripts/evaluate_semeval2020_relational.py \
+  --predictions outputs/semeval2020_eng_lemma_pilot_2k/diachronic_relational_changes.csv \
+  --truth data/processed/semeval2020_task1/eng_lemma/truth.tsv \
+  --output-dir outputs/semeval2020_eng_lemma_pilot_2k/eval_mean
+```
+
+O avaliador reporta Spearman contra o score graduado e métricas binárias
+contra o rótulo de mudança.
+
 ## Convenção de Scripts
 
 - Scripts sintéticos continuam usando `synthetic` no nome.

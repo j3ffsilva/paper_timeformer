@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -61,6 +61,12 @@ def build_model(args, vocab_size: int, pad_id: int) -> RealStaticMLM:
 
 def checkpoint_paths(output_dir: Path, n_periods: int) -> list[Path]:
     return [output_dir / "continual_real" / f"checkpoint_t{period:02d}.pt" for period in range(n_periods)]
+
+
+def maybe_limit_dataset(dataset, max_windows: int | None):
+    if max_windows is None or len(dataset) <= max_windows:
+        return dataset
+    return Subset(dataset, range(max_windows))
 
 
 @torch.no_grad()
@@ -164,6 +170,7 @@ def main() -> None:
     parser.add_argument("--max-anchors", type=int, default=500)
     parser.add_argument("--seq-len", type=int, default=32)
     parser.add_argument("--stride", type=int, default=16)
+    parser.add_argument("--max-windows-per-period", type=int, default=None)
     parser.add_argument("--base-epochs", type=int, default=2)
     parser.add_argument("--epochs-per-period", type=int, default=1)
     parser.add_argument("--batch-size", type=int, default=128)
@@ -211,7 +218,7 @@ def main() -> None:
     if not targets or not anchors:
         raise ValueError("Need at least one target and one anchor word")
 
-    datasets = [
+    full_datasets = [
         RealMLMDataset(
             corpus,
             token_to_id,
@@ -221,6 +228,7 @@ def main() -> None:
         )
         for period_idx, corpus in enumerate(corpora)
     ]
+    datasets = [maybe_limit_dataset(dataset, args.max_windows_per_period) for dataset in full_datasets]
     if any(len(dataset) == 0 for dataset in datasets):
         raise ValueError("Every period must yield at least one training window")
 
@@ -231,6 +239,7 @@ def main() -> None:
         "n_targets": len(targets),
         "n_anchors": len(anchors),
         "n_windows_by_period": [len(dataset) for dataset in datasets],
+        "n_available_windows_by_period": [len(dataset) for dataset in full_datasets],
     }
     (args.output_dir / "config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
     (args.output_dir / "vocab.json").write_text(json.dumps(vocab, indent=2), encoding="utf-8")
