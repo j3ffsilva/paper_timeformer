@@ -4,6 +4,7 @@ from pathlib import Path
 
 from timeformers.real_corpus import (
     RealMLMDataset,
+    RealTargetOccurrenceDataset,
     RealWordProbeDataset,
     build_vocabulary,
     read_period_corpora,
@@ -63,6 +64,31 @@ class RealCorpusTest(unittest.TestCase):
         probe_item = probe[0]
         self.assertEqual(tuple(probe_item["input_ids"].shape), (8,))
         self.assertEqual(int(probe_item["word_idx"]), 0)
+
+    def test_target_occurrence_probe_masks_real_occurrences(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "1810-1860.txt").write_text(
+                "the attack_nn on the town was sudden\n"
+                "another attack_nn happened later\n",
+                encoding="utf-8",
+            )
+            corpora = read_period_corpora(root)
+            _, token_to_id = build_vocabulary(corpora, min_count=1, required_tokens=["attack_nn"])
+
+        dataset = RealTargetOccurrenceDataset(
+            corpora[0],
+            ["attack_nn"],
+            token_to_id,
+            period_idx=0,
+            seq_len=8,
+        )
+
+        self.assertEqual(len(dataset), 2)
+        item = dataset[0]
+        self.assertEqual(tuple(item["input_ids"].shape), (8,))
+        self.assertEqual(int(item["input_ids"][int(item["mask_pos"])]), token_to_id["[MASK]"])
+        self.assertEqual(int(item["word_idx"]), 0)
 
 
 if __name__ == "__main__":

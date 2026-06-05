@@ -34,6 +34,22 @@ def jensen_shannon_similarity_matrix(distributions: Tensor) -> Tensor:
     return 1.0 - divergence / torch.log(distributions.new_tensor(2.0))
 
 
+def jensen_shannon_divergence_rows(before: Tensor, after: Tensor) -> Tensor:
+    if before.shape != after.shape:
+        raise ValueError("distributions must have matching shapes")
+    eps = torch.finfo(before.dtype).eps
+    p = before.clamp_min(eps)
+    q = after.clamp_min(eps)
+    p = p / p.sum(dim=-1, keepdim=True)
+    q = q / q.sum(dim=-1, keepdim=True)
+    midpoint = 0.5 * (p + q)
+    divergence = 0.5 * (
+        (p * (p.log() - midpoint.log())).sum(dim=-1)
+        + (q * (q.log() - midpoint.log())).sum(dim=-1)
+    )
+    return divergence / torch.log(before.new_tensor(2.0))
+
+
 def topk_neighbors(similarities: Tensor, k: int) -> Tensor:
     if similarities.ndim != 2 or similarities.size(0) != similarities.size(1):
         raise ValueError("similarities must be a square matrix")

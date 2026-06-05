@@ -94,7 +94,11 @@ def main() -> None:
     parser.add_argument("--truth", type=Path, default=Path("data/processed/semeval2020_task1/eng_lemma/truth.tsv"))
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--comparison", default="from_t0")
-    parser.add_argument("--score-column", choices=["mean_abs_delta", "max_abs_delta"], default="mean_abs_delta")
+    parser.add_argument(
+        "--score-column",
+        choices=["mean_abs_delta", "max_abs_delta", "direct_jsd"],
+        default="mean_abs_delta",
+    )
     args = parser.parse_args()
 
     truth = read_truth(args.truth)

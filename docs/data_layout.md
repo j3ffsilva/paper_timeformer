@@ -113,6 +113,21 @@ python3 scripts/diagnose_semeval2020_relational.py \
 O diagnóstico une score relacional, gold do SemEval, frequência por período e
 entropia normalizada das distribuições sobre âncoras.
 
+O modo principal do runner para corpus real é o probe por ocorrência:
+
+```bash
+python3 scripts/run_diachronic_relational_experiment.py \
+  --probe-mode occurrence \
+  --max-probe-occurrences-per-target 500 \
+  ...
+```
+
+Nesse modo, cada ocorrência real da palavra-alvo é mascarada em sua janela
+original, e as distribuições previstas sobre âncoras são agregadas por
+palavra/período. O score principal recomendado é `direct_jsd`, isto é,
+`JSD(q_t0(w), q_t1(w))` calculado diretamente entre os dois perfis de âncoras
+da mesma palavra.
+
 ## Convenção de Scripts
 
 - Scripts sintéticos continuam usando `synthetic` no nome.

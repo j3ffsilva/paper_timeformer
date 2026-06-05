@@ -167,3 +167,64 @@ class RealWordProbeDataset(Dataset):
             "epoch_idx": torch.tensor(self.period_idx, dtype=torch.long),
             "word_idx": torch.tensor(index, dtype=torch.long),
         }
+
+
+class RealTargetOccurrenceDataset(Dataset):
+    def __init__(
+        self,
+        corpus: RealPeriodCorpus,
+        target_words: list[str],
+        token_to_id: dict[str, int],
+        *,
+        period_idx: int,
+        seq_len: int = 32,
+        max_occurrences_per_target: int | None = None,
+    ) -> None:
+        self.target_words = target_words
+        self.target_to_index = {word: index for index, word in enumerate(target_words)}
+        self.token_to_id = token_to_id
+        self.period_idx = period_idx
+        self.seq_len = seq_len
+        self.pad_id = token_to_id["[PAD]"]
+        self.cls_id = token_to_id["[CLS]"]
+        self.sep_id = token_to_id["[SEP]"]
+        self.mask_id = token_to_id["[MASK]"]
+        self.items = []
+        occurrence_counts = {word: 0 for word in target_words}
+        target_set = set(target_words)
+        for document in corpus.documents:
+            for token_index, token in enumerate(document):
+                if token not in target_set:
+                    continue
+                if (
+                    max_occurrences_per_target is not None
+                    and occurrence_counts[token] >= max_occurrences_per_target
+                ):
+                    continue
+                self.items.append(self._make_item(document, token_index, self.target_to_index[token]))
+                occurrence_counts[token] += 1
+
+    def _make_item(self, document: list[str], token_index: int, word_index: int) -> dict[str, Tensor]:
+        content_len = self.seq_len - 2
+        left_budget = content_len // 2
+        start = max(0, min(token_index - left_budget, len(document) - content_len))
+        end = min(len(document), start + content_len)
+        window = list(document[start:end])
+        mask_pos_in_window = token_index - start
+        encoded = encode_document(window, self.token_to_id)
+        ids = [self.cls_id] + encoded + [self.sep_id]
+        mask_pos = mask_pos_in_window + 1
+        ids[mask_pos] = self.mask_id
+        ids += [self.pad_id] * (self.seq_len - len(ids))
+        return {
+            "input_ids": torch.tensor(ids, dtype=torch.long),
+            "epoch_idx": torch.tensor(self.period_idx, dtype=torch.long),
+            "word_idx": torch.tensor(word_index, dtype=torch.long),
+            "mask_pos": torch.tensor(mask_pos, dtype=torch.long),
+        }
+
+    def __len__(self) -> int:
+        return len(self.items)
+
+    def __getitem__(self, index: int) -> dict[str, Tensor]:
+        return self.items[index]

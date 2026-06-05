@@ -8,6 +8,7 @@ from timeformers.models import build_model
 from timeformers.relational import (
     centered_cosine_similarity_matrix,
     cosine_similarity_matrix,
+    jensen_shannon_divergence_rows,
     jensen_shannon_similarity_matrix,
     normalized_euclidean_similarity_matrix,
 )
@@ -62,6 +63,15 @@ class RelationalMetricsTest(unittest.TestCase):
         self.assertTrue(torch.allclose(similarities.diag(), torch.ones(3)))
         self.assertAlmostEqual(float(similarities[0, 1]), 1.0, places=6)
         self.assertLess(float(similarities[0, 2]), float(similarities[0, 1]))
+
+    def test_jensen_shannon_divergence_rows_compares_matching_targets(self) -> None:
+        before = torch.tensor([[0.9, 0.1], [0.5, 0.5]])
+        after = torch.tensor([[0.9, 0.1], [0.1, 0.9]])
+
+        divergences = jensen_shannon_divergence_rows(before, after)
+
+        self.assertAlmostEqual(float(divergences[0]), 0.0, places=6)
+        self.assertGreater(float(divergences[1]), float(divergences[0]))
 
     def test_changed_relation_is_detected(self) -> None:
         changed = self.points.clone()
