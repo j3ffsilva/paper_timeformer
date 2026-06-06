@@ -570,3 +570,73 @@ ao menos:
 4. `pre_event_drift` calibrado contra nulo;
 5. `post_event_drift` interpretado junto com a quantidade de períodos
    pós-evento disponíveis.
+
+---
+
+## Pilotos em corpus real (SemEval-2020 Task 1)
+
+### Formulação atual
+
+A formulação matemática do perfil relacional foi formalizada em
+`docs/relational_profile_formalization.md`. O perfil é definido como log-PMI
+sobre o vocabulário completo:
+
+```text
+R_t(w)[v] = log( q_t(w)[v] / p_t[v] )
+```
+
+Onde `q_t(w)` é a média das distribuições do MLM head sobre ocorrências reais
+de `w` mascarada, e `p_t` é a distribuição do probe neutro `[CLS][MASK][SEP]`.
+O deslocamento é `pmi_cosine = 1 - cos(R_t0(w), R_t1(w))`.
+
+### Experimentos executados (2026-06-05/06)
+
+| Experimento | d_model | Épocas (t0+t1) | Windows | Spearman graded | AUC binário |
+|---|---:|---:|---:|---:|---:|
+| `semeval2020_pmi_pilot` | 96 | 3+2 | 409k+421k | -0.057 | 0.482 |
+| `semeval2020_pmi_line_documents_3_2` | 96 | 3+2 | 300k+366k | -0.025 | 0.494 |
+| `semeval2020_pmi_long_epochs_12_8` | 96 | 12+8 | 409k+421k | **+0.114** | **0.560** |
+| `semeval2020_pmi_dynamic_mlm_12_8_d128` | 128 | 12+8 | 370k+409k | -0.070 | 0.509 |
+
+O melhor resultado foi `long_epochs` com `pmi_cosine`: Spearman=+0.114, AUC=0.560.
+
+Top-5 por `pmi_cosine` no `long_epochs`:
+`graft_nn` (changed), `record_nn` (changed), `head_nn` (changed),
+`relationship_nn` (stable), `prop_nn` (changed).
+
+### Diagnóstico: sinal dominado por mudança de entropia
+
+Em todos os experimentos, `predicted_vs_entropy_abs_delta` apresentou
+correlação rho ≈ 0.92–0.95 (p < 0.001). O score `pmi_cosine` está
+quase inteiramente determinado por quanto a entropia da distribuição preditiva
+de cada palavra mudou entre os dois checkpoints — não pela mudança semântica.
+
+**Interpretação:** palavras cuja distribuição preditiva ficou mais concentrada
+(entropia caiu) em `t1` aparecem com alto deslocamento mesmo sem mudança
+semântica. Palavras que o modelo nunca aprendeu bem (alta entropia em ambos)
+aparecem com baixo deslocamento mesmo que tenham mudado.
+
+Esse é o sinal de convergência do modelo confundido com mudança semântica.
+O controle placebo (D_0 repetido) é obrigatório para separar os dois.
+
+### Riscos identificados e próximos passos
+
+1. **Controle placebo obrigatório antes de qualquer conclusão:** executar o
+   mesmo pipeline com `D_0 → D_0` (corpus repetido) para estimar quanto de
+   `pmi_cosine` emerge apenas de otimização continuada, sem mudança de corpus.
+
+2. **Modelo possivelmente subconvergido em t0:** com 12 épocas sobre 400k
+   janelas, o modelo pode ainda não ter convergido, fazendo com que o t1 seja
+   parcialmente convergência residual de t0. Monitorar a loss de validação por
+   período.
+
+3. **Âncoras ainda incluem palavras não-semânticas:** a variante
+   `eng_lemma_content` foi preparada com 300 âncoras filtradas por POS, mas
+   os resultados do `line_documents` (que usou esse dataset) foram semelhantes
+   ao piloto. Indicação de que o problema dominante é convergência, não âncoras.
+
+4. **Próximo experimento necessário:** `placebo_run` com o mesmo modelo
+   `long_epochs` treinado em `D_0 → D_0`, comparando `pmi_cosine` placebo
+   com `pmi_cosine` real. Somente se a vantagem real sobre o placebo for
+   positiva para palavras mudadas (e negativa para estáveis) teremos evidência
+   de sinal semântico.
