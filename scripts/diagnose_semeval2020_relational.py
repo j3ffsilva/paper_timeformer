@@ -30,6 +30,12 @@ def normalized_entropy(distribution: torch.Tensor) -> float:
     return entropy(distribution) / math.log(distribution.numel())
 
 
+def ppmi_distribution(profile: torch.Tensor) -> torch.Tensor:
+    positive = profile.clamp(min=0.0)
+    mass = positive.sum().clamp_min(torch.finfo(positive.dtype).eps)
+    return positive / mass
+
+
 def load_profile_entropies(profile_dir: Path) -> dict[str, list[float]]:
     profile_paths = sorted(profile_dir.glob("t*.pt"))
     if not profile_paths:
@@ -38,7 +44,15 @@ def load_profile_entropies(profile_dir: Path) -> dict[str, list[float]]:
     for path in profile_paths:
         profile = torch.load(path, map_location="cpu", weights_only=True)
         targets = profile["targets"]
-        distributions = profile["distributions"]
+        distributions = profile.get("distributions")
+        if distributions is None and profile.get("pmi_profiles") is not None:
+            distributions = torch.stack(
+                [ppmi_distribution(row) for row in profile["pmi_profiles"]]
+            )
+        elif distributions is None and profile.get("full_distributions") is not None:
+            distributions = profile["full_distributions"]
+        if distributions is None:
+            continue
         for index, target in enumerate(targets):
             entropies.setdefault(target, []).append(normalized_entropy(distributions[index]))
     return entropies
@@ -185,7 +199,7 @@ def main() -> None:
     parser.add_argument("--comparison", default="from_t0")
     parser.add_argument(
         "--score-column",
-        choices=["mean_abs_delta", "max_abs_delta", "direct_jsd", "pmi_cosine", "ppmi_jsd"],
+        choices=["pmi_cosine", "ppmi_jsd"],
         default="pmi_cosine",
     )
     args = parser.parse_args()

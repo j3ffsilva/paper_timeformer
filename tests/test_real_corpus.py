@@ -7,6 +7,7 @@ from timeformers.real_corpus import (
     RealTargetOccurrenceDataset,
     RealWordProbeDataset,
     build_vocabulary,
+    make_windows,
     read_period_corpora,
     tokenize,
 )
@@ -22,13 +23,22 @@ class RealCorpusTest(unittest.TestCase):
     def test_read_period_corpora_accepts_period_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            (root / "1950.txt").write_text("gay meant happy\n", encoding="utf-8")
+            (root / "1950.txt").write_text(
+                "gay meant happy\n"
+                "separate document remains separate\n",
+                encoding="utf-8",
+            )
             (root / "1980.txt").write_text("gay rights movement\n", encoding="utf-8")
 
             corpora = read_period_corpora(root)
 
         self.assertEqual([corpus.period for corpus in corpora], ["1950", "1980"])
+        self.assertEqual(len(corpora[0].documents), 2)
         self.assertEqual(corpora[0].documents[0], ["gay", "meant", "happy"])
+        self.assertEqual(
+            corpora[0].documents[1],
+            ["separate", "document", "remains", "separate"],
+        )
 
     def test_required_tokens_are_kept_in_vocabulary(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -64,6 +74,63 @@ class RealCorpusTest(unittest.TestCase):
         probe_item = probe[0]
         self.assertEqual(tuple(probe_item["input_ids"].shape), (8,))
         self.assertEqual(int(probe_item["word_idx"]), 0)
+
+    def test_make_windows_includes_document_tail(self) -> None:
+        windows = make_windows(list(range(13)), seq_len=8, stride=4)
+
+        self.assertEqual(windows, [list(range(6)), list(range(4, 10)), list(range(7, 13))])
+
+    def test_real_mlm_masking_is_reproducible_and_changes_by_epoch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            text = " ".join(f"word{chr(97 + index)}" for index in range(20))
+            (root / "1950.txt").write_text(text, encoding="utf-8")
+            corpora = read_period_corpora(root)
+            _, token_to_id = build_vocabulary(corpora, min_count=1)
+
+        dataset = RealMLMDataset(
+            corpora[0],
+            token_to_id,
+            period_idx=0,
+            seq_len=24,
+            stride=12,
+            mask_probability=0.5,
+            seed=123,
+        )
+        first = dataset[0]
+        repeated = dataset[0]
+        self.assertTrue(first["input_ids"].equal(repeated["input_ids"]))
+        self.assertTrue(first["labels"].equal(repeated["labels"]))
+
+        dataset.set_epoch(1)
+        next_epoch = dataset[0]
+        self.assertFalse(first["labels"].equal(next_epoch["labels"]))
+
+    def test_real_mlm_masks_multiple_lexical_tokens_but_not_special_tokens(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "1950.txt").write_text(
+                "alpha beta gamma delta epsilon zeta",
+                encoding="utf-8",
+            )
+            corpora = read_period_corpora(root)
+            _, token_to_id = build_vocabulary(corpora, min_count=1)
+
+        dataset = RealMLMDataset(
+            corpora[0],
+            token_to_id,
+            period_idx=0,
+            seq_len=10,
+            mask_probability=1.0,
+            mask_replace_probability=1.0,
+            random_replace_probability=0.0,
+        )
+        item = dataset[0]
+
+        self.assertEqual(int((item["labels"] != -100).sum()), 6)
+        self.assertEqual(int(item["labels"][0]), -100)
+        self.assertEqual(int(item["labels"][7]), -100)
+        self.assertEqual(int((item["input_ids"] == token_to_id["[MASK]"]).sum()), 6)
 
     def test_target_occurrence_probe_masks_real_occurrences(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

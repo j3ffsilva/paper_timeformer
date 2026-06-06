@@ -262,8 +262,8 @@ def full_vocab_occurrence_distributions(
 
 
 def extract_period_profiles(args, corpora, token_to_id: dict[str, int], targets: list[str], anchors: list[str]) -> list[dict]:
-    anchor_ids = [token_to_id[word] for word in anchors]
     use_pmi = args.profile_mode == "pmi"
+    anchor_ids = [token_to_id[word] for word in anchors] if not use_pmi else []
     profiles = []
     for period in range(args.n_periods):
         started = time.perf_counter()
@@ -291,11 +291,8 @@ def extract_period_profiles(args, corpora, token_to_id: dict[str, int], targets:
             )
             log(args, f"[profiles] period={period} computing log-PMI profiles")
             pmi_profiles = log_pmi_profiles(q_t, p_t)
-            # Also keep anchor-restricted distributions for backward compat diagnostics
-            distributions = q_t[:, anchor_ids]
-            distributions = distributions / distributions.sum(dim=-1, keepdim=True).clamp_min(
-                torch.finfo(distributions.dtype).eps
-            )
+            distributions = None
+            similarities = None
         else:
             log(args, f"[profiles] period={period} computing target-anchor distributions")
             if args.probe_mode == "occurrence":
@@ -326,19 +323,19 @@ def extract_period_profiles(args, corpora, token_to_id: dict[str, int], targets:
             pmi_profiles = None
             p_t = None
             q_t = None
+            similarities = jensen_shannon_similarity_matrix(distributions)
 
-        similarities = jensen_shannon_similarity_matrix(distributions)
         path = args.output_dir / "profiles" / "prediction_anchor_js" / f"t{period:02d}.pt"
         path.parent.mkdir(parents=True, exist_ok=True)
         profile = {
             "period": period,
             "targets": targets,
             "anchors": anchors,
-            "distributions": distributions,       # anchor-restricted q_t
+            "distributions": distributions,       # legacy anchor-restricted q_t (None in pmi mode)
             "full_distributions": q_t,            # full-vocab q_t (None if not pmi mode)
             "marginal": p_t,                      # p_t from neutral probe (None if not pmi mode)
             "pmi_profiles": pmi_profiles,         # log-PMI R_t(w) (None if not pmi mode)
-            "similarities": similarities,
+            "similarities": similarities,          # legacy target-anchor similarities (None in pmi mode)
             "occurrence_counts": occurrence_counts,
             "probe_mode": args.probe_mode,
             "profile_mode": args.profile_mode,
@@ -355,17 +352,6 @@ def relational_rows(profiles: list[dict]) -> list[dict]:
     targets = profiles[0]["targets"]
     has_pmi = profiles[0].get("pmi_profiles") is not None
     for period in range(1, len(profiles)):
-        before_sim = profiles[period - 1]["similarities"]
-        after_sim = profiles[period]["similarities"]
-        direct_jsd = jensen_shannon_divergence_rows(
-            profiles[period - 1]["distributions"], profiles[period]["distributions"]
-        )
-        direct_jsd_from_start = jensen_shannon_divergence_rows(
-            profiles[0]["distributions"], profiles[period]["distributions"]
-        )
-        from_start_sim = after_sim - profiles[0]["similarities"]
-        consecutive_sim = after_sim - before_sim
-
         if has_pmi:
             pmi_cos = pmi_cosine_displacement(
                 profiles[period - 1]["pmi_profiles"], profiles[period]["pmi_profiles"]
@@ -379,6 +365,17 @@ def relational_rows(profiles: list[dict]) -> list[dict]:
             ppmi_jsd_from_start = ppmi_jsd_displacement(
                 profiles[0]["pmi_profiles"], profiles[period]["pmi_profiles"]
             )
+        else:
+            before_sim = profiles[period - 1]["similarities"]
+            after_sim = profiles[period]["similarities"]
+            direct_jsd = jensen_shannon_divergence_rows(
+                profiles[period - 1]["distributions"], profiles[period]["distributions"]
+            )
+            direct_jsd_from_start = jensen_shannon_divergence_rows(
+                profiles[0]["distributions"], profiles[period]["distributions"]
+            )
+            from_start_sim = after_sim - profiles[0]["similarities"]
+            consecutive_sim = after_sim - before_sim
 
         for index, target in enumerate(targets):
             base_consec = {
@@ -386,24 +383,25 @@ def relational_rows(profiles: list[dict]) -> list[dict]:
                 "comparison": "consecutive",
                 "from_period": period - 1,
                 "to_period": period,
-                "mean_abs_delta": float(consecutive_sim[index].abs().mean()),
-                "max_abs_delta": float(consecutive_sim[index].abs().max()),
-                "direct_jsd": float(direct_jsd[index]),
             }
             base_from_start = {
                 "target": target,
                 "comparison": "from_t0",
                 "from_period": 0,
                 "to_period": period,
-                "mean_abs_delta": float(from_start_sim[index].abs().mean()),
-                "max_abs_delta": float(from_start_sim[index].abs().max()),
-                "direct_jsd": float(direct_jsd_from_start[index]),
             }
             if has_pmi:
                 base_consec["pmi_cosine"] = float(pmi_cos[index])
                 base_consec["ppmi_jsd"] = float(ppmi_jsd[index])
                 base_from_start["pmi_cosine"] = float(pmi_cos_from_start[index])
                 base_from_start["ppmi_jsd"] = float(ppmi_jsd_from_start[index])
+            else:
+                base_consec["mean_abs_delta"] = float(consecutive_sim[index].abs().mean())
+                base_consec["max_abs_delta"] = float(consecutive_sim[index].abs().max())
+                base_consec["direct_jsd"] = float(direct_jsd[index])
+                base_from_start["mean_abs_delta"] = float(from_start_sim[index].abs().mean())
+                base_from_start["max_abs_delta"] = float(from_start_sim[index].abs().max())
+                base_from_start["direct_jsd"] = float(direct_jsd_from_start[index])
             rows.append(base_consec)
             rows.append(base_from_start)
     return rows
@@ -421,6 +419,9 @@ def main() -> None:
     parser.add_argument("--max-anchors", type=int, default=500)
     parser.add_argument("--seq-len", type=int, default=32)
     parser.add_argument("--stride", type=int, default=16)
+    parser.add_argument("--mask-probability", type=float, default=0.15)
+    parser.add_argument("--mask-replace-probability", type=float, default=0.8)
+    parser.add_argument("--random-replace-probability", type=float, default=0.1)
     parser.add_argument("--max-windows-per-period", type=int, default=None)
     parser.add_argument("--probe-mode", choices=["occurrence", "template"], default="occurrence")
     parser.add_argument(
@@ -479,12 +480,16 @@ def main() -> None:
         targets = [word for word in requested_targets if word in token_to_id]
     else:
         targets = candidates[: args.max_targets]
-    if requested_anchors:
+    if args.profile_mode == "pmi":
+        anchors = []
+    elif requested_anchors:
         anchors = [word for word in requested_anchors if word in token_to_id]
     else:
         anchors = [word for word in candidates if word not in set(targets)][: args.max_anchors]
-    if not targets or not anchors:
-        raise ValueError("Need at least one target and one anchor word")
+    if not targets:
+        raise ValueError("Need at least one target word")
+    if args.profile_mode != "pmi" and not anchors:
+        raise ValueError("Need at least one anchor word in anchor profile mode")
     log(args, f"[setup] vocab={len(vocab)} targets={len(targets)} anchors={len(anchors)}")
 
     log(args, "[setup] building MLM windows")
@@ -495,6 +500,10 @@ def main() -> None:
             period_idx=period_idx,
             seq_len=args.seq_len,
             stride=args.stride,
+            mask_probability=args.mask_probability,
+            mask_replace_probability=args.mask_replace_probability,
+            random_replace_probability=args.random_replace_probability,
+            seed=args.seed,
         )
         for period_idx, corpus in enumerate(corpora)
     ]
@@ -546,7 +555,8 @@ def main() -> None:
     profiles = extract_period_profiles(args, corpora, token_to_id, targets, anchors)
     rows = relational_rows(profiles)
     write_csv(rows, args.output_dir / "diachronic_relational_changes.csv")
-    write_top_anchor_csv(profiles, args.output_dir / "top_anchors.csv", top_k=args.top_anchors_k)
+    if args.profile_mode != "pmi":
+        write_top_anchor_csv(profiles, args.output_dir / "top_anchors.csv", top_k=args.top_anchors_k)
     elapsed = time.perf_counter() - started
     log(args, f"[done] elapsed={elapsed:.1f}s")
     print(f"Wrote {args.output_dir / 'diachronic_relational_changes.csv'}")

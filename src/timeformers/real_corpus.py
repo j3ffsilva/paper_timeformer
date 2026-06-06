@@ -34,7 +34,11 @@ def read_period_corpora(input_dir: Path) -> list[RealPeriodCorpus]:
     corpora = []
     for path in sorted(input_dir.iterdir()):
         if path.is_file() and path.suffix.lower() == ".txt":
-            documents = [tokenize(path.read_text(encoding="utf-8", errors="ignore"))]
+            documents = [
+                tokenize(line)
+                for line in path.read_text(encoding="utf-8", errors="ignore").splitlines()
+                if line.strip()
+            ]
             corpora.append(RealPeriodCorpus(path.stem, [doc for doc in documents if doc]))
         elif path.is_dir():
             documents = [
@@ -81,7 +85,11 @@ def make_windows(encoded: list[int], seq_len: int, *, stride: int) -> list[list[
     content_len = seq_len - 2
     if len(encoded) <= content_len:
         return [encoded]
-    return [encoded[start : start + content_len] for start in range(0, len(encoded) - content_len + 1, stride)]
+    starts = list(range(0, len(encoded) - content_len + 1, stride))
+    final_start = len(encoded) - content_len
+    if starts[-1] != final_start:
+        starts.append(final_start)
+    return [encoded[start : start + content_len] for start in starts]
 
 
 class RealMLMDataset(Dataset):
@@ -93,33 +101,90 @@ class RealMLMDataset(Dataset):
         period_idx: int,
         seq_len: int = 32,
         stride: int = 16,
+        mask_probability: float = 0.15,
+        mask_replace_probability: float = 0.8,
+        random_replace_probability: float = 0.1,
+        seed: int = 0,
     ) -> None:
+        if not 0.0 < mask_probability <= 1.0:
+            raise ValueError("mask_probability must be in (0, 1]")
+        if mask_replace_probability < 0.0 or random_replace_probability < 0.0:
+            raise ValueError("replacement probabilities must be non-negative")
+        if mask_replace_probability + random_replace_probability > 1.0:
+            raise ValueError("replacement probabilities must sum to at most 1")
         self.token_to_id = token_to_id
         self.period_idx = period_idx
         self.seq_len = seq_len
+        self.mask_probability = mask_probability
+        self.mask_replace_probability = mask_replace_probability
+        self.random_replace_probability = random_replace_probability
+        self.seed = seed
+        self.epoch = 0
         self.pad_id = token_to_id["[PAD]"]
         self.cls_id = token_to_id["[CLS]"]
         self.sep_id = token_to_id["[SEP]"]
         self.mask_id = token_to_id["[MASK]"]
-        self.items = []
+        self.special_ids = {
+            token_to_id[token]
+            for token in SPECIAL_TOKENS
+            if token in token_to_id
+        }
+        self.replacement_ids = [
+            token_id
+            for token, token_id in token_to_id.items()
+            if token not in SPECIAL_TOKENS
+        ]
+        if not self.replacement_ids:
+            raise ValueError("vocabulary must contain at least one lexical token")
+        self.windows = []
         for document in corpus.documents:
             encoded = encode_document(document, token_to_id)
             for window in make_windows(encoded, seq_len, stride=stride):
-                if window:
-                    self.items.append(self._make_item(window))
+                if any(token_id not in self.special_ids for token_id in window):
+                    self.windows.append(window)
 
-    def _make_item(self, window: list[int]) -> dict[str, Tensor]:
+    def set_epoch(self, epoch: int) -> None:
+        self.epoch = epoch
+
+    def _generator(self, index: int) -> torch.Generator:
+        generator = torch.Generator()
+        item_seed = (
+            self.seed
+            + 1_000_003 * self.period_idx
+            + 10_000_019 * self.epoch
+            + 100_000_007 * index
+        )
+        generator.manual_seed(item_seed)
+        return generator
+
+    def _make_item(self, window: list[int], index: int) -> dict[str, Tensor]:
         ids = [self.cls_id] + window[: self.seq_len - 2] + [self.sep_id]
         ids += [self.pad_id] * (self.seq_len - len(ids))
         labels = [-100] * self.seq_len
         candidate_positions = [
             index
             for index, token_id in enumerate(ids)
-            if index > 0 and token_id not in {self.pad_id, self.sep_id}
+            if token_id not in self.special_ids
         ]
-        mask_pos = candidate_positions[len(candidate_positions) // 2]
-        labels[mask_pos] = ids[mask_pos]
-        ids[mask_pos] = self.mask_id
+        generator = self._generator(index)
+        selected = [
+            position
+            for position in candidate_positions
+            if float(torch.rand((), generator=generator)) < self.mask_probability
+        ]
+        if not selected:
+            choice = int(torch.randint(len(candidate_positions), (1,), generator=generator))
+            selected = [candidate_positions[choice]]
+        for position in selected:
+            labels[position] = ids[position]
+            replacement_draw = float(torch.rand((), generator=generator))
+            if replacement_draw < self.mask_replace_probability:
+                ids[position] = self.mask_id
+            elif replacement_draw < self.mask_replace_probability + self.random_replace_probability:
+                replacement_index = int(
+                    torch.randint(len(self.replacement_ids), (1,), generator=generator)
+                )
+                ids[position] = self.replacement_ids[replacement_index]
         return {
             "input_ids": torch.tensor(ids, dtype=torch.long),
             "labels": torch.tensor(labels, dtype=torch.long),
@@ -130,10 +195,10 @@ class RealMLMDataset(Dataset):
         }
 
     def __len__(self) -> int:
-        return len(self.items)
+        return len(self.windows)
 
     def __getitem__(self, index: int) -> dict[str, Tensor]:
-        return self.items[index]
+        return self._make_item(self.windows[index], index)
 
 
 class RealWordProbeDataset(Dataset):

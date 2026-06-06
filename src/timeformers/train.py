@@ -186,6 +186,16 @@ class MLMTrainer:
         return (sums[0] / counts[0]).detach(), (sums[1] / counts[1]).detach()
 
 
+def _set_dataset_epoch(dataset, epoch: int) -> None:
+    if hasattr(dataset, "set_epoch"):
+        dataset.set_epoch(epoch)
+    elif hasattr(dataset, "dataset"):
+        _set_dataset_epoch(dataset.dataset, epoch)
+    elif hasattr(dataset, "datasets"):
+        for child in dataset.datasets:
+            _set_dataset_epoch(child, epoch)
+
+
 class ContinualPeriodTrainer:
     """Train one model over chronologically ordered period datasets."""
 
@@ -232,6 +242,7 @@ class ContinualPeriodTrainer:
             best_gradient_step = None
             stale_epochs = 0
             for epoch in range(period_epochs):
+                _set_dataset_epoch(dataset, epoch)
                 self.model.train()
                 total_loss = 0.0
                 n_batches = 0

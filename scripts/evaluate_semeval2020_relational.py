@@ -96,7 +96,7 @@ def main() -> None:
     parser.add_argument("--comparison", default="from_t0")
     parser.add_argument(
         "--score-column",
-        choices=["mean_abs_delta", "max_abs_delta", "direct_jsd", "pmi_cosine", "ppmi_jsd"],
+        choices=["pmi_cosine", "ppmi_jsd"],
         default="pmi_cosine",
     )
     args = parser.parse_args()
