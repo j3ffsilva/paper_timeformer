@@ -619,24 +619,127 @@ aparecem com baixo deslocamento mesmo que tenham mudado.
 Esse é o sinal de convergência do modelo confundido com mudança semântica.
 O controle placebo (D_0 repetido) é obrigatório para separar os dois.
 
-### Riscos identificados e próximos passos
+### Correções adicionais implementadas na GPU (2026-06-06)
 
-1. **Controle placebo obrigatório antes de qualquer conclusão:** executar o
-   mesmo pipeline com `D_0 → D_0` (corpus repetido) para estimar quanto de
-   `pmi_cosine` emerge apenas de otimização continuada, sem mudança de corpus.
+**Bug de fronteiras de documento (crítico):** o corpus SemEval tem uma sentença
+por linha, embaralhadas aleatoriamente. O leitor antigo concatenava o arquivo
+inteiro como um único documento, criando janelas MLM que atravessavam fronteiras
+entre sentenças não relacionadas. Todos os checkpoints anteriores aos pilotos
+com o sufixo `_line_documents` são **inválidos** para avaliar o método.
 
-2. **Modelo possivelmente subconvergido em t0:** com 12 épocas sobre 400k
-   janelas, o modelo pode ainda não ter convergido, fazendo com que o t1 seja
-   parcialmente convergência residual de t0. Monitorar a loss de validação por
-   período.
+**MLM dinâmico:** o dataset original mascarava deterministicamente o token
+central de cada janela, sempre na mesma posição. O novo dataset aplica a
+política BERT canônica: 15% dos tokens por época, com 80% `[MASK]`, 10% token
+aleatório, 10% mantido. As máscaras variam por época mas são reproduzíveis.
+Para `graft_nn`, isso aumentou as apresentações positivas de 4 para 269 em D0.
 
-3. **Âncoras ainda incluem palavras não-semânticas:** a variante
-   `eng_lemma_content` foi preparada com 300 âncoras filtradas por POS, mas
-   os resultados do `line_documents` (que usou esse dataset) foram semelhantes
-   ao piloto. Indicação de que o problema dominante é convergência, não âncoras.
+**Modelo maior:** o experimento `semeval2020_pmi_dynamic_mlm_12_8_d128` usou
+d_model=128, 3 camadas, 40.188 passos de gradiente, 1h53m em GPU. Perdas:
+D0: 6.94→4.88, D1: 5.54→5.02.
 
-4. **Próximo experimento necessário:** `placebo_run` com o mesmo modelo
-   `long_epochs` treinado em `D_0 → D_0`, comparando `pmi_cosine` placebo
-   com `pmi_cosine` real. Somente se a vantagem real sobre o placebo for
-   positiva para palavras mudadas (e negativa para estáveis) teremos evidência
-   de sinal semântico.
+### Formulação Cloze-PMI descartada
+
+A formulação log-PMI falha porque o MLM responde "qual token completa
+sintaticamente esta posição", não "quais palavras são semanticamente próximas
+de w". O PMI não converte substituibilidade posicional em proximidade semântica
+ampla. Evidência empírica: mesmo com MLM dinâmico e modelo maior, a correlação
+com variação de entropia permanece rho≈0.94.
+
+**Cloze-PMI é encerrada como abordagem principal.**
+
+---
+
+## Resultados atuais — Perfis relacionais com APD de estados ocultos
+
+A abordagem que produziu sinal positivo usa diretamente os estados ocultos:
+
+```
+r_t(w, ocorrência)[v] = cos(h_t(w, ocorrência), centroide_t(v))
+APD(w) = distância média entre r_0(w, o_i) e r_1(w, o_j)
+         para amostras aleatórias de ocorrências entre os dois períodos
+```
+
+Experimento `balanced_apd_layer2` (camada 2, centroides centrados, 3.216
+referências compartilhadas, 100 ocorrências por período por palavra):
+
+```
+Spearman graded: 0.210
+ROC-AUC:        0.542
+```
+
+### Problema central do APD: inversão plane_nn / chairman_nn
+
+`chairman_nn` ocupa o rank 1 (falso positivo alto): o campo semântico de
+liderança organizacional permanece estável, mas D1 tem representações mais
+concentradas (menor variância), inflando o APD mesmo sem mudança de sentido.
+
+`plane_nn` ocupa o rank 35 (falso negativo): a transição geométrico → transporte
+é clara nos vizinhos, mas o APD absoluto é pequeno em relação à deriva de campo.
+
+**As vizinhanças são semanticamente corretas; a escala do APD não discrimina.**
+
+### Resultado qualitativo — vizinhanças temporalmente coerentes
+
+Usando `r_t(w) = {v: cos(centroide_t(w), centroide_t(v))}` para as 3.216
+referências compartilhadas entre checkpoints:
+
+**`plane_nn` (transição forte):**
+- D0: `line, angle, plate, column, stock, canal, building, coast, border, ridge`
+- D1: `boat, ship, fence, rail, route, pole, building, road, flag, trail, machine`
+
+**`chairman_nn` (campo estável):**
+- D0: `secretary, editor, commander, director, president, committee, jury`
+- D1: `secretary, director, commander, president, commissioner, governor, publisher`
+
+**`graft_nn` (transição forte, vizinhança D0 heterogênea):**
+- D0: campo heterogêneo (botânico + outros)
+- D1: `compound, machinery, currency, commodity, mechanic, utility, acid, organ`
+
+**`tree_nn` (reorganização interna, sem troca de campo):**
+- D0 e D1 permanecem no campo natural (plantas, paisagem)
+
+**Controle de campo:** subtraindo a mediana do JSD do campo semântico observado,
+`chairman_nn` cai para resíduo mínimo (0.019) e `graft_nn` sobe para resíduo
+alto (0.187). O controle de campo é promissor mas ainda não foi aplicado
+sistematicamente a todos os 37 alvos.
+
+### Realinhamento da contribuição (2026-06-06)
+
+**O objetivo não é maximizar o Spearman de 37 palavras.**
+
+O alvo é demonstrar que TimeFormer produz **vizinhanças semânticas temporais
+coerentes** sem alinhamento geométrico post-hoc e sem anotação externa:
+
+| Propriedade | Hamilton 2016 | APD+BERT (SemEval) | TimeFormer |
+|---|---|---|---|
+| Embeddings | estáticos | contextuais | contextuais |
+| Modelos | 2 independentes | 1 fixo externo | 1 contínuo |
+| Domínio | in-domain | out-of-domain | in-domain |
+| Alinhamento | Procrustes | não necessário | não necessário |
+| Resolução | 2 pontos | 2 pontos | N checkpoints |
+
+A contribuição específica: um único modelo que *aprendeu a transição* — não
+dois snapshots alinhados depois. A continuidade cronológica dos pesos produz
+uma representação da transição que independe de Procrustes ou encoder externo.
+
+### Experimentos encerrados (decisões finais)
+
+- **Atlas WSD externo como arquitetura principal:** exigiria BEM/ConSeC como
+  componente central. A contribuição passaria para o encoder externo.
+- **Clustering como estimador de sentido:** muro de identificabilidade formal.
+  O algoritmo encontra variância de tópico/registro, não de sentido lexical.
+  Mais épocas ou algoritmos melhores não atravessam essa parede.
+
+### Próximos experimentos necessários
+
+1. **Comparação com Hamilton 2016 (prioritária):** word2vec por período +
+   Procrustes, mesmo protocolo de relatório de vizinhança. Se word2vec produzir
+   vizinhanças tão coerentes com menor custo, a novidade do treinamento contínuo
+   precisa ser redefinida.
+
+2. **Field-controlled APD para todos os 37 alvos:** definir campos semânticos
+   automáticos por agrupamento de palavras de referência (sem usar clustering
+   como estimador de sentido), calcular `APD_adj(w) = APD(w) - mediana(campo)`.
+
+3. **Modelo maior (d=256/512) como ablação:** verificar se a limitação atual
+   é de capacidade ou de arquitetura.
