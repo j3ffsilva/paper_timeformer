@@ -743,3 +743,100 @@ uma representação da transição que independe de Procrustes ou encoder extern
 
 3. **Modelo maior (d=256/512) como ablação:** verificar se a limitação atual
    é de capacidade ou de arquitetura.
+
+## Fase 1 / 1.5 do Perfil Relacional v2 (2026-06-11)
+
+Após `docs/novo_perfil_relacional.md` (v2), rodamos a Fase 0A/1 (ablação de
+centralização) e a Fase 1.5 (go/no-go espectral, §7-9) sobre os caches
+existentes (`outputs/semeval2020_pmi_dynamic_mlm_12_8_d128/hidden_relational_profiles/cache`),
+sem reextração.
+
+**Fase 1 (centralização):** quatro variantes de `mu_t` foram comparadas,
+todas avaliadas sobre o mesmo `V_ativo` (n_min=10, ~5700-5900 tokens em
+`mean_last_2`/`layer_2`). `D_type_uniform_mu` (média não ponderada dos
+centróides por tipo sobre `V_ativo`) teve o melhor resultado:
+spearman=0.124, AUC=0.601 (mean_last_2), marginalmente acima da abordagem
+v1 (`A_reference_mean`, spearman=0.108). `B_global_mu` e
+`C_global_mu_active_support` (médias ponderadas por ocorrência) tiveram
+desempenho muito pior (spearman ~0, AUC ~0.5) -- dominadas por palavras de
+função de alta frequência. Diferença A vs D não é significativa (n=37).
+Decisão: não revisar §4.1 do documento canônico por agora; adotar D como
+centralização de trabalho.
+
+**Fase 1.5 (NO-GO espectral, §7-9):** testamos a decomposição em modos
+semânticos (critério de gap + SVD da matriz de coesão) para
+plane_nn/graft_nn (mudança esperada) vs. chairman_nn/tree_nn/ball_nn/
+face_nn/lane_nn/multitude_nn (controles estáveis), em três formulações
+sucessivas:
+
+1. `filter_support` puro sobre `P_t(w)` (componentes positivos): tau~1e-4,
+   `|V_w|` ~ 5000-5900 (quase todo o V_ativo positivo), k=1 quase sempre,
+   com k=2 espúrio aparecendo em CONTROLES estáveis (face_nn, multitude_nn),
+   não nos alvos de mudança.
+2. `filter_support_topn` (top-N por `|P_t(w)[v]|`, N=100/500): tau=None,
+   k=None para todas as 8 palavras -- nenhum gap relativo > gamma=0.3 entre
+   os candidatos mais correlacionados.
+3. Top-N **positivo** fixo (N=50/100/200), gap só sobre autovalores de
+   M_t(w) (formulação recomendada por segunda opinião do codex): k=1 para
+   TODAS as 8 palavras, ambos os períodos, todos os N -- lambda_1 domina
+   lambda_2 por 10-30x sempre.
+
+Diagnóstico: `P_t(w)[v]` decai suavemente e quase monotonicamente de ~0.95
+a ~-0.76 ao longo de `V_ativo` (gaps relativos consecutivos ~0.003-0.05),
+sem clusters discretos. A matriz de coesão M_t(w) é dominada por um único
+modo (a "direção média" de V_w), igualmente para palavras com mudança
+conhecida e para controles estáveis. Auditoria de implementação (codex)
+confirmou fidelidade ao §7.5/§8.2/§8.3; o padrão não é atribuível a erro de
+sinal/eixo/normalização.
+
+**Conclusão:** §7-9 (modos semânticos via SVD da matriz de coesão) é um
+NO-GO empírico para este regime (d_model=128, 3 camadas, |V_ativo|~11600,
+SemEval eng_lemma). Não construir a infraestrutura de modos/persistência
+(Fase 2-3-5 originais do plano v2). O deslocamento relacional
+`Delta(w) = 1 - cos(P_t0(w), P_t1(w))` (Fase 1, variante D) permanece como
+a métrica de trabalho, com a ressalva de que seu sinal já era fraco
+(spearman~0.124, nenhum "changed" target acima do p95 dos estáveis).
+Próximo passo proposto: ablação de modelo maior (d=256/512, ver item 3
+acima) para avaliar se o colapso em modo único é um efeito de capacidade do
+encoder, antes de investir em variações alternativas de V_w/perfil.
+
+## Adendos (2026-06-12) -- diagnóstico do eixo de época e teto de oráculo
+
+Quatro rodadas adicionais de testes baratos sobre o cache existente (sem
+reextração), documentadas em detalhe em
+`docs/perfil_relacional_v2_resultados_fase1.md` §7.9-7.25:
+
+1. **Passo 0 (APD + bimodalidade)**: `APD` (distância par-a-par entre
+   ocorrências, sem centróide) performa igual a `Delta` (spearman~0.13) --
+   refuta a hipótese de que o problema era a agregação por centróide.
+2. **APD_ratio + cluster x período (NMI)**: ambos no acaso contra
+   `truth.tsv`. Mas o NMI por palavra revelou que, na configuração
+   "diagonal" (`theta0_d0` vs `theta1_d1`), quase TODA palavra (mudada ou
+   estável) é quase perfeitamente separável por período em `mean_last_2`.
+3. **Grade 2x2 (checkpoint x corpus)**: identificou que essa separação é
+   quase toda **drift de checkpoint** (theta0 -> theta1 via treino
+   contínuo), não conteúdo do corpus -- com encoder fixo, NMI(corpus)~0.03;
+   com dados fixos, NMI(checkpoint)~0.86. Recentralização aditiva remove a
+   maior parte, mas não move o spearman de `APD`/`Delta`.
+4. **Encoder fixo (Tarefa 1) + modos primeiro (Tarefa 3) + BERT congelado
+   (Tarefa 2)**: medir com `theta1` fixo sobre os dois corpora sobe `APD`
+   de ~0.13 para ~0.20 (ainda não significativo, n=37). Agrupar a nuvem de
+   ocorrências antes do perfil (em vez de depois) produz resultados
+   interpretáveis para `graft_nn`/`tree_nn`, mas não para `plane_nn`.
+   **O resultado decisivo**: o mesmo `APD`/`NMI`, computado com
+   `bert-base-uncased` PRÉ-TREINADO (congelado, mesmas frases), chega a
+   spearman~0.59 (p=0.0001) -- estatisticamente significativo e muito
+   acima de qualquer resultado com o encoder próprio. Para `plane_nn`, o
+   BERT separa cleanly o sentido geométrico (1850) do sentido aviação
+   (2000) (`NMI`=0.487 vs `NMI`~0 para `tree_nn`, estável).
+
+**Conclusão revisada**: o gargalo principal é a **qualidade/capacidade do
+encoder** (d_model=128, 3 camadas, treinado do zero só com MLM contínuo),
+não o desenho do perfil relacional, a centralização, ou a configuração
+diagonal -- embora essas três correções (encoder fixo, agrupar antes de
+medir) ajudem (~0.13 -> ~0.20) e devam ser mantidas. A ablação de
+capacidade "treinar maior do zero" (item 3 acima) é substituída por:
+**inicializar o Timeformer a partir de um checkpoint pré-treinado antes do
+treino contínuo temporal**, mantendo o resto do pipeline (perfil relacional
+v2 + encoder fixo + agrupamento de ocorrências) como infraestrutura de
+medição.
