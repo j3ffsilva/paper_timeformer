@@ -24,8 +24,10 @@ Spearman = -0.025  (p = 0.88)
 ROC-AUC  = 0.494
 ```
 
-Ou seja: **nenhuma correlação com o gold**, e a métrica binária acerta
-exatamente o que uma moeda jogada acertaria. Aumentar o número de épocas
+Ou seja: **nenhuma correlação com o gold**, e a [métrica
+binária](conceitos/05-estatistica_experimental.md#metricas-classificacao)
+acerta exatamente o que uma moeda jogada acertaria — `ROC-AUC=0,5` é o valor
+esperado de uma ordenação aleatória. Aumentar o número de épocas
 não ajudou. Pior: uma análise de correlação revelou que `pmi_cosine`
 correlacionava fortemente — `rho = 0.946` — com a **variação de entropia
 do corpus** entre os dois checkpoints, não com mudança semântica. O
@@ -187,6 +189,7 @@ evidência de aprendizado algum — é ruído de inicialização.
 
 ## Conceitos novos usados neste capítulo
 
+- [Acurácia, macro acurácia, ROC-AUC e AP](conceitos/05-estatistica_experimental.md#metricas-classificacao)
 - [Entropia normalizada e perplexidade](conceitos/01-correlacao_e_similaridade.md#entropia)
 - [Dados lematizados, janelas e fronteiras de documento](conceitos/09-dados_tokenizacao_e_contexto.md)
 - [Embedding posicional e mascaramento (MLM)](conceitos/02-encoders_e_camadas.md#mascaramento)

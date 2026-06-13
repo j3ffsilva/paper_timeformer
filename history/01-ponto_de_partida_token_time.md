@@ -86,9 +86,12 @@ muito abaixo dos 0.966 de `FiLMTraj`. Conclusão da fase: **arquitetura e
 loss são complementares**, nenhuma das duas resolve isoladamente.
 
 Um teste de tendência (o ganho `FiLMTraj - FiLM` cresce conforme a
-fidelidade piora?) deu `p=0.22` e `p=0.57` — **não confirmado**. A
-conclusão honesta registrada foi "o efeito é robusto à degradação dos
-marcadores", não "o efeito cresce monotonicamente".
+fidelidade piora?) deu `p=0.22` e `p=0.57` — **não confirmado**. Como
+explicado em [efeito, p-valor e intervalo de
+confiança](conceitos/05-estatistica_experimental.md#p-valor), esses
+p-valores altos não provam que a tendência não existe; apenas que os dados
+não a confirmam. A conclusão honesta registrada foi "o efeito é robusto à
+degradação dos marcadores", não "o efeito cresce monotonicamente".
 
 ## Resultado 2: o "agregador" (Set Transformer) só funciona com supervisão sintética
 
@@ -98,7 +101,9 @@ representação de trajetória — conseguia, sem qualquer rótulo externo,
 capturar a **bimodalidade** de sujeitos `Bifurcating` (a classe onde dois
 sentidos coexistem).
 
-A métrica era `D6` (um escore de bimodalidade/silhouette). Resultado:
+A métrica era `D6`, um escore de bimodalidade baseado em
+[silhouette](conceitos/04-perfis_relacionais_e_apd.md#silhouette).
+Resultado:
 
 | Configuração | D6 |
 |---|---:|
@@ -204,3 +209,5 @@ não parte do pipeline atual.
 - [CKA (Centered Kernel Alignment)](conceitos/01-correlacao_e_similaridade.md#cka)
 - [Spearman](conceitos/01-correlacao_e_similaridade.md#spearman)
 - [MLM (Masked Language Modeling)](conceitos/02-encoders_e_camadas.md#mlm)
+- [Silhouette score](conceitos/04-perfis_relacionais_e_apd.md#silhouette)
+- [Efeito, p-valor e intervalo de confiança](conceitos/05-estatistica_experimental.md#p-valor)

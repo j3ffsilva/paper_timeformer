@@ -24,8 +24,9 @@ encontrou um limite importante: a similaridade por cosseno é invariante a
 **rotação**, **reflexão** e **escalamento uniforme** — mas **não** a:
 
 - **escalamento anisotrópico** (cada dimensão crescendo numa taxa
-  diferente) — exatamente o tipo de deformação que o Adam/AdamW produz,
-  porque cada dimensão tem seu próprio segundo momento;
+  diferente) — exatamente o tipo de deformação que o
+  [Adam/AdamW produz, porque cada dimensão tem seu próprio segundo
+  momento](conceitos/03-deriva_e_esquecimento.md#segundo-momento);
 - **translação** — se o embedding de `[CLS]` ou `[PAD]` deriva
   sistematicamente;
 - **mudanças nos parâmetros de LayerNorm** (`gamma`, `beta`) ao longo do
@@ -225,5 +226,6 @@ pergunta a ser respondida, não assumida (resposta ao problema 1).
 
 - [CKA entre checkpoints](conceitos/01-correlacao_e_similaridade.md#cka)
 - [Catastrophic forgetting / esquecimento catastrófico](conceitos/03-deriva_e_esquecimento.md)
-- [Nulo específico por palavra vs. limiar global](conceitos/05-estatistica_experimental.md)
+- [Nulo específico por palavra vs. limiar global](conceitos/05-estatistica_experimental.md#nulo-por-palavra)
+- [Segundo momento do Adam/AdamW e escalamento anisotrópico](conceitos/03-deriva_e_esquecimento.md#segundo-momento)
 - [HARKing](conceitos/05-estatistica_experimental.md#harking)

@@ -20,6 +20,14 @@ pode ser largo e incluir zero. Dizer apenas `p>0,05` também não prova que o
 efeito é zero; significa que os dados não o distinguem com segurança do nulo
 adotado.
 
+Os dois extremos aparecem no projeto: no capítulo 08, o oráculo
+`bert-base-uncased` deu Spearman=0,594 com `p=0,0001` — um efeito grande *e*
+um p-valor pequeno, o primeiro resultado do projeto em que as três perguntas
+apontam na mesma direção. Já no capítulo 01, o teste de tendência sobre o
+ganho `FiLMTraj - FiLM` deu `p=0,22` e `p=0,57` — aqui o p-valor alto não diz
+"não há tendência", apenas que os dados disponíveis não permitem afirmá-la
+com confiança.
+
 O projeto passou a privilegiar:
 
 ```text
@@ -102,6 +110,34 @@ distance](04-perfis_relacionais_e_apd.md#energy-distance) no capítulo 06
 (Spearman caiu de 0,210 para 0,021 ao normalizar por dispersão interna).
 Isso não significa necessariamente "o controle estava errado" — pode
 significar que o sinal original **era**, em boa parte, o confundidor.
+
+<a id="nulo-por-palavra"></a>
+## Nulo específico por palavra vs. limiar global
+
+Um **limiar global** decide "mudou" vs. "não mudou" com um único corte
+aplicado a todas as palavras (ex.: "`Delta > 0,3` para qualquer palavra").
+Um **nulo específico por palavra** reconhece que palavras diferentes têm
+variabilidade de fundo diferente, e calibra o corte *para cada palavra*, a
+partir da variação que ela mesma exibiria sem mudança real (por exemplo,
+entre amostras/seeds, ou entre recortes do mesmo período).
+
+Por que isso importa: `chairman_nn` é muito mais frequente em D1 (683
+ocorrências) do que em D0 (147). Mesmo sem nenhuma mudança de sentido, a
+maior amostra em D1 produz centróides mais estáveis, então a variação
+"esperada por acaso" de `chairman_nn` é diferente da de uma palavra rara
+como `graft_nn` (119/109 ocorrências). Um limiar único de `Delta`, calibrado
+para uma palavra típica, pode então:
+
+- marcar `chairman_nn` como "mudou" só porque sua amostra menor em D0 a
+  torna mais ruidosa que o limiar previa (falso positivo);
+- ou exigir um `Delta` tão alto que `graft_nn`, cuja mudança real é mais
+  sutil, fique abaixo do corte (falso negativo).
+
+O capítulo 03 adotou, a partir daqui, três critérios calibrados contra o
+nulo de cada palavra — **magnitude** (supera a variação nula *daquela
+palavra*), **persistência** (não reverte nos períodos seguintes) e
+**coerência** (as dimensões que mudam formam um padrão interpretável) — em
+vez de um único limiar global de `Delta`.
 
 <a id="controle-aleatorio"></a>
 ## Controle com pesos aleatórios / pseudo-períodos

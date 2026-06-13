@@ -41,6 +41,32 @@ O projeto encontrou deriva em vários níveis:
   sinal semântico" são dois problemas diferentes — a deriva de época não
   era, ela mesma, o que estava *escondendo* o sinal.
 
+<a id="segundo-momento"></a>
+## Por que o treino deforma o espaço de forma desigual (Adam/AdamW)
+
+O [cosseno](01-correlacao_e_similaridade.md#cosseno) entre representações é
+invariante a rotação, reflexão e escalamento **uniforme** — mas não a
+escalamento **anisotrópico** (cada dimensão crescendo numa taxa diferente).
+A razão pela qual essa diferença importa na prática é o otimizador.
+
+Adam/AdamW não dão o mesmo passo de atualização para todos os parâmetros: a
+cada passo, cada parâmetro é dividido por uma estimativa móvel da raiz do
+**segundo momento** dos seus gradientes (a média móvel de
+`gradiente^2`), o que faz parâmetros com gradientes historicamente grandes
+receberem passos menores, e vice-versa:
+
+```text
+passo(parametro) ∝ lr * gradiente / sqrt(segundo_momento(parametro))
+```
+
+Como cada dimensão do espaço de representações acumula seu próprio segundo
+momento, dimensões diferentes evoluem em taxas diferentes ao longo do
+treino — exatamente o escalamento anisotrópico ao qual o cosseno **não** é
+invariante. Por isso, "o cosseno entre `theta_0` e `theta_1` deveria ser
+preservado porque o treino só gira/reescala o espaço" é uma afirmação que
+**precisa ser medida** (por exemplo, via [CKA](01-correlacao_e_similaridade.md#cka)
+entre checkpoints), não assumida — é o "Problema 1" do capítulo 03.
+
 ## Esquecimento catastrófico (catastrophic forgetting)
 
 "Esquecimento catastrófico" é o fenômeno, bem documentado em redes neurais

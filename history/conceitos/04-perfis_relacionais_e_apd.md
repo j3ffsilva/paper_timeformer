@@ -111,6 +111,34 @@ checkpoint); `tree_nn` (estável) NMI≈0,002 (quase zero). A diferença entre
 sentidos correspondendo aos dois períodos" só pôde ser resolvida com a
 [grade 2x2 de encoder fixo](02-encoders_e_camadas.md#encoder-fixo).
 
+<a id="silhouette"></a>
+## Silhouette score
+
+O **silhouette score** mede, para um agrupamento já feito, **quão bem cada
+ponto se encaixa no seu próprio cluster** comparado aos clusters vizinhos:
+
+```text
+silhouette(i) = (b(i) - a(i)) / max(a(i), b(i))
+```
+
+onde `a(i)` é a distância média de `i` aos outros pontos do **mesmo**
+cluster, e `b(i)` é a distância média de `i` aos pontos do cluster vizinho
+mais próximo. Valores perto de `1` indicam clusters bem separados; perto de
+`0`, clusters que se sobrepõem; negativos, pontos que provavelmente estão no
+cluster errado.
+
+No projeto, o silhouette é usado para **escolher `k`** (o número de
+clusters/modos) sem olhar o gold: testam-se vários `k` e escolhe-se o que dá
+melhor silhouette médio. No capítulo 01, essa ideia aparece como a métrica
+`D6` (um escore de bimodalidade baseado em silhouette) para detectar sujeitos
+sintéticos `Bifurcating`. No capítulo 08, o protótipo "modos primeiro" usa
+silhouette para escolher `k ∈ {2,...,5}` antes de descrever cada modo —
+por exemplo, `graft_nn` foi dividido em `k=2` modos (botânico vs.
+comercial/tecnológico), enquanto `chairman_nn` foi dividido em `k=3`
+modos que, apesar de bem separados pelo silhouette, compartilhavam o mesmo
+campo semântico — um lembrete de que o silhouette mede **separação
+geométrica**, não **relevância semântica** da separação.
+
 <a id="rbo"></a>
 ## RBO (Rank-Biased Overlap)
 

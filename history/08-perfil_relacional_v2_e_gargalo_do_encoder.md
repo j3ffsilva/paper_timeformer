@@ -246,7 +246,8 @@ checkpoint**, em vez de cada período com seu checkpoint "nativo"
 | `theta_1` | mean_last_2 | **0,202** (p=0,23) | **0,619 / 0,663** |
 
 Com `theta_0` fixo, o sinal praticamente desaparece (≈ acaso). Com
-`theta_1` fixo, o APD sobe para Spearman ≈ 0,20 e AP ≈ 0,66 — **o melhor
+`theta_1` fixo, o APD sobe para Spearman ≈ 0,20 e [AP](conceitos/05-estatistica_experimental.md#metricas-classificacao)
+≈ 0,66 — **o melhor
 resultado da investigação até este ponto**, embora ainda não significativo
 com `n=37` (precisaria de ≈ 0,33 para `p<0,05`). Faz sentido: `theta_1` viu
 os dois recortes de corpus durante o treino contínuo, então é o modelo mais
@@ -259,8 +260,9 @@ configuração padrão de medição.**
 Com `theta_1` fixo, foi tentado um protótipo que inverte a ordem do
 documento canônico: em vez de decompor o **perfil agregado** em modos
 (o que falhou na Fase 1.5), primeiro agrupar a **nuvem de ocorrências** de
-cada palavra em 2-5 grupos (via silhouette), e só depois descrever cada
-grupo por seu próprio perfil de vizinhos.
+cada palavra em 2-5 grupos (escolhendo `k` via
+[silhouette](conceitos/04-perfis_relacionais_e_apd.md#silhouette)), e só
+depois descrever cada grupo por seu próprio perfil de vizinhos.
 
 | Personagem | `k` escolhido | JSD(D0,D1) | Leitura |
 |---|---:|---:|---|
@@ -380,6 +382,8 @@ infraestrutura de medição.
 - [SVD, autovalores/autovetores e matriz PSD](conceitos/04-perfis_relacionais_e_apd.md#svd)
 - [Critério de gap relativo](conceitos/04-perfis_relacionais_e_apd.md#gap)
 - [NMI/AMI (normalized/adjusted mutual information)](conceitos/04-perfis_relacionais_e_apd.md#nmi)
+- [Silhouette score](conceitos/04-perfis_relacionais_e_apd.md#silhouette)
+- [Acurácia, macro acurácia, ROC-AUC e AP](conceitos/05-estatistica_experimental.md#metricas-classificacao)
 - [GMM e critério BIC](conceitos/05-estatistica_experimental.md#gmm-bic)
 - [Encoder fixo vs. "diagonal"](conceitos/02-encoders_e_camadas.md#encoder-fixo)
 - [A grade 2x2 completa e a analogia da régua](conceitos/08-desenhos_temporais_e_reguas.md)
