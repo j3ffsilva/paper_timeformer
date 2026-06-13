@@ -938,3 +938,26 @@ Decisão revisada: não implementar distillation agora. Pausar a otimização
 do MLM temporal e avançar para a Porta 1 de WSD externo congelado,
 testando compatibilidade contexto-gloss nos subconjuntos heurísticos
 predefinidos de `plane`, sem ajuste no SemEval.
+
+## Adendo (2026-06-13) -- Porta 1 com LMMS-SP congelado
+
+A Porta 1 foi implementada com LMMS-SP WSD, `bert-large-cased` congelado,
+WordNet 3.0 e os pesos de camadas publicados, sem ajuste no SemEval.
+
+| Subconjunto | N | Acurácia | IC 95% | Decisão |
+|---|---:|---:|---:|---|
+| D0 geometria | 182 | 0.984 | [0.962; 1.000] | passou |
+| D0 ferramenta | 19 | 0.211 | [0.053; 0.421] | falhou |
+| D1 avião | 208 | 1.000 | [1.000; 1.000] | passou |
+
+A acurácia macro foi `0.731`, IC 95% `[0.677; 0.800]`, acima do baseline
+de `1/3`. A frase `plate figure represent an inclined plane` permaneceu
+geométrica sob a régua fixa.
+
+Decisão: `NO-GO` estrito porque ferramenta histórica não superou o acaso.
+Não escalar ainda para os 37 alvos. O próximo passo é adjudicação cega das
+19 ocorrências de ferramenta, seguida de uma única replicação com outro
+WSD externo congelado, preferencialmente ConSeC. Se ambos falharem nos
+casos adjudicados, encerrar o atlas WordNet geral ou reformulá-lo com
+inventário/adaptação histórica. Detalhes em
+`docs/15-external_wsd_plane_gate1_results.md`.
