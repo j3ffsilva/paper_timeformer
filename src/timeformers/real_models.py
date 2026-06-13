@@ -30,11 +30,19 @@ class RealStaticMLM(nn.Module):
         d_ff: int = 192,
         dropout: float = 0.1,
         pad_id: int = 0,
+        norm_first: bool = True,
+        activation: str = "relu",
+        layer_norm_eps: float = 1e-5,
+        mask_padding: bool = False,
     ) -> None:
         super().__init__()
         self.d_model = d_model
         self.vocab_size = vocab_size
         self.seq_len = seq_len
+        self.norm_first = norm_first
+        self.activation_name = activation
+        self.layer_norm_eps = layer_norm_eps
+        self.mask_padding = mask_padding
         self.token_emb = nn.Embedding(vocab_size, d_model, padding_idx=pad_id)
         self.pos_emb = nn.Embedding(seq_len, d_model)
         layer = nn.TransformerEncoderLayer(
@@ -42,8 +50,10 @@ class RealStaticMLM(nn.Module):
             nhead=n_heads,
             dim_feedforward=d_ff,
             dropout=dropout,
+            activation=activation,
             batch_first=True,
-            norm_first=True,
+            norm_first=norm_first,
+            layer_norm_eps=layer_norm_eps,
         )
         self.encoder = nn.TransformerEncoder(layer, num_layers=n_layers)
         self.drop = nn.Dropout(dropout)
@@ -57,7 +67,11 @@ class RealStaticMLM(nn.Module):
         return self.drop(self.token_emb(input_ids) + self.pos_emb(positions))
 
     def forward(self, input_ids: Tensor, epoch_idx: Tensor | None = None) -> dict[str, Tensor]:
-        hidden = self.encoder(self.embed(input_ids, epoch_idx))
+        padding_mask = input_ids.eq(self.token_emb.padding_idx) if self.mask_padding else None
+        hidden = self.encoder(
+            self.embed(input_ids, epoch_idx),
+            src_key_padding_mask=padding_mask,
+        )
         return {
             "logits": self.mlm_head(hidden),
             "hidden": hidden,

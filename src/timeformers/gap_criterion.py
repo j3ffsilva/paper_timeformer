@@ -1,5 +1,5 @@
 """Gap criterion for automatic threshold/rank selection (§8 of
-docs/novo_perfil_relacional.md).
+docs/12-novo_perfil_relacional.md).
 
 Given any non-negative sequence sorted in descending order
 X_1 >= X_2 >= ... > 0, the relative gap

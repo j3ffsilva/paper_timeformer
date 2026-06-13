@@ -87,6 +87,10 @@ def build_model(args, vocab_size: int, pad_id: int) -> RealStaticMLM:
         d_ff=args.d_ff,
         dropout=args.dropout,
         pad_id=pad_id,
+        norm_first=args.encoder_norm_order == "pre",
+        activation=args.activation,
+        layer_norm_eps=args.layer_norm_eps,
+        mask_padding=args.mask_padding,
     )
 
 
@@ -444,11 +448,34 @@ def main() -> None:
     parser.add_argument("--heads", type=int, default=4)
     parser.add_argument("--d-ff", type=int, default=192)
     parser.add_argument("--dropout", type=float, default=0.1)
+    parser.add_argument("--encoder-norm-order", choices=["pre", "post"], default=None)
+    parser.add_argument("--activation", choices=["relu", "gelu"], default=None)
+    parser.add_argument("--layer-norm-eps", type=float, default=None)
+    parser.add_argument(
+        "--mask-padding",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Exclude [PAD] positions from self-attention.",
+    )
+    parser.add_argument(
+        "--init-from-pretrained",
+        type=Path,
+        default=None,
+        help="Initial RealStaticMLM state_dict loaded before training period 0.",
+    )
     parser.add_argument("--seed", type=int, default=1000)
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--reuse-checkpoints", action="store_true")
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args()
+    if args.encoder_norm_order is None:
+        args.encoder_norm_order = "post" if args.init_from_pretrained else "pre"
+    if args.activation is None:
+        args.activation = "gelu" if args.init_from_pretrained else "relu"
+    if args.layer_norm_eps is None:
+        args.layer_norm_eps = 1e-12 if args.init_from_pretrained else 1e-5
+    if args.mask_padding is None:
+        args.mask_padding = args.init_from_pretrained is not None
 
     started = time.perf_counter()
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -539,6 +566,14 @@ def main() -> None:
     else:
         log(args, "[train] training chronological checkpoints")
         model = build_model(args, len(vocab), token_to_id["[PAD]"])
+        if args.init_from_pretrained is not None:
+            log(args, f"[train] loading pretrained initialization from {args.init_from_pretrained}")
+            initial_state = torch.load(
+                args.init_from_pretrained,
+                map_location="cpu",
+                weights_only=True,
+            )
+            model.load_state_dict(initial_state, strict=True)
         ContinualPeriodTrainer(model, args.output_dir / "continual_real", device=args.device).train(
             datasets,
             val_period_datasets=None,

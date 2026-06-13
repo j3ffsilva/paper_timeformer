@@ -28,7 +28,7 @@ class RelativeGapsTest(unittest.TestCase):
 
 class SelectGapIndexTest(unittest.TestCase):
     def test_clear_gap(self) -> None:
-        # From the worked example in §8.3 of novo_perfil_relacional.md.
+        # From the worked example in §8.3 of 12-novo_perfil_relacional.md.
         values = torch.tensor([0.41, 0.31, 0.18, 0.04, 0.03])
         self.assertEqual(select_gap_index(values, gamma=0.3), 3)
 

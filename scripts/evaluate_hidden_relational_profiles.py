@@ -65,6 +65,10 @@ def build_model(config: dict, vocab_size: int, pad_id: int) -> RealStaticMLM:
         d_ff=int(config["d_ff"]),
         dropout=float(config["dropout"]),
         pad_id=pad_id,
+        norm_first=config.get("encoder_norm_order", "pre") == "pre",
+        activation=config.get("activation", "relu"),
+        layer_norm_eps=float(config.get("layer_norm_eps", 1e-5)),
+        mask_padding=bool(config.get("mask_padding", False)),
     )
 
 

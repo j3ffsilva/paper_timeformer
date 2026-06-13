@@ -1,5 +1,5 @@
 """Semantic mode decomposition via SVD of the cohesion matrix (§7-9 of
-docs/novo_perfil_relacional.md).
+docs/12-novo_perfil_relacional.md).
 
 The cohesion matrix M_t(w)[v, v'] = P_t(w)[v] * P_t(w)[v'] * cos(e(v), e(v'))
 for v, v' in V_w = {v : P_t(w)[v] > tau} is positive semi-definite and equals
