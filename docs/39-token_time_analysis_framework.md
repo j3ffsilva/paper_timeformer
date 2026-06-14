@@ -247,7 +247,14 @@ duplicar fórmulas.
 2. produzir vizinhos, ganhos e perdas;
 3. agregar as duas seeds;
 4. reportar estabilidade;
-5. gerar rankings separados de deslocamento e turnover.
+5. gerar rankings separados de deslocamento e turnover;
+6. smoke test de generalização: rodar o mesmo pipeline (extração de
+   perfis, vizinhos, ganhos/perdas) em um corpus e uma lista de alvos
+   diferentes do SemEval, sem gold, para confirmar que nada nos scripts
+   está hardcoded a este experimento. Critério de sucesso: o relatório é
+   produzido sem editar código, só trocando `--corpus-dir`,
+   `--period-files`, `--targets-file` e `--checkpoint`. Adiado para depois
+   dos itens 1-5.
 
 ### Fase B: comparação e busca
 
