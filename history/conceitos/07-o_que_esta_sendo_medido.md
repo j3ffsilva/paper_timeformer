@@ -57,7 +57,7 @@ checkpoint.
 
 ### Mudança de sentido lexical
 
-É a alteração desejada:
+É uma interpretação possível e cientificamente importante:
 
 ```text
 P_0(sentido | palavra) != P_1(sentido | palavra)
@@ -72,17 +72,28 @@ D1: geometria=0,05; avião=0,93; ferramenta=0,02
 
 Aqui mudou a distribuição de sentidos, não apenas o vocabulário ao redor.
 
-## O estimando
+## Os dois estimandos
 
-Um **estimando** é a quantidade científica que se quer conhecer, antes de
-escolher como medi-la. O estimando ideal do projeto é:
+Um **estimando** é a quantidade científica que se quer conhecer antes de
+escolher como medi-la. O projeto agora separa dois estimandos.
+
+O estimando principal do TimeFormer é o deslocamento do perfil relacional:
+
+```text
+Delta_rel(w) = D(R_0(w), R_1(w))
+```
+
+Ele responde quais relações lexicais caracterizam `w@t` e como essas relações
+se reorganizam. Não exige transformar automaticamente os vizinhos em sentidos.
+
+O estimando semântico estrito, investigado como segunda pergunta, é:
 
 ```text
 Delta_sem(w) = D(P_0(s | w), P_1(s | w))
 ```
 
-O problema é que `s` não vem observado no corpus. Por isso surgiram vários
-**estimadores** ou proxies:
+O problema é que `s` não vem observado no corpus. Por isso, o segundo estimando
+exige um inventário, anotações ou hipóteses adicionais:
 
 | Estimador | O que observa diretamente | Risco |
 |---|---|---|
@@ -92,9 +103,10 @@ O problema é que `s` não vem observado no corpus. Por isso surgiram vários
 | campos manuais | massa em eixos definidos por humanos | engenharia por palavra |
 | WSD externo | sentidos de inventário previstos | cobertura, cauda histórica, inventário |
 
-Uma métrica pode correlacionar com o gold e ainda não estimar exatamente
-`Delta_sem`. Inversamente, uma métrica bem motivada pode ter baixo Spearman
-por falta de capacidade, cobertura ou amostra.
+Uma métrica relacional pode ser válida para `Delta_rel` sem estimar
+`Delta_sem`. Inversamente, uma métrica de sentidos pode aproximar
+`Delta_sem` sem descrever toda a reorganização contextual capturada por
+`Delta_rel`.
 
 ## Identificabilidade em uma equação
 
@@ -154,18 +166,25 @@ chairman: presidir parlamento -> presidir empresa/comissão
 É mudança de uso, possivelmente importante, mas não necessariamente mudança
 de identidade lexical.
 
-## Duas contribuições científicas possíveis
+## Duas contribuições científicas complementares
 
 O histórico acabou separando duas reivindicações legítimas:
 
-1. **instrumento temporal relacional**: descrever como o modelo reorganiza
-   associações e vizinhanças ao aprender cronologicamente;
-2. **medidor de mudança de sentido**: estimar alterações em
-   `P_t(sentido | palavra)`.
+1. **contribuição principal, instrumento temporal relacional**: produzir
+   `token@time` e descrever associações, vizinhos, ganhos e perdas em cada
+   período;
+2. **investigação semântica adicional**: testar quanto dessa reorganização se
+   associa a alterações em `P_t(sentido | palavra)` segundo um inventário
+   externo.
 
-O TimeFormer demonstrou melhor a primeira. A linha de WSD externo tenta tornar
-a segunda identificável. Elas se relacionam, mas uma não deve ser apresentada
-como se provasse automaticamente a outra.
+O TimeFormer realiza a primeira. A linha de WSD externo investiga a segunda.
+Ela qualifica e interpreta parte das saídas, mas não é condição para que uma
+vizinhança temporal seja um resultado válido.
+
+Quando o inventário não explica uma parcela do deslocamento, a classificação
+correta é **componente não atribuída pelo método**. Pesquisadores especializados
+podem usar vizinhos, contextos históricos e fontes externas para investigar
+sua natureza; o modelo não deve decidir por eles.
 
 ## Perguntas de controle para qualquer resultado
 

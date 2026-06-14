@@ -1,0 +1,230 @@
+target,lemma,pos,sensekey,synset,definition,examples
+attack_nn,attack,n,attack%1:04:00::,attack.n.01,(military) an offensive against an enemy (using weapons),the attack began at dawn
+attack_nn,attack,n,attack%1:04:04::,attack.n.02,an offensive move in a sport or game,they won the game with a 10-hit attack in the 9th inning
+attack_nn,attack,n,attack%1:10:00::,fire.n.09,intense adverse criticism,Clinton directed his fire at the Republican Party | the government has come under attack | don't give me any flak
+attack_nn,attack,n,attack%1:04:03::,approach.n.01,ideas or actions intended to deal with a problem or situation,his approach to every problem is to draw up a list of pros and cons | an attack on inflation | his plan of attack was misguided
+attack_nn,attack,n,attack%1:04:02::,attack.n.05,the act of attacking,attacks on women increased last year | they made an attempt on his life
+attack_nn,attack,n,attack%1:04:01::,attack.n.06,a decisive manner of beginning a musical tone or phrase,
+attack_nn,attack,n,attack%1:26:00::,attack.n.07,a sudden occurrence of an uncontrollable condition,an attack of diarrhea
+attack_nn,attack,n,attack%1:22:00::,attack.n.08,the onset of a corrosive or destructive process (as by a chemical agent),the film was sensitive to attack by acids | open to attack by the elements
+attack_nn,attack,n,attack%1:04:05::,attack.n.09,strong criticism,he published an unexpected attack on my work
+bag_nn,bag,n,bag%1:06:00::,bag.n.01,a flexible container with a single opening,he stuffed his laundry into a large bag
+bag_nn,bag,n,bag%1:23:01::,bag.n.02,the quantity of game taken in a particular period (usually by one person),his bag included two deer
+bag_nn,bag,n,bag%1:06:03::,base.n.03,a place that the runner must touch before scoring,he scrambled to get back to the bag
+bag_nn,bag,n,bag%1:06:02::,bag.n.04,a container used for carrying money and small personal items or accessories (especially by women),she reached into her bag and found a comb
+bag_nn,bag,n,bag%1:23:00::,bag.n.05,the quantity that a bag will hold,he ate a large bag of popcorn
+bag_nn,bag,n,bag%1:06:01::,bag.n.06,a portable rectangular container for carrying clothes,he carried his small bag onto the plane with him
+bag_nn,bag,n,bag%1:18:00::,bag.n.07,an ugly or ill-tempered woman,he was romancing the old bag for her money
+bag_nn,bag,n,bag%1:05:00::,udder.n.01,mammary gland of bovids (cows and sheep and goats),
+bag_nn,bag,n,bag%1:04:00::,cup_of_tea.n.01,an activity that you like or at which you are superior,chemistry is not my cup of tea | his bag now is learning to play golf | marriage was scarcely his dish
+ball_nn,ball,n,ball%1:06:01::,ball.n.01,round object that is hit or thrown or kicked in games,the ball travelled 90 mph on his serve | the mayor threw out the first ball | the ball rolled into the corner pocket
+ball_nn,ball,n,ball%1:06:03::,musket_ball.n.01,a solid projectile that is shot by a musket,they had to carry a ramrod as well as powder and ball
+ball_nn,ball,n,ball%1:25:00::,ball.n.03,an object with a spherical shape,a ball of fire
+ball_nn,ball,n,ball%1:14:00::,ball.n.04,the people assembled at a lavish formal dance,the ball was already emptying out before the fire alarm sounded
+ball_nn,ball,n,ball%1:08:01::,testis.n.01,one of the two male reproductive glands that produce spermatozoa and secrete androgens,she kicked him in the balls and got away
+ball_nn,ball,n,ball%1:06:02::,ball.n.06,a spherical object used as a plaything,he played with his rubber ball in the bathtub
+ball_nn,ball,n,ball%1:18:00::,ball.n.07,United States comedienne best known as the star of a popular television program (1911-1989),
+ball_nn,ball,n,ball%1:14:01::,ball.n.08,a compact mass,a ball of mud caught him on the shoulder
+ball_nn,ball,n,ball%1:11:00::,ball.n.09,a lavish dance requiring formal attire,
+ball_nn,ball,n,ball%1:08:00::,ball.n.10,a more or less rounded anatomical body or mass,the ball at the base of the thumb | he stood on the balls of his feet
+ball_nn,ball,n,ball%1:04:01::,ball.n.11,the game of baseball,
+ball_nn,ball,n,ball%1:04:00::,ball.n.12,a pitch that is not in the strike zone,he threw nine straight balls before the manager yanked him
+bit_nn,bit,n,bit%1:23:01::,spot.n.10,a small piece or quantity of something,a spot of tea | a bit of paper | a bit of lint | I gave him a bit of my mind
+bit_nn,bit,n,bit%1:17:00::,bit.n.02,a small fragment of something broken off from the whole,a bit of rock caught him in the eye
+bit_nn,bit,n,bit%1:28:00::,moment.n.02,an indefinitely short time,wait just a moment | in a mo | it only takes a minute | in just a bit
+bit_nn,bit,n,bit%1:11:00::,piece.n.05,an instance of some kind,it was a nice piece of work | he had a bit of good luck
+bit_nn,bit,n,bit%1:06:01::,bit.n.05,piece of metal held in horse's mouth by reins and used to control the horse while riding,the horse was not accustomed to a bit
+bit_nn,bit,n,bit%1:23:00::,bit.n.06,a unit of measurement of information (from binary + digit); the amount of information in a system having two equiprobable states,there are 8 bits in a byte
+bit_nn,bit,n,bit%1:13:00::,morsel.n.02,a small amount of solid food; a mouthful,all they had left was a bit of bread
+bit_nn,bit,n,bit%1:10:01::,snatch.n.01,a small fragment,overheard snatches of their conversation
+bit_nn,bit,n,bit%1:10:00::,act.n.04,a short theatrical performance that is part of a longer program,he did his act three times every evening | she had a catchy little routine | it was one of the best numbers he ever did
+bit_nn,bit,n,bit%1:06:02::,bit.n.10,the part of a key that enters a lock and lifts the tumblers,
+bit_nn,bit,n,bit%1:06:00::,bit.n.11,the cutting part of a drill; usually pointed and threaded and is replaceable in a brace or bitstock or drill press,he looked around for the right size bit
+chairman_nn,chairman,n,chairman%1:18:01::,president.n.04,the officer who presides at the meetings of an organization,address your remarks to the chairperson
+circle_vb,circle,v,circle%2:38:01::,circle.v.01,travel around something,circle the globe
+circle_vb,circle,v,circle%2:38:00::,circle.v.02,move in circles,
+circle_vb,circle,v,circle%2:35:12::,encircle.v.01,form a circle around,encircle the errors
+contemplation_nn,contemplation,n,contemplation%1:04:01::,contemplation.n.01,a long and thoughtful observation,
+contemplation_nn,contemplation,n,contemplation%1:09:00::,contemplation.n.02,"a calm, lengthy, intent consideration",
+donkey_nn,donkey,n,donkey%1:10:00::,donkey.n.01,the symbol of the Democratic Party; introduced in cartoons by Thomas Nast in 1874,
+donkey_nn,donkey,n,donkey%1:05:00::,domestic_ass.n.01,domestic beast of burden descended from the African wild ass; patient but stubborn,
+edge_nn,edge,n,edge%1:15:00::,edge.n.01,the boundary of a surface,
+edge_nn,edge,n,edge%1:25:00::,boundary.n.02,a line determining the limits of an area,
+edge_nn,edge,n,edge%1:06:00::,edge.n.03,a sharp side formed by the intersection of two surfaces of an object,he rounded the edges of the box
+edge_nn,edge,n,edge%1:07:01::,edge.n.04,the attribute of urgency in tone of voice,his voice had an edge to it
+edge_nn,edge,n,edge%1:07:00::,edge.n.05,a slight competitive advantage,he had an edge on the competition
+edge_nn,edge,n,edge%1:06:01::,edge.n.06,the outside limit of an object or area or surface; a place farthest away from the center of something,the edge of the leaf is wavy | she sat on the edge of the bed | the water's edge
+face_nn,face,n,face%1:08:00::,face.n.01,the front of the human head from the forehead to the chin and ear to ear,he washed his face | I wish I had seen the look on his face when he got the news
+face_nn,face,n,face%1:07:03::,expression.n.01,the feelings expressed on a person's face,a sad expression | a look of triumph | an angry face
+face_nn,face,n,face%1:07:00::,face.n.03,the general outward appearance of something,the face of the city is changing
+face_nn,face,n,face%1:06:02::,face.n.04,the striking or working surface of an implement,
+face_nn,face,n,face%1:18:00::,face.n.05,a part of a person that is used to refer to a person,he looked out at a roomful of faces | when he returned to work he met many new faces
+face_nn,face,n,face%1:15:00::,side.n.04,a surface forming part of the outside of an object,he examined all sides of the crystal | dew dripped from the face of the leaf
+face_nn,face,n,face%1:08:01::,face.n.07,the part of an animal corresponding to the human face,
+face_nn,face,n,face%1:06:01::,face.n.08,the side upon which the use of a thing depends (usually the most prominent surface of an object),he dealt the cards face down
+face_nn,face,n,face%1:10:01::,grimace.n.01,a contorted facial expression,she made a grimace at the prospect
+face_nn,face,n,face%1:10:00::,font.n.01,a specific size and style of type within a type family,
+face_nn,face,n,face%1:07:01::,face.n.11,status in the eyes of others,he lost face
+face_nn,face,n,face%1:07:02::,boldness.n.02,impudent aggressiveness,I couldn't believe her boldness | he had the effrontery to question my honesty
+face_nn,face,n,face%1:06:00::,face.n.13,a vertical surface of a building or cliff,
+fiction_nn,fiction,n,fiction%1:10:00::,fiction.n.01,a literary work based on the imagination and not necessarily on fact,
+fiction_nn,fiction,n,fiction%1:10:01::,fabrication.n.01,a deliberately false or improbable account,
+gas_nn,gas,n,gas%1:26:00::,gas.n.01,the state of matter distinguished from the solid and liquid states by: relatively low density and viscosity; relatively great expansion and contraction with changes in pressure and temperature; the ability to diffuse readily; and the spontaneous tendency to become distributed uniformly throughout any container,
+gas_nn,gas,n,gas%1:27:00::,gas.n.02,a fluid in the gaseous state having neither independent shape nor volume and being able to expand indefinitely,
+gas_nn,gas,n,gas%1:27:02::,gasoline.n.01,a volatile flammable mixture of hydrocarbons (hexane and heptane and octane etc.) derived from petroleum; used mainly as a fuel in internal-combustion engines,
+gas_nn,gas,n,gas%1:26:01::,flatulence.n.01,a state of excessive gas in the alimentary canal,
+gas_nn,gas,n,gas%1:06:00::,accelerator.n.01,a pedal that controls the throttle valve,he stepped on the gas
+gas_nn,gas,n,gas%1:27:03::,natural_gas.n.01,a fossil fuel in the gaseous state; used for cooking and heating homes,
+graft_nn,graft,n,graft%1:08:00::,graft.n.01,(surgery) tissue or organ transplanted from a donor to a recipient; in some cases the patient can be both donor and recipient,
+graft_nn,graft,n,graft%1:04:01::,bribery.n.01,the practice of offering something (usually money) in order to gain an illicit advantage,
+graft_nn,graft,n,graft%1:04:00::,graft.n.03,the act of grafting something onto something else,
+head_nn,head,n,head%1:08:00::,head.n.01,the upper part of the human body or the front part of the body in animals; contains the face and brains,he stuck his head out the window
+head_nn,head,n,head%1:05:00::,head.n.02,a single domestic animal,200 head of cattle
+head_nn,head,n,head%1:09:00::,mind.n.01,that which is responsible for one's thoughts and feelings; the seat of the faculty of reason,his mind wandered | I couldn't get his words out of my head
+head_nn,head,n,head%1:18:00::,head.n.04,a person who is in charge,the head of the whole operation
+head_nn,head,n,head%1:14:00::,head.n.05,the front of a military formation or procession,the head of the column advanced boldly | they were at the head of the attack
+head_nn,head,n,head%1:19:00::,head.n.06,the pressure exerted by a fluid,a head of steam
+head_nn,head,n,head%1:15:00::,head.n.07,the top of something,the head of the stairs | the head of the page | the head of the list
+head_nn,head,n,head%1:15:01::,fountainhead.n.02,the source of water from which a stream arises,they tracked him back toward the head of the stream
+head_nn,head,n,head%1:10:03::,head.n.09,(grammar) the word in a grammatical constituent that plays the same grammatical role as the whole constituent,
+head_nn,head,n,head%1:26:00::,head.n.10,the tip of an abscess (where the pus accumulates),
+head_nn,head,n,head%1:23:00::,head.n.11,the length or height based on the size of a human or animal head,he is two heads taller than his little sister | his horse won by a head
+head_nn,head,n,head%1:20:00::,capitulum.n.01,a dense cluster of flowers or foliage,a head of cauliflower | a head of lettuce
+head_nn,head,n,head%1:18:01::,principal.n.02,the educator who has executive authority for a school,she sent unruly pupils to see the principal
+head_nn,head,n,head%1:18:03::,head.n.14,an individual person,tickets are $5 per head
+head_nn,head,n,head%1:18:02::,head.n.15,a user of (usually soft) drugs,the office was full of secret heads
+head_nn,head,n,head%1:17:02::,promontory.n.01,a natural elevation (especially a rocky one that juts out into the sea),
+head_nn,head,n,head%1:17:01::,head.n.17,a rounded compact mass,the head of a comet
+head_nn,head,n,head%1:17:00::,head.n.18,the foam or froth that accumulates at the top when you pour an effervescent liquid into a container,the beer had a large head of foam
+head_nn,head,n,head%1:15:02::,forefront.n.01,the part in the front or nearest the viewer,he was in the forefront | he was at the head of the column
+head_nn,head,n,head%1:11:01::,pass.n.09,a difficult juncture,a pretty pass | matters came to a head yesterday
+head_nn,head,n,head%1:11:00::,headway.n.02,forward movement,the ship made little headway against the gale
+head_nn,head,n,head%1:10:01::,point.n.20,a V-shaped mark at one end of an arrow pointer,the point of the arrow was due north
+head_nn,head,n,head%1:10:02::,question.n.02,the subject matter at issue,the question of disease merits serious discussion | under the head of minor Roman poets
+head_nn,head,n,head%1:10:00::,heading.n.01,a line of text serving to indicate what the passage below it is about,the heading seemed to have little to do with the text
+head_nn,head,n,head%1:08:01::,head.n.25,the rounded end of a bone that fits into a rounded cavity in another bone to form a joint,the head of the humerus
+head_nn,head,n,head%1:08:02::,head.n.26,that part of a skeletal muscle that is away from the bone that it moves,
+head_nn,head,n,head%1:06:05::,read/write_head.n.01,(computer science) a tiny electromagnetic coil and metal pole used to write and read magnetic patterns on a disk,
+head_nn,head,n,head%1:06:04::,head.n.28,(usually plural) the obverse side of a coin that usually bears the representation of a person's head,call heads or tails!
+head_nn,head,n,head%1:06:03::,head.n.29,the striking part of a tool,the head of the hammer
+head_nn,head,n,head%1:06:02::,head.n.30,(nautical) a toilet on board a boat or ship,
+head_nn,head,n,head%1:06:00::,head.n.31,"a projection out from one end; ,",the head of the nail | a pinhead is the head of a pin
+head_nn,head,n,head%1:06:01::,drumhead.n.01,a membrane that is stretched taut over a drum,
+head_nn,head,n,head%1:04:00::,oral_sex.n.01,oral stimulation of the genitals,they say he gives good head
+land_nn,land,n,land%1:21:01::,land.n.01,the land on which real estate is located,he built the house on land leased from the city
+land_nn,land,n,land%1:17:01::,land.n.02,material in the top layer of the surface of the earth in which plants can grow (especially with reference to its quality or use),the land had never been plowed | good agricultural soil
+land_nn,land,n,land%1:15:01::,domain.n.02,territory over which rule or control is exercised,his domain extended into Europe | he made it the law of the land
+land_nn,land,n,land%1:17:00::,land.n.04,the solid part of the earth's surface,the plane turned away from the sea and moved back over land | the earth shook for several minutes | he dropped the logs on the ground
+land_nn,land,n,land%1:15:02::,country.n.02,the territory occupied by a nation,he returned to the land of his birth | he visited several European countries
+land_nn,land,n,land%1:26:00::,kingdom.n.01,a domain in which something is dominant,the untroubled kingdom of reason | a land of make-believe | the rise of the realm of cotton in the south
+land_nn,land,n,land%1:21:00::,estate.n.02,extensive landed property (especially in the country) retained by the owner for his own use,the family owned a large estate on Long Island
+land_nn,land,n,land%1:14:01::,nation.n.02,the people who live in a nation or country,a statement that sums up the nation's mood | the news was announced to the nation | the whole country worshipped him
+land_nn,land,n,land%1:14:00::,state.n.04,a politically organized body of people under a single government,the state has elected a new president | African nations | students who had come to the nation's capitol | the country's largest manufacturer | an industrialized land
+land_nn,land,n,land%1:18:00::,land.n.10,United States inventor who incorporated Polaroid film into lenses and invented the one step photographic process (1909-1991),
+land_nn,land,n,land%1:04:00::,farming.n.02,agriculture considered as an occupation or way of life,farming is a strenuous life | there's no work on the land any more
+lane_nn,lane,n,lane%1:06:00::,lane.n.01,a narrow way or road,
+lane_nn,lane,n,lane%1:06:01::,lane.n.02,a well-defined track or path; for e.g. swimmers or lines of traffic,
+lass_nn,lass,n,lass%1:18:00::,lass.n.01,a girl or young woman who is unmarried,
+multitude_nn,multitude,n,multitude%1:23:00::,battalion.n.02,a large indefinite number,a battalion of ants | a multitude of TV antennas | a plurality of religions
+multitude_nn,multitude,n,multitude%1:14:00::,multitude.n.02,a large gathering of people,
+multitude_nn,multitude,n,multitude%1:14:01::,multitude.n.03,the common people generally,separate the warriors from the mass | power to the people
+ounce_nn,ounce,n,ounce%1:23:02::,ounce.n.01,a unit of apothecary weight equal to 480 grains or one twelfth of a pound,
+ounce_nn,ounce,n,ounce%1:23:01::,ounce.n.02,a unit of weight equal to one sixteenth of a pound or 16 drams or 28.349 grams,
+ounce_nn,ounce,n,ounce%1:05:00::,snow_leopard.n.01,large feline of upland central Asia having long thick whitish fur,
+part_nn,part,n,part%1:24:00::,part.n.01,something determined in relation to something that includes it,he wanted to feel a part of something bigger than himself | I read a portion of the manuscript | the smaller component is hard to reach | the animal constituent of plankton
+part_nn,part,n,part%1:06:00::,part.n.02,something less than the whole of a human artifact,the rear part of the house | glue the two parts together
+part_nn,part,n,part%1:17:00::,part.n.03,a portion of a natural object,they analyzed the river into three parts | he needed a piece of granite
+part_nn,part,n,part%1:09:02::,part.n.04,that which concerns a person with regard to a particular role or situation,it requires vigilance on our part | they resisted every effort on his part
+part_nn,part,n,part%1:15:00::,region.n.01,the extended spatial location of something,the farming regions of France | religions in all parts of the world | regions of outer space
+part_nn,part,n,part%1:04:01::,function.n.03,the actions and activities assigned to or required or expected of a person or group,the function of a teacher | the government must do its part | play its role
+part_nn,part,n,part%1:09:01::,character.n.04,an actor's portrayal of someone in a play,she played the part of Desdemona
+part_nn,part,n,part%1:21:00::,share.n.01,assets belonging to or due to or contributed by an individual person or group,he wanted his share in cash
+part_nn,part,n,part%1:09:00::,part.n.09,one of the portions into which something is regarded as divided and which together constitute a whole,the written part of the exam | the finance section of the company | the BBC's engineering division
+part_nn,part,n,part%1:08:01::,part.n.10,a line of scalp that can be seen when sections of hair are combed in opposite directions,his part was right in the middle
+part_nn,part,n,part%1:10:00::,part.n.11,the melody carried by a particular voice or instrument in polyphonic music,he tried to sing the tenor part
+part_nn,part,n,part%1:04:03::,contribution.n.01,the part played by a person in bringing about a result,I am proud of my contribution in advancing the project | they all did their share of the work
+pin_vb,pin,v,pin%2:35:03::,trap.v.04,to hold fast or prevent from moving,The child was pinned under the fallen tree
+pin_vb,pin,v,pin%2:35:01::,pin.v.02,attach or fasten with pins or as if with pins; .,pin the needle to the shirt | pin the blame on the innocent man
+pin_vb,pin,v,pin%2:35:02::,pin.v.03,pierce with a pin,pin down the butterfly
+pin_vb,pin,v,pin%2:33:00::,pin.v.04,immobilize a piece,
+plane_nn,plane,n,plane%1:06:01::,airplane.n.01,an aircraft that has a fixed wing and is powered by propellers or jets,the flight was delayed due to trouble with the airplane
+plane_nn,plane,n,plane%1:25:00::,plane.n.02,(mathematics) an unbounded two-dimensional shape,we will refer to the plane of the graph as the X-Y plane | any line joining two points on a plane lies wholly on that plane
+plane_nn,plane,n,plane%1:26:00::,plane.n.03,a level of existence or development,he lived on a worldly plane
+plane_nn,plane,n,plane%1:06:02::,plane.n.04,a power tool for smoothing or shaping wood,
+plane_nn,plane,n,plane%1:06:00::,plane.n.05,a carpenter's hand tool with an adjustable blade for smoothing or shaping wood,the cabinetmaker used a plane for the finish work
+player_nn,player,n,player%1:18:01::,player.n.01,a person who participates in or is skilled at some game,
+player_nn,player,n,player%1:18:02::,musician.n.01,someone who plays a musical instrument (as a profession),
+player_nn,player,n,player%1:18:00::,actor.n.01,a theatrical performer,
+player_nn,player,n,player%1:18:04::,player.n.04,a person who pursues a number of different social and sexual partners simultaneously,
+player_nn,player,n,player%1:18:03::,player.n.05,an important participant (as in a business deal),he was a major player in setting up the corporation
+prop_nn,prop,n,prop%1:06:00::,prop.n.01,a support placed beneath or against something to keep it from shaking or falling,
+prop_nn,prop,n,prop%1:06:02::,property.n.05,any movable articles or objects used on the set of a play or movie,before every scene he ran down his checklist of props
+prop_nn,prop,n,prop%1:06:01::,airplane_propeller.n.01,a propeller that rotates to push against air,
+quilt_nn,quilt,n,quilt%1:06:00::,quilt.n.01,bedding made of two layers of cloth filled with stuffing and stitched together,
+rag_nn,rag,n,rag%1:06:00::,rag.n.01,a small piece of cloth or paper,
+rag_nn,rag,n,rag%1:28:00::,rag.n.02,a week at British universities during which side-shows and processions of floats are organized to raise money for charities,
+rag_nn,rag,n,rag%1:10:01::,ragtime.n.01,music with a syncopated melody (usually for the piano),
+rag_nn,rag,n,rag%1:10:00::,tabloid.n.02,newspaper with half-size pages,
+rag_nn,rag,n,rag%1:04:02::,rag.n.05,a boisterous practical joke (especially by college students),
+record_nn,record,n,record%1:10:03::,record.n.01,anything (such as a document or a phonograph record or a photograph) providing permanent evidence of or information about past events,the film provided a valuable record of stage techniques
+record_nn,record,n,record%1:06:00::,phonograph_record.n.01,sound recording consisting of a disk with a continuous groove; used to reproduce music by rotating while a phonograph needle tracks in the groove,
+record_nn,record,n,record%1:23:00::,record.n.03,the number of wins versus losses and ties a team has had,at 9-0 they have the best record in their league
+record_nn,record,n,record%1:04:01::,record.n.04,the sum of recognized accomplishments,the lawyer has a good record | the track record shows that he will be a good president
+record_nn,record,n,record%1:10:02::,record.n.05,a compilation of the known facts regarding something or someone,"Al Smith used to say, `Let's look at the record' | his name is in all the record books"
+record_nn,record,n,record%1:04:00::,record.n.06,an extreme attainment; the best (or worst) performance ever attested (as in a sport),he tied the Olympic record | coffee production last year broke all previous records | Chicago set the homicide record
+record_nn,record,n,record%1:21:00::,record.n.07,a document that can serve as legal evidence of a transaction,they could find no record of the purchase
+record_nn,record,n,record%1:10:00::,criminal_record.n.01,a list of crimes for which an accused person has been previously convicted,he ruled that the criminal record of the defendant could not be disclosed to the court | the prostitute had a record a mile long
+relationship_nn,relationship,n,relationship%1:24:00::,relationship.n.01,"a relation between people; (`relationship' is often used where `relation' would serve, as in `the relationship between inflation and unemployment', but the preferred usage of `relationship' is for human relations or states of relatedness)",the relationship between mothers and their children
+relationship_nn,relationship,n,relationship%1:26:00::,relationship.n.02,a state of connectedness between people (especially an emotional connection),he didn't want his wife to know of the relationship
+relationship_nn,relationship,n,relationship%1:26:01::,relationship.n.03,a state involving mutual dealings between people or parties or countries,
+relationship_nn,relationship,n,relationship%1:24:01::,kinship.n.02,(anthropology) relatedness or connection by blood or marriage or adoption,
+risk_nn,risk,n,risk%1:26:00::,hazard.n.01,a source of danger; a possibility of incurring loss or misfortune,drinking alcohol is a health hazard
+risk_nn,risk,n,risk%1:04:00::,risk.n.02,a venture undertaken without regard to possible loss or injury,he saw the rewards but not the risks of crime | there was a danger he would do the wrong thing
+risk_nn,risk,n,risk%1:07:02::,risk.n.03,the probability of becoming infected given that exposure to an infectious agent has occurred,
+risk_nn,risk,n,risk%1:07:01::,risk.n.04,the probability of being exposed to an infectious agent,
+savage_nn,savage,n,savage%1:18:00::,savage.n.01,a member of an uncivilized people,
+savage_nn,savage,n,savage%1:18:01::,beast.n.02,a cruelly rapacious person,
+stab_nn,stab,n,stab%1:12:00::,pang.n.01,a sudden sharp feeling,pangs of regret | she felt a stab of excitement | twinges of conscience
+stab_nn,stab,n,stab%1:04:00::,stab.n.02,a strong blow with a knife or other sharp pointed instrument,one strong stab to the heart killed him
+stab_nn,stab,n,stab%1:04:01::,shot.n.16,informal words for any attempt or effort,he gave it his best shot | he took a stab at forecasting
+stroke_vb,stroke,v,stroke%2:35:00::,stroke.v.01,"touch lightly and repeatedly, as with brushing motions",He stroked his long beard
+stroke_vb,stroke,v,stroke%2:33:00::,stroke.v.02,strike a ball with a smooth blow,
+stroke_vb,stroke,v,stroke%2:33:01::,stroke.v.03,row at a particular rate,
+stroke_vb,stroke,v,stroke%2:32:00::,stroke.v.04,treat gingerly or carefully,You have to stroke the boss
+thump_nn,thump,n,thump%1:11:01::,thump.n.01,a heavy dull sound (as made by impact of heavy objects),
+thump_nn,thump,n,thump%1:04:00::,thump.n.02,a heavy blow with the hand,
+tip_vb,tip,v,tip%2:38:02::,tip.v.01,cause to tilt,tip the screen upward
+tip_vb,tip,v,tip%2:30:00::,tip.v.02,mark with a tip,tip the arrow with the small stone
+tip_vb,tip,v,tip%2:40:00::,tip.v.03,"give a tip or gratuity to in return for a service, beyond the compensation agreed on",Remember to tip the waiter | fee the steward
+tip_vb,tip,v,tip%2:38:04::,topple.v.02,cause to topple or tumble by pushing,
+tip_vb,tip,v,tip%2:38:01::,lean.v.01,to incline or bend from a vertical position,She leaned over the banister
+tip_vb,tip,v,tip%2:38:00::,tiptoe.v.01,walk on one's toes,
+tip_vb,tip,v,tip%2:35:04::,tap.v.03,strike lightly,He tapped me on the shoulder
+tip_vb,tip,v,tip%2:32:04::,tip_off.v.01,give insider information or advise to,He tipped off the police about the terrorist plot
+tip_vb,tip,v,tip%2:30:04::,tip.v.09,remove the tip from,tip artichokes
+tree_nn,tree,n,tree%1:20:00::,tree.n.01,a tall perennial woody plant having a main trunk and branches forming a distinct elevated crown; includes both gymnosperms and angiosperms,
+tree_nn,tree,n,tree%1:25:00::,tree.n.02,a figure that branches from a single root,genealogical tree
+tree_nn,tree,n,tree%1:18:00::,tree.n.03,English actor and theatrical producer noted for his lavish productions of Shakespeare (1853-1917),
+twist_nn,twist,n,twist%1:11:00::,turn.n.04,an unforeseen development,events suddenly took an awkward turn
+twist_nn,twist,n,twist%1:10:00::,construction.n.06,an interpretation of a text or action,they put an unsympathetic construction on his conduct
+twist_nn,twist,n,twist%1:04:01::,device.n.03,any clever maneuver,he would stoop to any device to win a point | it was a great sales gimmick | a cheap promotions gimmick for greedy businessmen
+twist_nn,twist,n,twist%1:04:02::,spin.n.02,the act of rotating rapidly,he gave the crank a spin | it broke off after much twisting
+twist_nn,twist,n,twist%1:26:00::,wrench.n.01,a sharp strain on muscles or ligaments,the wrench to his knee occurred as he fell | he was sidelined with a hamstring pull
+twist_nn,twist,n,twist%1:25:00::,kink.n.02,a sharp bend in a line produced when a line having a loop is pulled tight,
+twist_nn,twist,n,twist%1:25:01::,bend.n.01,a circular segment of a curve,a bend in the road | a crook in the path
+twist_nn,twist,n,twist%1:11:01::,eddy.n.02,a miniature whirlpool or whirlwind resulting when the current of a fluid doubles back on itself,
+twist_nn,twist,n,twist%1:11:02::,twist.n.09,a jerky pulling movement,
+twist_nn,twist,n,twist%1:08:00::,braid.n.01,a hairdo formed by braiding or twisting the hair,
+twist_nn,twist,n,twist%1:04:00::,twist.n.11,social dancing in which couples vigorously twist their hips and arms in time to the music; was popular in the 1960s,they liked to dance the twist
+twist_nn,twist,n,twist%1:04:04::,wind.n.08,the act of winding or twisting,he put the key in the old clock and gave it a good wind
+twist_nn,twist,n,twist%1:04:03::,twist.n.13,turning or twisting around (in place),with a quick twist of his head he surveyed the room
+word_nn,word,n,word%1:10:00::,word.n.01,a unit of language that native speakers can identify,words are the blocks from which sentences are made | he hardly said ten words all morning
+word_nn,word,n,word%1:10:03::,word.n.02,a brief statement,he didn't say a word about it
+word_nn,word,n,word%1:10:02::,news.n.01,information about recent and important events,they awaited news of the outcome
+word_nn,word,n,word%1:10:06::,word.n.04,a verbal command for action,"when I give the word, charge!"
+word_nn,word,n,word%1:10:04::,discussion.n.02,an exchange of views on some topic,we had a good discussion | we had a word or two about it
+word_nn,word,n,word%1:10:01::,parole.n.01,a promise,he gave his word
+word_nn,word,n,word%1:23:00::,word.n.07,a word is a string of bits stored in computer memory,large computers use words up to 64 bits long
+word_nn,word,n,word%1:18:00::,son.n.02,the divine word of God; the second person in the Trinity (incarnate in Jesus),
+word_nn,word,n,word%1:10:05::,password.n.01,a secret word or phrase known only to a restricted group,he forgot the password
+word_nn,word,n,word%1:10:07::,bible.n.01,the sacred writings of the Christian religions,he went to carry the Word to the heathen

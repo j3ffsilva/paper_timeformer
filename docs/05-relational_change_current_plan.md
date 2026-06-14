@@ -961,3 +961,319 @@ WSD externo congelado, preferencialmente ConSeC. Se ambos falharem nos
 casos adjudicados, encerrar o atlas WordNet geral ou reformulá-lo com
 inventário/adaptação histórica. Detalhes em
 `docs/15-external_wsd_plane_gate1_results.md`.
+
+## Adendo (2026-06-13) -- Gate 1 completo com ConSeC
+
+Após adjudicação humana do subconjunto de ferramenta, executamos o checkpoint
+oficial ConSeC SemCor+WNGT, congelado, nas 409 ocorrências dos três estratos
+originais.
+
+| Estrato pós-adjudicação | N | Acurácia | IC 95% |
+|---|---:|---:|---:|
+| D0 geometria | 183 | 0,995 | [0,984; 1,000] |
+| D0 ferramenta | 16 | 0,875 | [0,688; 1,000] |
+| D1 aviação | 208 | 0,990 | [0,976; 1,000] |
+
+A macro acurácia foi `0,953`, IC 95% `[0,891; 0,997]`. Todos os checks
+originais passaram, incluindo a frase-âncora geométrica.
+
+Decisão: `Gate 1 ConSeC = GO`. Abrir uma Porta 2 pequena com `graft_nn`,
+`chairman_nn` e `tree_nn`, congelando inventários, subconjuntos e cortes antes
+da execução. Não escalar diretamente para os 37 alvos. Detalhes em
+`docs/19-consec_plane_gate1_full_results.md`.
+
+## Adendo (2026-06-13) -- Pré-registro da Porta 2
+
+Os inventários e subconjuntos foram congelados antes da inferência. A parte
+discriminativa usa `graft` corrupção versus médico e `tree` planta versus
+diagrama. `chairman` é monossêmico e funciona apenas como controle de
+cobertura. O uso botânico histórico de `graft` como scion foi registrado como
+lacuna de inventário.
+
+Todos os mínimos foram satisfeitos. Uma ficha cega com 87 contextos foi
+gerada em `annotations/consec_gate2_audit/`. O ConSeC só deve ser executado
+depois dessa auditoria. Critérios completos em
+`docs/20-consec_gate2_preregistration.md`.
+
+## Adendo (2026-06-13) -- Resultado da Porta 2
+
+A auditoria humana foi concluída antes da inferência e concordou com 84 de 87
+rótulos heurísticos. As três discordâncias foram preservadas sem correção
+retroativa.
+
+O ConSeC congelado obteve, depois da auditoria:
+
+| Estrato | N | Acurácia | IC 95% |
+|---|---:|---:|---:|
+| `graft/corruption` | 22 | 1,000 | [1,000; 1,000] |
+| `graft/medical` | 17 | 1,000 | [1,000; 1,000] |
+| `tree/diagram` | 16 | 0,875 | [0,688; 1,000] |
+| `tree/plant` | 138 | 0,986 | [0,964; 1,000] |
+
+A macro foi `0,965`, IC 95% `[0,918; 0,998]`. Todos os cortes
+pré-registrados passaram: `Porta 2 ConSeC = GO`.
+
+O controle `chairman` foi coberto, mas permanece tautológico por ser
+monossêmico. Nos 90 usos botânicos de `graft`, o inventário não contém
+adequadamente o objeto enxertado; as previsões se dividiram entre ato de
+enxertar (54), enxerto médico (35) e corrupção (1). Portanto, o próximo
+gargalo é cobertura lexical, não a discriminação contexto-glossa.
+
+Decisão: antes de escalar, construir uma matriz de cobertura WordNet dos 37
+alvos e abrir uma Porta 3 somente para palavras e sentidos com inventário
+adequado e ocorrências auditáveis. Detalhes em
+`docs/21-consec_gate2_results.md`.
+
+## Adendo (2026-06-13) -- Matriz de cobertura para a Porta 3
+
+A matriz dos 37 alvos foi preparada antes de novas previsões. Ela contém 229
+sensekeys WordNet 3.0 e 296 contextos históricos, com quatro amostras
+determinísticas por alvo e período.
+
+Distribuição da carga de revisão:
+
+```text
+3 palavras monossêmicas
+13 com 2-3 sentidos
+10 com 4-8 sentidos
+11 com 9 ou mais sentidos
+```
+
+As decisões já estabelecidas para `plane`, `tree`, `graft` e `chairman` foram
+transportadas explicitamente. As outras 33 palavras aguardam auditoria em
+`annotations/wordnet_coverage_gate3/coverage_review.csv`.
+
+Nenhum gold do SemEval ou previsão do ConSeC foi incluído. A Porta 3 só será
+desenhada depois de congelar `coverage_status` e `gate3_decision` para todas
+as palavras. Protocolo em `docs/22-wordnet_coverage_gate3_protocol.md`.
+
+## Adendo (2026-06-13) -- Resultado da Porta 3
+
+A revisão classificou 25 alvos polissêmicos como cobertura suficiente, nove
+como cobertura parcial e três como controles monossêmicos. O conjunto
+confirmatório foi congelado antes da inferência.
+
+Com 25 ocorrências balanceadas por período e palavra, a JSD entre
+distribuições de sentido do ConSeC obteve:
+
+```text
+Spearman = 0,586
+IC 95% = [0,231; 0,818]
+p por permutação = 0,0028
+ROC-AUC = 0,714
+```
+
+Nos 21 alvos de alta confiança, Spearman foi `0,600`, com `p=0,0055`.
+Portanto, `Porta 3 = GO`.
+
+`plane` apresentou a maior JSD (`0,334`), `tree` ficou em `0,0135` e os
+controles monossêmicos ficaram em zero. `graft`, diagnóstico, apresentou
+`0,164`, com crescimento forte de corrupção em D1.
+
+O principal risco novo é o tamanho do inventário:
+
+```text
+rho(JSD, número de sentidos) = 0,533
+```
+
+Uma correlação parcial exploratória ainda foi positiva (`0,454`, `p=0,023`),
+mas precisa ser pré-registrada. Próximo passo: replicar com novas seeds,
+estimar incerteza por ocorrência e calibrar JSD pelo número de candidatos.
+Detalhes em `docs/24-consec_gate3_results.md`.
+
+## Adendo (2026-06-14) -- Replicação da Porta 3
+
+Duas novas amostras foram executadas com seeds `20260614` e `20260615`.
+
+| Seed | Spearman | Spearman parcial por nº sentidos |
+|---|---:|---:|
+| 20260613 | 0,586 | 0,454 |
+| 20260614 | 0,549 | 0,402 |
+| 20260615 | 0,621 | 0,522 |
+
+A média bruta foi `0,585 ± 0,036`; a média parcial, `0,459 ± 0,060`. A
+permutação conjunta produziu `p=0,00115`. Os rankings de JSD entre seeds
+correlacionaram de `0,808` a `0,885`.
+
+Todos os critérios pré-registrados passaram. A associação com o gold não
+depende de uma única amostra e não é explicada apenas pelo número de
+candidatos WordNet.
+
+Decisão: a próxima etapa é um nulo dentro de cada palavra, permutando período
+entre suas ocorrências, para produzir JSD excedente e incerteza individual.
+Detalhes em `docs/26-consec_gate3_replication_results.md`.
+
+## Adendo (2026-06-14) -- Nulo intrapalavra
+
+Os rótulos temporais das 50 ocorrências de cada palavra foram permutados 20.000
+vezes em cada uma das três seeds.
+
+| Score | Spearman médio com gold | |Spearman| médio com nº sentidos |
+|---|---:|---:|
+| JSD bruta | 0,585 | 0,509 |
+| JSD excedente | 0,410 | 0,165 |
+| z nulo | 0,319 | 0,034 |
+
+A JSD excedente permaneceu positiva nas três seeds e reduziu fortemente a
+associação com o tamanho do inventário. Todos os critérios pré-registrados
+passaram.
+
+Decisão: manter JSD bruta como ranking principal, usar JSD excedente como
+controle confirmatório e z nulo como diagnóstico por palavra. O próximo passo
+é comparar essas medidas externas com `layer 1` e com a resposta adaptativa
+`layer 2 - layer 1` do TimeFormer, sem selecionar configuração pelo gold.
+Detalhes em `docs/28-consec_within_word_null_results.md`.
+
+## Adendo (2026-06-14) -- Integração ConSeC-TimeFormer
+
+A validade convergente entre scores agregados por palavra foi pré-registrada e
+testada nos 25 alvos confirmatórios:
+
+| Comparação | Spearman | p permutação |
+|---|---:|---:|
+| `layer_1` × JSD bruta | -0,031 | 0,884 |
+| `layer_1` × JSD excedente | -0,024 | 0,908 |
+
+Os controles por seed, gold, número de sentidos, cobertura e LR não alteraram
+a conclusão. `Validade convergente escalar = NO-GO`.
+
+No subconjunto confirmatório, ConSeC continuou associado ao gold
+(`rho=0,604` bruto), enquanto `layer_1` ficou em `rho=0,076`. APD contextual
+e mudança explícita da mistura de sentidos não são medidas intercambiáveis.
+
+Decisão: não interpretar APD como substituto direto de mudança lexical. O
+próximo passo é uma análise no nível da ocorrência, aplicando ConSeC e
+TimeFormer aos mesmos contextos para testar alinhamento entre posterior de
+sentido e geometria contextual, além de separar mudança de mistura e deriva
+dentro do sentido. Detalhes em
+`docs/30-consec_timeformer_integration_results.md`.
+
+## Adendo (2026-06-14) -- Alinhamento no nível da ocorrência
+
+Foram extraídos vetores TimeFormer para 3.383 ocorrências confirmatórias
+únicas da Porta 3. Dentro de cada palavra, a distância cosseno foi comparada à
+JSD entre posteriores ConSeC, controlando se o par atravessava períodos.
+
+```text
+layer_1: rho médio = 0,062
+IC 95% = [0,047; 0,078]
+23/25 palavras positivas
+p por inversão de sinais = 0,00005
+```
+
+Todos os critérios pré-registrados passaram. O efeito também apareceu usando
+apenas pares dentro do mesmo período (`rho=0,074`), descartando a explicação
+de um eixo temporal compartilhado.
+
+Exploratoriamente, `layer_2` apresentou alinhamento local mais forte
+(`rho=0,187`, 25/25 palavras positivas), embora sua APD temporal agregada
+continue fraca. Isso mostra que conter estrutura local de sentidos e produzir
+um bom ranking temporal por APD são propriedades diferentes.
+
+Após controlar diferença semântica, permaneceu pequena separação geométrica
+entre períodos. Decisão: decompor o deslocamento vetorial em mudança da
+composição dos sentidos e deriva interna aos sentidos, usando pesos suaves dos
+posteriores. Detalhes em
+`docs/32-occurrence_level_consec_timeformer_results.md`.
+
+## Adendo (2026-06-14) -- Decomposição suave por sentidos
+
+O deslocamento do centróide temporal foi decomposto simetricamente em mudança
+da composição dos sentidos e deriva dos centróides condicionais. Um nulo
+embaralhou posteriores entre vetores dentro de cada palavra e período,
+preservando as marginais.
+
+Na análise principal (`layer_2`):
+
+```text
+excesso médio da share de composição = 0,048
+IC 95% = [0,024; 0,081]
+23/25 palavras positivas
+p por inversão de sinais = 0,00005
+rho(excesso, JSD ConSeC) = 0,615
+```
+
+Todos os critérios pré-registrados passaram. `plane_nn` apresentou a maior
+contribuição de composição (`0,341`). A componente complementar,
+aproximadamente `0,952`, não tem sua natureza identificada por esta análise e
+não deve receber automaticamente um rótulo semântico ou contextual.
+
+Decisão: a troca de mistura de sentidos explica uma parcela pequena, mas
+mensurável e replicada, do deslocamento vetorial. O próximo passo é bootstrap
+estratificado por ocorrência para obter incerteza por palavra e auditar os
+casos extremos. Detalhes em
+`docs/34-soft_sense_vector_decomposition_results.md`.
+
+## Adendo (2026-06-14) -- Bootstrap da decomposição
+
+Foram executadas 2.000 reamostragens estratificadas por palavra e período,
+preservando o pareamento entre as duas seeds TimeFormer.
+
+```text
+layer_2:
+mediana bootstrap da média = 0,042
+IC 95% = [0,032; 0,053]
+rho observado × mediana bootstrap = 0,919
+```
+
+A conclusão agregada permaneceu estável e todos os critérios pré-registrados
+passaram. Dez palavras tiveram IC individual inteiramente positivo:
+
+```text
+plane, multitude, gas, record, land,
+attack, bit, thump, risk, fiction
+```
+
+Nenhuma palavra foi robustamente negativa. `player`, `donkey` e `stab`
+permaneceram incertas.
+
+A auditoria por sentido confirmou `plane` como o exemplo mais transparente.
+`multitude` é robusta, mas requer inspeção textual por causa da rotulagem pouco
+intuitiva de seu synset WordNet.
+
+Decisão: encerrar a busca aberta por novas métricas. Os próximos passos são
+auditar os exemplos destinados ao artigo e consolidar método, resultados,
+tabelas e figuras reproduzíveis. Detalhes em
+`docs/36-soft_decomposition_bootstrap_results.md`.
+
+## Adendo (2026-06-14) -- Consolidação para o artigo
+
+Foi criado um gerador reproduzível com três figuras, três tabelas e oito
+contextos auditados. Os exemplos `plane`, `multitude`, `gas` e `record`
+confirmam que os casos individuais robustos possuem interpretações textuais
+concretas, embora `multitude` exija apresentar a definição do sentido em vez
+do nome pouco intuitivo do synset.
+
+Os artefatos estão em:
+
+```text
+outputs/paper_assets/consec_timeformer/
+```
+
+Decisão: a linha de validação por sentidos está consolidada, mas o eixo
+principal `token@time` ainda deve ser apresentado diretamente por vizinhanças
+temporais, relações ganhas e perdidas e estabilidade entre seeds. O pacote
+ConSeC será uma análise secundária de validade semântica. Síntese e limites
+estão em `docs/37-consec_timeformer_article_package.md`.
+
+## Adendo (2026-06-14) -- Hierarquia científica corrigida
+
+O objetivo principal do TimeFormer não é inferir automaticamente sentidos
+WordNet. É produzir perfis relacionais temporalmente consultáveis:
+
+```text
+w@t -> vizinhos e relações de w no período t
+```
+
+Esses vizinhos são o resultado. ConSeC responde a uma pergunta posterior:
+quanto do deslocamento relacional coincide com recomposição de sentidos de um
+inventário externo?
+
+A parcela associada a sentidos foi estabelecida. A natureza da componente
+complementar permanece indeterminada pelo método e pode ser investigada por
+especialistas a partir dos vizinhos, contextos e fontes históricas.
+
+Próximo passo: relatório reproduzível de `token@time` no melhor encoder,
+mantendo a análise ConSeC como camada interpretativa, não como filtro das
+vizinhanças. O posicionamento canônico está em
+`docs/38-scientific_positioning_token_time_and_sense_analysis.md`.

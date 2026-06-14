@@ -1,0 +1,23 @@
+{
+  "source_file": "outputs/external_wsd/lmms_plane_gate1/occurrence_predictions.csv",
+  "source_sha256": "26aac05eedbda57cc3357f3e2f2762d635c83b136b487d9ccce863fc481d80c6",
+  "generation_seed": 20260613,
+  "number_of_items": 19,
+  "allowed_labels": [
+    "tool",
+    "geometry",
+    "aircraft",
+    "botanical",
+    "unclear"
+  ],
+  "allowed_confidence": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "blinding": {
+    "prediction_columns_in_forms": false,
+    "heuristic_label_in_forms": false,
+    "annotator_orders_identical": false
+  }
+}

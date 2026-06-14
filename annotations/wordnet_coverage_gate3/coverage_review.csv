@@ -1,0 +1,38 @@
+target,pos,n_wordnet_senses,automatic_priority,coverage_status,missing_or_mismatched_uses,gate3_decision,confidence,notes
+attack_nn,n,9,high_review_burden,sufficient,,eligible,high,"Usos militares, crítica, ataque cardíaco e ameaça cobertos pelas 9 acepções WordNet."
+bag_nn,n,9,high_review_burden,sufficient,,eligible,high,"Usos como recipiente, base de beisebol e bolsa cobertos. Sem lacunas relevantes."
+ball_nn,n,12,high_review_burden,sufficient,,eligible,high,"Bala de mosquete, bola de jogo, massa compacta e uso figurativo ('take the ball') cobertos por ball.n.01/02/08."
+bit_nn,n,11,high_review_burden,sufficient,,eligible,high,"Pequena peça, freio de cavalo e broca bem cobertos pelas 11 acepções."
+chairman_nn,n,1,monosemous_control,monosemous_covered,,diagnostic_only,high,Carried forward from Gate 2; one WordNet candidate.
+circle_vb,v,3,low_review_burden,sufficient,,eligible,medium,"Contexto de desenho técnico (1810-1860) possivelmente nominal, mas leitura verbal via circle.v.03 é plausível."
+contemplation_nn,n,2,low_review_burden,sufficient,,eligible,medium,Uso arcaico 'in contemplation' (= em vias de planejar) mapeado para contemplation.n.02; cobertura marginal mas aceitável.
+donkey_nn,n,2,low_review_burden,sufficient,,eligible,high,Todos os contextos usam o sentido de animal de carga (donkey.n.02). Sentido do Partido Democrata não aparece.
+edge_nn,n,6,medium_review_burden,partial,"uso metafórico de 'edge' para exprimir irritabilidade ou aspereza de disposição ('all edge today'), sem candidato WordNet adequado",eligible,medium,"edge.n.04 ('urgency in tone') é o mais próximo mas refere-se à voz, não ao estado geral de irritabilidade."
+face_nn,n,13,high_review_burden,partial,"uso idiomático preposicional 'in the face of' (= diante de/apesar de), sem acepção nominal dedicada no inventário",eligible,medium,"Usos diretos (rosto, expressão, pessoa) bem cobertos. Idioma fixo 'in the face of' não é acepção nominal autônoma."
+fiction_nn,n,2,low_review_burden,sufficient,,eligible,high,Ficção literária e relato falso cobertos pelas 2 acepções em ambos os períodos.
+gas_nn,n,6,medium_review_burden,sufficient,,eligible,medium,"Gás de carvão para iluminação (1810-1860) mapeado a gas.n.02; gas.n.06 refere-se estritamente a gás natural, mas cobertura é suficiente."
+graft_nn,n,3,low_review_burden,partial,"botanical graft object/scion, distinct from the act of grafting",eligible,high,Only preregistered corruption/medical subsets are eligible; botanical uses remain diagnostic-only.
+head_nn,n,33,high_review_burden,sufficient,,eligible,high,"Com 33 acepções, todos os contextos observados (cabeça anatômica, momento crítico) são bem cobertos."
+land_nn,n,11,high_review_burden,sufficient,,eligible,high,"Território, superfície terrestre, domínio e terras agrícolas cobertos pelas 11 acepções."
+lane_nn,n,2,low_review_burden,partial,"uso de 'lane' como sobrenome/nome próprio (John Lane, 1960-2010-02), sem acepção WordNet para nomes próprios",eligible,medium,Três dos quatro contextos recentes usam sentidos comuns. Amostra com nome próprio deve ser excluída do score.
+lass_nn,n,1,monosemous_control,monosemous_covered,,diagnostic_only,medium,Dois contextos de 1960-2010 parecem extrair 'lass' de dentro de 'class' (erro de tokenização). Usos genuínos cobertos pela única acepção.
+multitude_nn,n,3,low_review_burden,sufficient,,eligible,high,"Multidão, grande número e povo comum cobertos pelas 3 acepções em ambos os períodos."
+ounce_nn,n,3,low_review_burden,partial,uso de 'ounce' como medida de volume (onça fluida) ausente no inventário; uso idiomático 'not an ounce of' também sem candidato exato,eligible,high,Usos ponderais (avoirdupois e apotecário) bem cobertos. Onça fluida e uso idiomático de quantidade mínima carecem de acepção.
+part_nn,n,12,high_review_burden,sufficient,,eligible,high,"Porção, papel/função, seção espacial e contribuição cobertos pelas 12 acepções."
+pin_vb,v,4,medium_review_burden,sufficient,,eligible,high,"Prender fisicamente e 'pin their faith upon' (metafórico, compatível com pin.v.02) cobertos pelas 4 acepções."
+plane_nn,n,5,medium_review_burden,sufficient,,eligible,high,Carried forward from the blind-adjudicated ConSeC Gate 1.
+player_nn,n,5,medium_review_burden,sufficient,,eligible,high,"Ator teatral (dominante em 1810-1860), jogador e participante importante cobertos pelas 5 acepções."
+prop_nn,n,3,low_review_burden,sufficient,,eligible,high,Suporte físico/metafórico (prop.n.01) dominante em 1810-1860; adereço teatral (prop.n.02) em 1960-2010.
+quilt_nn,n,1,monosemous_control,monosemous_covered,,diagnostic_only,high,Acepção única (colcha acolchoada) cobre todos os 8 contextos sem ambiguidade.
+rag_nn,n,5,medium_review_burden,partial,"uso pejorativo/insultivo de 'rag' para designar uma pessoa desprezível (1810-1860-04), ausente no inventário WordNet",eligible,medium,Sentido principal de pano/trapo cobre a maioria dos contextos. Possível nome próprio em 1960-2010-02 também é outlier.
+record_nn,n,8,medium_review_burden,sufficient,,eligible,medium,Uso atributivo 'record speed' mapeado para record.n.06 como pre-modificador; cobertura marginal mas aceitável.
+relationship_nn,n,4,medium_review_burden,sufficient,,eligible,high,"Relação entre pessoas, estado emocional, trato mútuo e parentesco cobertos pelas 4 acepções."
+risk_nn,n,4,medium_review_burden,sufficient,,eligible,high,Perigo/possibilidade de perda cobre quase todos os contextos em ambos os períodos.
+savage_nn,n,2,low_review_burden,sufficient,,eligible,high,Pessoa de povo não-civilizado e pessoa cruel/violenta cobertos pelas 2 acepções em ambos os períodos.
+stab_nn,n,3,low_review_burden,sufficient,,eligible,high,"Sensação aguda, golpe de faca e tentativa informal cobertos pelas 3 acepções em ambos os períodos."
+stroke_vb,v,4,medium_review_burden,partial,"contexto 1810-1860-03 usa 'stroke' como substantivo ('stroke of his pen'), incompatível com as quatro acepções verbais do inventário",eligible,medium,Majoritariamente tocar/acariciar (stroke.v.01). Um token parece ser uso nominal — possível erro de POS tagging no corpus.
+thump_nn,n,2,low_review_burden,sufficient,,eligible,high,Som surdo e golpe pesado cobertos pelas 2 acepções em ambos os períodos.
+tip_vb,v,9,high_review_burden,partial,contexto 1810-1860-02 ('in keep tip this perpetual warfare') apresenta uso arcaico ou fragmentado de 'tip' sem candidato WordNet identificável,eligible,medium,"Contextos claros (inclinar, marcar com ponta, dar informação) bem cobertos. Um contexto 1810-1860 é indecifrável/arcaico."
+tree_nn,n,3,low_review_burden,sufficient,,eligible,high,Plant/diagram coverage validated in ConSeC Gate 2.
+twist_nn,n,13,high_review_burden,partial,"uso histórico de 'twist' para referir-se a tabaco torcido/enrolado (1810-1860-01), acepção ausente no inventário WordNet",eligible,high,Twist de tabaco era uso comum no séc. XIX; nenhuma das 13 acepções WordNet cobre esse objeto físico.
+word_nn,n,10,high_review_burden,sufficient,,eligible,high,"Unidade lexical, breve declaração, notícia e promessa cobertos pelas 10 acepções."

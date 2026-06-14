@@ -47,18 +47,37 @@ antes dos capítulos. O percurso mais eficiente é:
 
 ## A pergunta central do projeto
 
-O projeto se chama TimeFormer e investiga **mudança semântica temporal**:
-como o significado de uma palavra muda entre dois períodos históricos.
+O projeto se chama TimeFormer e investiga **mudança temporal relacional**:
+como o entorno de uma palavra se reorganiza entre períodos históricos.
 
-Formalmente, o que se quer estimar é:
+O objeto principal é diretamente inspecionável:
 
 ```text
-Delta_sem(w) = D(P_0(s | w), P_1(s | w))
+token@time
+  -> perfil relacional no período
+  -> vizinhos, aproximações e afastamentos
+  -> deslocamento temporal do perfil
 ```
 
-onde `s` é o *sentido* de uma palavra `w`, `P_0` e `P_1` são as
-distribuições de sentido nos períodos 0 e 1, e `D` é uma distância entre
-distribuições.
+Formalmente, o TimeFormer estima primeiro:
+
+```text
+Delta_rel(w) = D(R_0(w), R_1(w))
+```
+
+onde `R_t(w)` descreve `w` por suas relações com referências lexicais no
+período `t`. Os próprios vizinhos e suas mudanças são resultados, mesmo quando
+não correspondem um a um a sentidos discretos de um inventário.
+
+Uma segunda pergunta, mais estrita, é:
+
+```text
+quanto de Delta_rel(w) se associa a
+Delta_sense(w) = D(P_0(s | w), P_1(s | w))?
+```
+
+Essa pergunta exige informação adicional sobre sentidos. No projeto, ela é
+investigada com ConSeC e WordNet, não pressuposta pela saída do TimeFormer.
 
 O benchmark usado para validar qualquer método é o **SemEval-2020 Task
 1** (mudança semântica lexical, inglês, lematizado), com:
@@ -70,11 +89,9 @@ D1 = corpus de 1960-2010
 (mudança forte)
 ```
 
-A maior parte da história deste documento é sobre **como medir algo que
-se aproxime de `Delta_sem(w)` a partir de um modelo de linguagem treinado
-continuamente sobre D0 e depois sobre D1** — e sobre as armadilhas que
-foram encontradas (e às vezes só percebidas depois de meses) nesse
-caminho.
+A história documenta primeiro como tornar `Delta_rel(w)` comparável apesar da
+mudança do sistema de coordenadas e, depois, quanto desse deslocamento pode
+receber uma interpretação lexical mais estrita.
 
 ## Os quatro personagens
 
@@ -111,6 +128,21 @@ topo".
 | 08 | Perfil relacional v2 e o gargalo do encoder | Tentativa de detectar "modos de sentido" automaticamente falha (NO-GO); descobre-se que o gargalo real é a capacidade do encoder |
 | 09 | bert-tiny, Option D e L2-SP | Inicializar com BERT pré-treinado; layer 1 vs layer 2; por que a regularização do encoder foi abandonada |
 | 10 | WSD externo, Gate 1 | Primeira porta de um desambiguador de sentido externo congelado — resultado misto (NO-GO parcial) |
+| 12 | Adjudicação humana | A heurística é majoritariamente válida, mas o LMMS falha no sentido histórico de ferramenta |
+| 13 | Segundo WSD externo | ConSeC reconhece 14/16 ferramentas e localiza a falha como principalmente específica do LMMS |
+| 14 | Gate 1 completo | ConSeC passa geometria, ferramenta, aviação e autoriza um piloto pequeno entre palavras |
+| 15 | Pré-registro da Porta 2 | Inventários, subconjuntos, cortes e auditoria são congelados antes de novas previsões |
+| 16 | Generalização do ConSeC | Porta 2 passa em `graft` e `tree`, mas expõe a cobertura WordNet como próximo gargalo |
+| 17 | Matriz de cobertura | Os 37 alvos recebem inventários e contextos antes da definição da Porta 3 |
+| 18 | Distribuições de sentido | A JSD do ConSeC correlaciona com o gold e a Porta 3 passa |
+| 19 | Replicação da Porta 3 | O resultado persiste em três amostras e após controlar o número de sentidos |
+| 20 | Nulo intrapalavra | A divergência excedente preserva sinal e reduz o viés do inventário |
+| 21 | Duas réguas não equivalentes | APD contextual e JSD de sentidos não convergem como scores por palavra |
+| 22 | Geometria local de sentidos | Nas mesmas ocorrências, distância semântica acompanha distância vetorial |
+| 23 | Composição e componente não atribuída | A troca de sentidos explica uma parcela pequena e mensurável; o restante não é identificado |
+| 24 | Incerteza por palavra | Bootstrap separa a conclusão global dos dez casos individuais robustos |
+| 25 | Consolidação da análise de sentidos | A validação semântica externa vira um pacote reproduzível, sem encerrar o eixo `token@time` |
+| 26 | Recolocando `token@time` no centro | Vizinhanças são o resultado principal; sentidos externos são uma análise adicional |
 | 11 | Estado em 2026-06-13 | Onde o projeto está agora e o que vem a seguir |
 
 ## Mapa dos conceitos
