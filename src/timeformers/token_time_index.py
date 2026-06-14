@@ -1,7 +1,9 @@
-"""Fase B (docs/39): buscar deslocamentos de direção semelhante.
+"""Searching for words whose meaning shifted in a similar direction.
 
-`nearest_displacements` implementa `nearest_trajectories(w, k, mode="direction")`
-restrito ao único modo disponível com dois períodos.
+`nearest_displacements` implements a "nearest trajectories" query restricted
+to the direction-similarity mode described in `token_time_metrics.py`: given
+a word `w` and a precomputed displacement for every candidate word, find the
+candidates whose displacement points most in the same direction as `w`'s.
 """
 
 from __future__ import annotations
@@ -15,8 +17,15 @@ def nearest_displacements(
     displacements: dict[str, TokenTimeDisplacement],
     k: int,
 ) -> list[tuple[str, float]]:
-    """Words whose `Delta` most resembles `Delta(word)` in direction, sorted
-    descending by `displacement_similarity`. Excludes `word` itself."""
+    """Words whose displacement most resembles `displacements[word]` in
+    direction, sorted descending by `displacement_similarity`.
+
+    `displacements` maps every candidate word (including `word` itself) to
+    its `TokenTimeDisplacement` over a shared set of references. The result
+    is the top `k` *other* words, e.g. for `word="attack"` it might return
+    `[("assault", 0.91), ("raid", 0.85), ...]`: words whose meaning shifted
+    in a similar way to "attack"'s between the two periods.
+    """
     if word not in displacements:
         raise KeyError(word)
     target = displacements[word]

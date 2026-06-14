@@ -1,14 +1,25 @@
-"""`token@time` core objects (docs/39).
+"""Core `token@time` objects: relational profiles, displacements and
+trajectories of a word across time periods.
 
-`TokenTimeProfile` wraps `relational_profile` (variant-D centering,
-capítulo 08, Fase 1): `R_t(w)[v] = cos(centroid_t(w) - mu_t, centroid_t(v) -
-mu_t)`. `TokenTimeDisplacement` wraps `displacement`:
-`Delta(w, a, b) = R_b(w) - R_a(w)`, with `score = 1 - cos(R_a(w), R_b(w))` as
-its scalar summary. `TokenTimeTrajectory` chains profiles across periods.
+These classes wrap the centroid-based relational profile from
+`relational.py` (`relational_profile`, `displacement`, `standardize`) in
+typed, self-describing objects:
 
-Both objects only carry the references they were built over -- comparing two
-profiles requires the same `reference_vocab` (docs/39, "isolamento do sistema
-de coordenadas").
+- `TokenTimeProfile`: `R_t(w)[v]`, the relational profile of word `w` at
+  period `t`, i.e. its cosine similarity to each reference word `v` after
+  centering on `mu_t`.
+- `TokenTimeDisplacement`: `Delta(w, a, b) = R_b(w) - R_a(w)`, the
+  per-reference change in `w`'s profile between periods `a` and `b`, plus a
+  single scalar `score = 1 - cos(R_a(w), R_b(w))` summarizing how much the
+  *direction* of the profile changed overall.
+- `TokenTimeTrajectory`: a sequence of profiles for the same word across
+  more than two periods.
+
+Comparing two profiles only makes sense if they were built over the exact
+same set of reference words in the same order -- otherwise position `i` in
+one profile and position `i` in the other would refer to different
+references. This is enforced by checking `reference_vocab` equality before
+any comparison.
 """
 
 from __future__ import annotations
@@ -22,7 +33,13 @@ from .relational import displacement, relational_profile, standardize
 
 @dataclass
 class TokenTimeProfile:
-    """R_t(w)[v]: relational profile of `word` at `period`."""
+    """R_t(w)[v]: relational profile of `word` at `period`.
+
+    `vector[i]` is the cosine similarity between `word` and
+    `reference_vocab[i]` (both centered on `mu_t`), so `vector` and
+    `reference_vocab`/`reference_ids` always have matching lengths and
+    ordering.
+    """
 
     word: str
     period: str
@@ -42,7 +59,7 @@ class TokenTimeProfile:
             raise ValueError("reference_vocab must have one entry per reference_id")
 
     def as_dict(self) -> dict[str, float]:
-        """{reference_token: R_t(w)[v]}."""
+        """{reference_token: R_t(w)[v]}, e.g. `{"king": 0.42, "queen": 0.38, ...}`."""
         return {token: float(value) for token, value in zip(self.reference_vocab, self.vector)}
 
 
@@ -61,6 +78,15 @@ def build_profile(
     seed: int | None = None,
     metadata: dict | None = None,
 ) -> TokenTimeProfile:
+    """Build a `TokenTimeProfile` for `word` from precomputed `centroids`
+    (`relational.contextual_centroids`) and center `mu`
+    (`relational.type_uniform_mean`).
+
+    `target_id` and `reference_ids` are vocabulary indices: `target_id`
+    identifies `word` in `centroids`, and `reference_ids` selects which
+    vocabulary items to use as references (their tokens, in the same order,
+    become `reference_vocab`).
+    """
     vector = relational_profile(centroids, mu, target_id, reference_ids)
     reference_vocab = [vocab[index] for index in reference_ids.tolist()]
     return TokenTimeProfile(
@@ -79,7 +105,14 @@ def build_profile(
 
 @dataclass
 class TokenTimeDisplacement:
-    """Delta(w, a, b) = R_b(w) - R_a(w), with `score = 1 - cos(R_a(w), R_b(w))`."""
+    """Delta(w, a, b) = R_b(w) - R_a(w), with `score = 1 - cos(R_a(w), R_b(w))`.
+
+    `delta[i]` is how much `w`'s similarity to `reference_vocab[i]` changed
+    between period `a` and period `b` (positive = `w` became more similar to
+    that reference, negative = less similar). `score` is a single number
+    summarizing the overall change in direction: `0` = no change, up to `2`
+    = the profile pointed in the exact opposite direction afterwards.
+    """
 
     word: str
     period_a: str
@@ -92,9 +125,16 @@ class TokenTimeDisplacement:
     metadata: dict = field(default_factory=dict)
 
     def standardized_delta(self) -> Tensor:
-        """z_b(w)[v] - z_a(w)[v], standardizing each profile over its own
-        references first -- comparable across references of differing scale
-        (history/27, relatório de vizinhanças)."""
+        """`z_b(w)[v] - z_a(w)[v]`, where each profile is z-scored
+        (`relational.standardize`) against its *own* references first.
+
+        Raw cosine similarities from `profile_a` and `profile_b` can have
+        different overall scales (e.g. if `mu` shifted between periods), so
+        subtracting them directly can be misleading. Standardizing first
+        expresses each entry as "how unusual is this reference's similarity,
+        relative to this profile's own average and spread" -- making the two
+        periods comparable on the same scale.
+        """
         return standardize(self.profile_b) - standardize(self.profile_a)
 
     def _ranked(self, *, descending: bool, k: int) -> list[tuple[str, float]]:
@@ -103,15 +143,27 @@ class TokenTimeDisplacement:
         return [(self.reference_vocab[index], float(delta_z[index])) for index in order.tolist()]
 
     def top_gains(self, k: int = 20) -> list[tuple[str, float]]:
-        """References with the largest increase in standardized similarity."""
+        """The `k` references whose standardized similarity to `w` increased
+        the most from period `a` to period `b`, e.g.
+        `[("queen", 1.8), ("crown", 1.5), ...]`."""
         return self._ranked(descending=True, k=k)
 
     def top_losses(self, k: int = 20) -> list[tuple[str, float]]:
-        """References with the largest decrease in standardized similarity."""
+        """The `k` references whose standardized similarity to `w` decreased
+        the most from period `a` to period `b` (the mirror of
+        `top_gains`)."""
         return self._ranked(descending=False, k=k)
 
 
 def compare_profiles(profile_a: TokenTimeProfile, profile_b: TokenTimeProfile) -> TokenTimeDisplacement:
+    """Build a `TokenTimeDisplacement` from two profiles of the same word
+    over the same set of references.
+
+    Raises `ValueError` if the profiles describe different words, or were
+    built over different (or differently ordered) reference vocabularies --
+    in either case, comparing the underlying vectors entry-by-entry would be
+    meaningless.
+    """
     if profile_a.word != profile_b.word:
         raise ValueError("compare_profiles requires the same word at both periods")
     if profile_a.reference_vocab != profile_b.reference_vocab:
@@ -130,12 +182,14 @@ def compare_profiles(profile_a: TokenTimeProfile, profile_b: TokenTimeProfile) -
 
 @dataclass
 class TokenTimeTrajectory:
-    """T(w) = [R_0(w), R_1(w), ..., R_n(w)].
+    """T(w) = [R_0(w), R_1(w), ..., R_n(w)]: the relational profile of `w`
+    across more than two periods, in chronological order.
 
-    With two periods this is a single displacement, not a trajectory shape
-    (docs/39): `displacements` has length `len(profiles) - 1`, and no
-    shape/signature metrics are exposed here -- those require 3+ periods
-    (Fase C) and live in `structural_metrics.py`.
+    `displacements` pairs up consecutive profiles, so a trajectory of `n+1`
+    profiles yields `n` displacements: `Delta(w, 0, 1), Delta(w, 1, 2), ...,
+    Delta(w, n-1, n)`. With only two periods, a trajectory degenerates to a
+    single displacement -- there is no separate notion of trajectory "shape"
+    to analyze in that case.
     """
 
     word: str
@@ -149,10 +203,12 @@ class TokenTimeTrajectory:
 
     @property
     def periods(self) -> list[str]:
+        """The period labels in order, e.g. `["1950", "1960", "1970"]`."""
         return [profile.period for profile in self.profiles]
 
     @property
     def displacements(self) -> list[TokenTimeDisplacement]:
+        """One `TokenTimeDisplacement` per consecutive pair of periods."""
         return [
             compare_profiles(before, after)
             for before, after in zip(self.profiles, self.profiles[1:])

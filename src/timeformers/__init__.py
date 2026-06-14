@@ -1,2 +1,2 @@
-"""Synthetic experiment lab for the Timeformer paper 2."""
+"""`token@time`: relational-profile displacement analysis over real corpora."""
 

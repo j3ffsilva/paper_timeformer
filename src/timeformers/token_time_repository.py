@@ -1,21 +1,31 @@
-"""`TokenTimeIndex`: facade over a `--profile-dir` written by
-`scripts/build_token_time_profiles.py`.
+"""`TokenTimeIndex`: a facade over a "profile directory" produced by the
+`token@time` extraction pipeline (see `scripts/build_token_time_profiles.py`).
 
-Loads `vocab.json`, `targets.json`, `target_ids.json`, `metadata.json` and the
-per-period caches (`PeriodStatistics`) once, then exposes the `token@time`
-core operations (docs/39) as a fluent interface:
+A profile directory contains:
+
+- `vocab.json`: the vocabulary, as a list of tokens (vocabulary index ->
+  token string);
+- `targets.json`: the list of target words being analyzed;
+- `target_ids.json`: `{target_word: vocabulary_index}`;
+- `metadata.json` (optional): `{"checkpoint": ..., "period_files": [...]}`;
+- `cache/theta_d0.pt`, `cache/theta_d1.pt`, ...: one `PeriodStatistics` cache
+  per period (see `token_time_statistics.py`).
+
+`TokenTimeIndex.load` reads all of this once, and the resulting object
+exposes the `token@time` operations as a fluent interface:
 
 ```python
-idx = TokenTimeIndex.load("outputs/token_time_fase_a/seed1000", seed=1000)
+idx = TokenTimeIndex.load("outputs/seed1000", seed=1000)
 refs = idx.reference_set()
 idx.displacement("prop", refs).top_gains(10)
 idx.nearest("attack", reference_ids=idx.active_support().nonzero().flatten(), k=5)
 ```
 
-No new formulas: `profile`/`displacement` delegate to `build_profile`/
-`compare_profiles` (`token_time.py`), `active_support`/`reference_set` to
-`build_active_support`/`build_reference_set`, `nearest` to
-`nearest_displacements` (`token_time_index.py`).
+This module introduces no new formulas: `profile`/`displacement` delegate to
+`build_profile`/`compare_profiles` (`token_time.py`), `active_support` to
+`build_active_support` (`relational.py`), `reference_set` to
+`build_reference_set` (below), and `nearest` to `nearest_displacements`
+(`token_time_index.py`).
 """
 
 from __future__ import annotations
@@ -43,12 +53,16 @@ def build_reference_set(
     counts_d1: Tensor,
     max_references: int,
 ) -> list[int]:
-    """Whole-word, alphabetic, non-special tokens from V_ativo.
+    """Whole-word, alphabetic, non-special tokens from V_active (see
+    `relational.build_active_support`).
 
-    A subset of V_ativo restricted to human-readable lexical references for
-    neighborhood reports. V_ativo itself (used for `mu_t` and `displacement`)
-    keeps WordPiece fragments -- only the *reported* references are filtered
-    (history/27 §"detalhe antes de implementar").
+    V_active itself (used for `mu_t` and `displacement`) may include
+    WordPiece fragments such as `"##ing"`, which are not meaningful entries
+    in a human-readable neighbor table. This function returns a filtered
+    subset -- whole alphabetic words, excluding special tokens and the
+    target words themselves -- ordered by how frequent each candidate is in
+    its *less frequent* period (so the reported references are reliably
+    well-estimated in both periods), and capped at `max_references`.
     """
     counts_min = torch.minimum(counts_d0, counts_d1).float()
     candidates = []
@@ -68,6 +82,14 @@ def build_reference_set(
 
 @dataclass
 class TokenTimeIndex:
+    """In-memory view of a profile directory: vocabulary, targets, and one
+    `PeriodStatistics` per period.
+
+    `periods[0]` and `periods[1]` correspond to `period_files[0]` and
+    `period_files[1]` respectively (e.g. `["d0", "d1"]` for a two-period
+    before/after comparison).
+    """
+
     vocab: list[str]
     targets: list[str]
     target_ids: dict[str, int]
@@ -84,6 +106,13 @@ class TokenTimeIndex:
         cache_paths: list[Path] | None = None,
         seed: int | None = None,
     ) -> "TokenTimeIndex":
+        """Load a profile directory written by `build_token_time_profiles.py`.
+
+        If `cache_paths` is not given, defaults to
+        `<profile_dir>/cache/theta_<period_file>.pt` for each entry in
+        `metadata.json`'s `period_files` (or `["d0", "d1"]` if there is no
+        `metadata.json`).
+        """
         profile_dir = Path(profile_dir)
         vocab = json.loads((profile_dir / "vocab.json").read_text(encoding="utf-8"))
         targets = json.loads((profile_dir / "targets.json").read_text(encoding="utf-8"))
@@ -108,13 +137,16 @@ class TokenTimeIndex:
         )
 
     def active_support(self, n_min: int = 10) -> Tensor:
-        """V_ativo: tokens with count >= n_min in both periods (docs/39 §3)."""
+        """V_active: boolean mask over the vocabulary, tokens occurring at
+        least `n_min` times in both periods (see
+        `relational.build_active_support`)."""
         return build_active_support(
             self.periods[0], self.periods[1], vocab=self.vocab, targets=set(self.targets), n_min=n_min
         )
 
     def reference_set(self, max_references: int = 3216) -> Tensor:
-        """Whole-word subset of V_ativo for human-readable neighbor tables."""
+        """Whole-word subset of V_active, as vocabulary-index tensor, for
+        human-readable neighbor tables (see `build_reference_set`)."""
         active_mask = self.active_support()
         reference_ids = build_reference_set(
             self.vocab,
@@ -135,7 +167,13 @@ class TokenTimeIndex:
         layer: str = "layer_2",
         n_min_active: int = 10,
     ) -> TokenTimeProfile:
-        """R_t(w)[v] over `reference_ids`, variant-D centering (docs/39, capítulo 08 Fase 1)."""
+        """`R_t(w)[v]` for `word` at `self.periods[period_index]`, over
+        `reference_ids` (see `relational.relational_profile`).
+
+        Internally computes `centroids` (`PeriodStatistics.centroids`) and
+        `mu` (`relational.type_uniform_mean` over `active_support`) for the
+        requested period, then calls `token_time.build_profile`.
+        """
         stats = self.periods[period_index]
         active_mask = self.active_support(n_min_active)
         centroids = stats.centroids(layer)
@@ -163,7 +201,9 @@ class TokenTimeIndex:
         layer: str = "layer_2",
         n_min_active: int = 10,
     ) -> TokenTimeDisplacement:
-        """Delta(w) = R_1(w) - R_0(w), with score = 1 - cos(R_0(w), R_1(w))."""
+        """`Delta(w) = R_1(w) - R_0(w)`, with `score = 1 - cos(R_0(w), R_1(w))`
+        (see `token_time.compare_profiles`). Builds `profile(word, 0, ...)`
+        and `profile(word, 1, ...)` and compares them."""
         profile_a = self.profile(word, 0, reference_ids, layer=layer, n_min_active=n_min_active)
         profile_b = self.profile(word, 1, reference_ids, layer=layer, n_min_active=n_min_active)
         return compare_profiles(profile_a, profile_b)
@@ -177,7 +217,11 @@ class TokenTimeIndex:
         layer: str = "layer_2",
         n_min_active: int = 10,
     ) -> list[tuple[str, float]]:
-        """Words whose `Delta` most resembles `Delta(word)` in direction (Fase B)."""
+        """The `k` target words whose displacement most resembles `word`'s
+        in direction (see `token_time_index.nearest_displacements`).
+
+        Computes `displacement(...)` for every word in `self.targets` (this
+        is recomputed on every call, not cached)."""
         displacements = {
             target: self.displacement(target, reference_ids, layer=layer, n_min_active=n_min_active)
             for target in self.targets

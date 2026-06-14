@@ -1,3 +1,24 @@
+"""Reading real-text period corpora and turning them into PyTorch datasets
+for masked-language-model (MLM) training and word-level probing.
+
+A "period corpus" is one period's worth of text (e.g. all documents from a
+given decade), represented as `RealPeriodCorpus(period, documents)` where
+`documents` is a list of token lists. `read_period_corpora` reads a whole
+directory of periods at once; `build_vocabulary` then builds a shared
+vocabulary across all periods so that the same token always maps to the same
+vocabulary index regardless of which period it appears in.
+
+The dataset classes turn token-id sequences into model inputs:
+
+- `RealMLMDataset`: standard BERT-style MLM training examples (mask some
+  tokens, predict them).
+- `RealWordProbeDataset`: minimal `[CLS] word [MASK] [SEP]` probes, one per
+  word, used to read off a model's prediction for a word in isolation.
+- `RealTargetOccurrenceDataset`: one example per occurrence of a target word
+  in the corpus, with that occurrence masked -- used to collect
+  contextualized representations of target words "in the wild".
+"""
+
 from __future__ import annotations
 
 import re
@@ -11,25 +32,41 @@ from torch.utils.data import Dataset
 
 
 SPECIAL_TOKENS = ("[PAD]", "[CLS]", "[SEP]", "[MASK]", "[UNK]")
+# Lowercase words, optionally with a single internal underscore (e.g.
+# "north_america") or a trailing apostrophe-suffix (e.g. "don't"). Anything
+# else (digits, punctuation, ...) is dropped by `tokenize`.
 TOKEN_RE = re.compile(r"[a-z]+(?:_[a-z]+)?(?:'[a-z]+)?")
 
 
 @dataclass(frozen=True)
 class RealPeriodCorpus:
+    """One period's worth of text: `period` is a label (e.g. `"1950"`),
+    `documents` is a list of documents, each a list of word tokens."""
+
     period: str
     documents: list[list[str]]
 
 
 def tokenize(text: str) -> list[str]:
+    """Lowercase `text` and extract all tokens matching `TOKEN_RE`.
+
+    Example: `tokenize("The Queen's Speech (1952)")` ->
+    `["the", "queen's", "speech"]` -- punctuation and digits are dropped.
+    """
     return TOKEN_RE.findall(text.lower())
 
 
 def read_period_corpora(input_dir: Path) -> list[RealPeriodCorpus]:
     """Read period corpora from files or period directories.
 
-    Supported layouts:
-    - input_dir/1950.txt
-    - input_dir/1950/*.txt
+    Supported layouts (entries are processed in sorted order):
+
+    - `input_dir/1950.txt`: one period per `.txt` file, one document per
+      line, period label = file stem (`"1950"`).
+    - `input_dir/1950/*.txt`: one period per subdirectory, one document per
+      file (the whole file is one document), period label = directory name.
+
+    Raises `FileNotFoundError` if `input_dir` contains neither.
     """
     corpora = []
     for path in sorted(input_dir.iterdir()):
@@ -58,6 +95,19 @@ def build_vocabulary(
     max_vocab: int = 30_000,
     required_tokens: list[str] | None = None,
 ) -> tuple[list[str], dict[str, int]]:
+    """Build a single vocabulary shared across all `corpora`.
+
+    Tokens are counted across every document of every period. A token is
+    kept if it occurs at least `min_count` times overall, or if it is in
+    `required_tokens` (e.g. the target words being analyzed -- these must be
+    in the vocabulary even if they are rare). The kept tokens are truncated
+    to `max_vocab - len(SPECIAL_TOKENS)` (most frequent first), then any
+    `required_tokens` still missing are appended.
+
+    Returns `(vocab, token_to_id)` where `vocab[0:5] == list(SPECIAL_TOKENS)`
+    (`["[PAD]", "[CLS]", "[SEP]", "[MASK]", "[UNK]"]`) and `token_to_id` is
+    the inverse mapping.
+    """
     required = set(required_tokens or [])
     counts = Counter(token for corpus in corpora for document in corpus.documents for token in document)
     kept = [
@@ -75,11 +125,27 @@ def build_vocabulary(
 
 
 def encode_document(tokens: list[str], token_to_id: dict[str, int]) -> list[int]:
+    """Map each token to its vocabulary id, using `[UNK]` for any token not
+    in `token_to_id`."""
     unk = token_to_id["[UNK]"]
     return [token_to_id.get(token, unk) for token in tokens]
 
 
 def make_windows(encoded: list[int], seq_len: int, *, stride: int) -> list[list[int]]:
+    """Split a token-id sequence into overlapping windows of content length
+    `seq_len - 2` (the `-2` reserves room for `[CLS]`/`[SEP]`, added later).
+
+    If the whole document already fits in one window, it is returned as a
+    single chunk. Otherwise, windows start at `0, stride, 2*stride, ...`,
+    plus one final window aligned to the end of the document (so the last
+    few tokens are never left out even if `stride` doesn't divide evenly).
+
+    Example: `encoded` has length 10, `seq_len=6` (so `content_len=4`),
+    `stride=2`. Window starts would naturally be `0, 2, 4`, covering tokens
+    `[0:4], [2:6], [4:8]` -- but that misses tokens `8` and `9`. The final
+    start `10 - 4 = 6` is appended, giving a fourth window `[6:10]` so the
+    document's tail is covered too.
+    """
     if seq_len < 4:
         raise ValueError("seq_len must be at least 4")
     content_len = seq_len - 2
@@ -93,6 +159,30 @@ def make_windows(encoded: list[int], seq_len: int, *, stride: int) -> list[list[
 
 
 class RealMLMDataset(Dataset):
+    """Standard BERT-style masked-language-model examples from one period's
+    corpus.
+
+    Each document is split into `[CLS] ... [SEP]`-wrapped windows via
+    `make_windows`. Windows made up entirely of special tokens (which can
+    only happen for an empty document) are dropped.
+
+    Masking follows the usual BERT recipe, applied independently per
+    example and per epoch (see `_generator`):
+
+    - each non-special token is selected for masking independently with
+      probability `mask_probability` (default 15%);
+    - if *no* token happens to be selected, one candidate position is chosen
+      at random, so every example always has at least one masked position;
+    - for each selected position, the *original* token id becomes the
+      training label (all other positions get label `-100`, i.e. "ignore in
+      the loss"), and the input token is replaced:
+      - with `[MASK]` with probability `mask_replace_probability` (default
+        80%),
+      - with a random vocabulary token with probability
+        `random_replace_probability` (default 10%),
+      - left unchanged otherwise (the remaining ~10%).
+    """
+
     def __init__(
         self,
         corpus: RealPeriodCorpus,
@@ -144,9 +234,17 @@ class RealMLMDataset(Dataset):
                     self.windows.append(window)
 
     def set_epoch(self, epoch: int) -> None:
+        """Change the epoch used to seed per-example masking (see
+        `_generator`), so masking varies across training epochs while
+        remaining reproducible for a given `(seed, epoch, index)`."""
         self.epoch = epoch
 
     def _generator(self, index: int) -> torch.Generator:
+        # Combine the dataset seed, current epoch, period index and example
+        # index into a single seed, using large odd multipliers to avoid
+        # collisions between different (epoch, index) pairs. This makes
+        # masking deterministic for a given (seed, epoch, period, index)
+        # without needing to store per-example RNG state.
         generator = torch.Generator()
         item_seed = (
             self.seed
@@ -188,6 +286,9 @@ class RealMLMDataset(Dataset):
         return {
             "input_ids": torch.tensor(ids, dtype=torch.long),
             "labels": torch.tensor(labels, dtype=torch.long),
+            # `epoch_idx` here is overloaded to mean "period index": the
+            # model architectures this feeds into use it to pick a
+            # per-period component (when `needs_time` is set).
             "epoch_idx": torch.tensor(self.period_idx, dtype=torch.long),
             "true_context": torch.tensor(0, dtype=torch.long),
             "p_n1": torch.tensor(0.0, dtype=torch.float32),
@@ -202,6 +303,14 @@ class RealMLMDataset(Dataset):
 
 
 class RealWordProbeDataset(Dataset):
+    """One minimal `[CLS] word [MASK] [SEP]` example per word in `words`.
+
+    Used to read off a model's prediction "for `word`" in a fixed, minimal
+    context: the model sees `word` followed by `[MASK]`, and its prediction
+    for the masked position can be inspected directly. Words not in the
+    vocabulary are encoded as `[UNK]`.
+    """
+
     def __init__(
         self,
         words: list[str],
@@ -235,6 +344,23 @@ class RealWordProbeDataset(Dataset):
 
 
 class RealTargetOccurrenceDataset(Dataset):
+    """One example per occurrence of a target word in `corpus`, with that
+    occurrence's position replaced by `[MASK]`.
+
+    For each occurrence of a target word, a window of `seq_len - 2` tokens
+    is taken from the surrounding document, centered on the target where
+    possible (the target is placed `(seq_len - 2) // 2` tokens from the
+    window's start, clamped so the window stays within the document), then
+    wrapped in `[CLS] ... [SEP]` with the target position masked. This gives
+    a batch of "the model's view of this specific occurrence of the target
+    word", which can be encoded to get a contextualized representation of
+    that occurrence.
+
+    If `max_occurrences_per_target` is set, only the first that many
+    occurrences of each target word are kept (in document order) -- useful
+    to bound dataset size for very frequent targets.
+    """
+
     def __init__(
         self,
         corpus: RealPeriodCorpus,
@@ -272,13 +398,16 @@ class RealTargetOccurrenceDataset(Dataset):
     def _make_item(self, document: list[str], token_index: int, word_index: int) -> dict[str, Tensor]:
         content_len = self.seq_len - 2
         left_budget = content_len // 2
+        # Try to place the target `left_budget` tokens from the window
+        # start (i.e. roughly centered), but clamp so the window doesn't run
+        # past either end of the document.
         start = max(0, min(token_index - left_budget, len(document) - content_len))
         end = min(len(document), start + content_len)
         window = list(document[start:end])
         mask_pos_in_window = token_index - start
         encoded = encode_document(window, self.token_to_id)
         ids = [self.cls_id] + encoded + [self.sep_id]
-        mask_pos = mask_pos_in_window + 1
+        mask_pos = mask_pos_in_window + 1  # +1 for the leading [CLS]
         ids[mask_pos] = self.mask_id
         ids += [self.pad_id] * (self.seq_len - len(ids))
         return {
