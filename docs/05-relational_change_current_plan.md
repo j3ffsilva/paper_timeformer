@@ -1277,3 +1277,33 @@ Próximo passo: relatório reproduzível de `token@time` no melhor encoder,
 mantendo a análise ConSeC como camada interpretativa, não como filtro das
 vizinhanças. O posicionamento canônico está em
 `docs/38-scientific_positioning_token_time_and_sense_analysis.md`.
+
+## Adendo (2026-06-14) -- Framework de análise `token@time`
+
+O planejamento operacional foi consolidado em seis capacidades:
+
+```text
+consultar token@time
+comparar dois token@time
+descrever uma trajetória
+comparar trajetórias
+encontrar trajetórias semelhantes
+rankear quem mais e menos mudou
+```
+
+O SemEval possui somente D0 e D1. Portanto, nesta base podemos comparar
+deslocamentos, direções e turnover de vizinhança, mas não inferir forma
+multitemporal, reversão ou oscilação. Essas propriedades exigem três ou mais
+períodos.
+
+As primitivas de relações e métricas estruturais já existem, mas faltam uma
+API unificada, busca palavra-palavra, incerteza integrada e aplicação ao
+`bert-tiny` completo. A ordem definida é:
+
+1. perfis e vizinhanças D0/D1 no melhor encoder;
+2. ganhos, perdas, estabilidade e rankings separados;
+3. busca por deslocamentos semelhantes;
+4. corpus com 3+ períodos;
+5. comparação e busca de trajetórias completas.
+
+Especificação: `docs/39-token_time_analysis_framework.md`.

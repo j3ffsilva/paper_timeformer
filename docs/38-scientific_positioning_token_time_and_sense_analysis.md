@@ -102,7 +102,7 @@ não pretende substituir essa inferência.
 
 ## Próximo passo experimental
 
-Produzir um relatório reproduzível de `token@time` com:
+Implementar a primeira fase do framework de análise `token@time`, produzindo:
 
 ```text
 vizinhos em D0
@@ -115,6 +115,9 @@ contextos ilustrativos
 A análise ConSeC deve acompanhar esse relatório como camada interpretativa,
 sem filtrar ou redefinir quais vizinhos contam como resultado.
 
+A especificação de consultas, comparações, busca de trajetórias e rankings está
+em `docs/39-token_time_analysis_framework.md`.
+
 ## Documentos relacionados
 
 - `history/07-realinhamento_instrumento_de_consulta_temporal.md`
@@ -123,3 +126,4 @@ sem filtrar ou redefinir quais vizinhos contam como resultado.
 - `docs/32-occurrence_level_consec_timeformer_results.md`
 - `docs/34-soft_sense_vector_decomposition_results.md`
 - `docs/37-consec_timeformer_article_package.md`
+- `docs/39-token_time_analysis_framework.md`

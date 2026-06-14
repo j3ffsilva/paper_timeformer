@@ -143,6 +143,7 @@ topo".
 | 24 | Incerteza por palavra | Bootstrap separa a conclusão global dos dez casos individuais robustos |
 | 25 | Consolidação da análise de sentidos | A validação semântica externa vira um pacote reproduzível, sem encerrar o eixo `token@time` |
 | 26 | Recolocando `token@time` no centro | Vizinhanças são o resultado principal; sentidos externos são uma análise adicional |
+| 27 | Framework de consultas temporais | Consulta, comparação, busca e rankings de `token@time` recebem um contrato operacional |
 | 11 | Estado em 2026-06-13 | Onde o projeto está agora e o que vem a seguir |
 
 ## Mapa dos conceitos
