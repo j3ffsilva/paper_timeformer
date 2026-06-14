@@ -33,9 +33,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT))
 
-from timeformers.real_corpus import SPECIAL_TOKENS  # noqa: E402
-from timeformers.relational import build_active_support, contextual_centroids, type_uniform_mean  # noqa: E402
-from timeformers.token_time import build_profile, compare_profiles  # noqa: E402
+from timeformers.token_time_repository import TokenTimeIndex  # noqa: E402
 
 try:
     from scripts.report_temporal_relational_neighborhoods import (
@@ -49,38 +47,6 @@ except ModuleNotFoundError:
         neighborhood_rows,
         top_rows,
     )
-
-
-def build_reference_set(
-    vocab: list[str],
-    active_support_mask: torch.Tensor,
-    *,
-    targets: set[str],
-    counts_d0: torch.Tensor,
-    counts_d1: torch.Tensor,
-    max_references: int,
-) -> list[int]:
-    """Whole-word, alphabetic, non-special tokens from V_ativo.
-
-    A subset of V_ativo restricted to human-readable lexical references for
-    the neighborhood report. V_ativo itself (used for `mu_t` and
-    `displacement`) keeps WordPiece fragments -- only the *reported*
-    references are filtered (history/27 §"detalhe antes de implementar").
-    """
-    counts_min = torch.minimum(counts_d0, counts_d1).float()
-    candidates = []
-    for index, token in enumerate(vocab):
-        if not active_support_mask[index]:
-            continue
-        if token in SPECIAL_TOKENS or token in targets:
-            continue
-        if token.startswith("##"):
-            continue
-        if not token.isalpha():
-            continue
-        candidates.append(index)
-    candidates.sort(key=lambda index: counts_min[index].item(), reverse=True)
-    return candidates[:max_references]
 
 
 def turnover_at_k(rows: list[dict], k: int) -> float:
@@ -191,76 +157,35 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=None, help="training seed, recorded in TokenTimeProfile metadata")
     args = parser.parse_args()
 
-    cache_d0 = args.cache_d0 or (args.profile_dir / "cache" / "theta_d0.pt")
-    cache_d1 = args.cache_d1 or (args.profile_dir / "cache" / "theta_d1.pt")
+    cache_paths = None
+    if args.cache_d0 or args.cache_d1:
+        cache_paths = [
+            args.cache_d0 or (args.profile_dir / "cache" / "theta_d0.pt"),
+            args.cache_d1 or (args.profile_dir / "cache" / "theta_d1.pt"),
+        ]
+    idx = TokenTimeIndex.load(args.profile_dir, cache_paths=cache_paths, seed=args.seed)
 
-    vocab = json.loads((args.profile_dir / "vocab.json").read_text(encoding="utf-8"))
-    targets = json.loads((args.profile_dir / "targets.json").read_text(encoding="utf-8"))
-    target_ids = json.loads((args.profile_dir / "target_ids.json").read_text(encoding="utf-8"))
-    metadata_path = args.profile_dir / "metadata.json"
-    metadata = json.loads(metadata_path.read_text(encoding="utf-8")) if metadata_path.exists() else {}
-    checkpoint = metadata.get("checkpoint", "")
-    period_files = metadata.get("period_files", ["d0", "d1"])
-
-    stats_d0 = torch.load(cache_d0, map_location="cpu", weights_only=True)
-    stats_d1 = torch.load(cache_d1, map_location="cpu", weights_only=True)
-
-    active_mask = build_active_support(
-        stats_d0, stats_d1, vocab=vocab, targets=set(targets), n_min=args.n_min_active
-    )
+    active_mask = idx.active_support(args.n_min_active)
     active_ids = torch.nonzero(active_mask, as_tuple=False).flatten()
-
-    reference_ids = build_reference_set(
-        vocab,
-        active_mask,
-        targets=set(targets),
-        counts_d0=stats_d0["counts"],
-        counts_d1=stats_d1["counts"],
-        max_references=args.max_references,
-    )
-    reference_tokens = [vocab[index] for index in reference_ids]
-    reference_ids_t = torch.tensor(reference_ids, dtype=torch.long)
-
-    centroids_d0 = contextual_centroids(stats_d0, args.layer)
-    centroids_d1 = contextual_centroids(stats_d1, args.layer)
-    mu_d0 = type_uniform_mean(stats_d0, args.layer, support=active_mask)
-    mu_d1 = type_uniform_mean(stats_d1, args.layer, support=active_mask)
+    reference_ids_t = idx.reference_set(args.max_references)
+    reference_tokens = [idx.vocab[index] for index in reference_ids_t.tolist()]
 
     rows_by_target: dict[str, list[dict]] = {}
     all_rows: list[dict] = []
     rankings: list[dict] = []
-    for target in targets:
-        target_id = target_ids[target]
-        count_d0 = int(stats_d0["counts"][target_id])
-        count_d1 = int(stats_d1["counts"][target_id])
+    for target in idx.targets:
+        target_id = idx.target_ids[target]
+        count_d0 = int(idx.periods[0].counts[target_id])
+        count_d1 = int(idx.periods[1].counts[target_id])
 
-        profile_active_d0 = build_profile(
-            centroids_d0, mu_d0, target_id, active_ids, vocab,
-            word=target, period=period_files[0], checkpoint=checkpoint,
-            layer=args.layer, count=count_d0, seed=args.seed,
-        )
-        profile_active_d1 = build_profile(
-            centroids_d1, mu_d1, target_id, active_ids, vocab,
-            word=target, period=period_files[1], checkpoint=checkpoint,
-            layer=args.layer, count=count_d1, seed=args.seed,
-        )
-        disp = compare_profiles(profile_active_d0, profile_active_d1).score
+        disp = idx.displacement(target, active_ids, layer=args.layer, n_min_active=args.n_min_active).score
 
-        profile_ref_d0 = build_profile(
-            centroids_d0, mu_d0, target_id, reference_ids_t, vocab,
-            word=target, period=period_files[0], checkpoint=checkpoint,
-            layer=args.layer, count=count_d0, seed=args.seed,
-        )
-        profile_ref_d1 = build_profile(
-            centroids_d1, mu_d1, target_id, reference_ids_t, vocab,
-            word=target, period=period_files[1], checkpoint=checkpoint,
-            layer=args.layer, count=count_d1, seed=args.seed,
-        )
+        displacement_ref = idx.displacement(target, reference_ids_t, layer=args.layer, n_min_active=args.n_min_active)
         rows = neighborhood_rows(
             target=target,
             references=reference_tokens,
-            before=profile_ref_d0.vector,
-            after=profile_ref_d1.vector,
+            before=displacement_ref.profile_a,
+            after=displacement_ref.profile_b,
         )
         rows_by_target[target] = rows
         all_rows.extend(rows)
@@ -294,7 +219,7 @@ def main() -> None:
     )
     summary = {
         "layer": args.layer,
-        "n_targets": len(targets),
+        "n_targets": len(idx.targets),
         "n_active_support": int(active_mask.sum()),
         "n_references": len(reference_tokens),
     }

@@ -36,6 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from timeformers.bert_continual import encode_windows, read_tokenized_documents, strip_pos_suffix  # noqa: E402
+from timeformers.token_time_statistics import PeriodStatistics  # noqa: E402
 
 
 def read_targets(path: Path) -> list[str]:
@@ -86,7 +87,7 @@ def extract_context_statistics(
     layers: tuple[int, ...],
     batch_size: int,
     device: str,
-) -> dict:
+) -> PeriodStatistics:
     cls_id = tokenizer.cls_token_id
     sep_id = tokenizer.sep_token_id
     pad_id = tokenizer.pad_token_id
@@ -145,7 +146,7 @@ def extract_context_statistics(
                                 sums[f"layer_{layer}"][virtual_id] += hidden.float().cpu()
                             counts[virtual_id] += 1
 
-    return {"counts": counts, "sums": sums}
+    return PeriodStatistics(counts=counts, sums=sums)
 
 
 def main() -> None:
@@ -223,14 +224,14 @@ def main() -> None:
             batch_size=args.batch_size,
             device=args.device,
         )
-        torch.save(stats, cache_path)
+        stats.save(cache_path)
         print(
             json.dumps(
                 {
                     "period": period_index,
                     "file": filename,
                     "n_windows": len(windows),
-                    "n_occurrences": int(stats["counts"].sum()),
+                    "n_occurrences": int(stats.counts.sum()),
                 }
             ),
             flush=True,
