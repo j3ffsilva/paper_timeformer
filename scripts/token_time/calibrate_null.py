@@ -40,7 +40,7 @@ import torch
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from timeformers.token_time_repository import TokenTimeIndex  # noqa: E402
+from tracoformer.token_time_repository import TokenTimeIndex  # noqa: E402
 
 
 def evaluate(idx: TokenTimeIndex, reference_ids: torch.Tensor, *, layer: str, n_permutations: int, generator: torch.Generator) -> list[dict]:

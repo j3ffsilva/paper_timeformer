@@ -2,8 +2,8 @@ import unittest
 
 import torch
 
-from timeformers.gap_criterion import adjacent_gaps_valid, relative_gaps, select_gap_index
-from timeformers.semantic_modes import (
+from tracoformer.gap_criterion import adjacent_gaps_valid, relative_gaps, select_gap_index
+from tracoformer.semantic_modes import (
     cohesion_svd,
     filter_support,
     filter_support_topn,

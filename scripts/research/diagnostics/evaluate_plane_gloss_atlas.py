@@ -21,7 +21,7 @@ from scripts.research.common.cloze import (  # noqa: E402
 )
 from scripts.research.common.encoders import build_model, encode_layers  # noqa: E402
 from scripts.research.common.io import write_csv  # noqa: E402
-from timeformers.real_corpus import read_period_corpora, tokenize  # noqa: E402
+from tracoformer.real_corpus import read_period_corpora, tokenize  # noqa: E402
 
 
 GLOSSES = {

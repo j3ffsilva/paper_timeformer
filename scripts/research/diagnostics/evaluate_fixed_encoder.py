@@ -45,7 +45,7 @@ from scripts.research.common.profiles import (  # noqa: E402
     average_pairwise_distance,
     occurrences_for_target,
 )
-from timeformers.relational import (  # noqa: E402
+from tracoformer.relational import (  # noqa: E402
     build_active_support,
     contextual_centroids,
     displacement,

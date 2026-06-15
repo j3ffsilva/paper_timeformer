@@ -6,9 +6,9 @@ Implements Fase B of `docs/39-token_time_analysis_framework.md`:
 1. compara deslocamentos (`compare_profiles` -> `TokenTimeDisplacement`,
    já em `report_token_time_neighborhoods.py`);
 2. busca por deslocamentos de direção semelhante
-   (`nearest_displacements`, `src/timeformers/token_time_index.py`);
+   (`nearest_displacements`, `src/tracoformer/token_time_index.py`);
 3. explica cada resultado pelas referências que mais contribuíram
-   (`displacement_contributions`, `src/timeformers/token_time_metrics.py`).
+   (`displacement_contributions`, `src/tracoformer/token_time_metrics.py`).
 
 Com apenas D0/D1, "direção do deslocamento" é o único modo de comparação
 disponível (docs/39): não há forma/assinatura de trajetória sem 3+ períodos.
@@ -31,10 +31,10 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT))
 
-from timeformers.token_time import TokenTimeDisplacement  # noqa: E402
-from timeformers.token_time_index import nearest_displacements  # noqa: E402
-from timeformers.token_time_metrics import displacement_contributions  # noqa: E402
-from timeformers.token_time_repository import TokenTimeIndex  # noqa: E402
+from tracoformer.token_time import TokenTimeDisplacement  # noqa: E402
+from tracoformer.token_time_index import nearest_displacements  # noqa: E402
+from tracoformer.token_time_metrics import displacement_contributions  # noqa: E402
+from tracoformer.token_time_repository import TokenTimeIndex  # noqa: E402
 
 
 def write_csv(rows: list[dict], path: Path) -> None:

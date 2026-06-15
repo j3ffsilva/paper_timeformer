@@ -31,9 +31,9 @@ from scripts.research.common.profiles import (  # noqa: E402
     occurrence_profiles,
     relational_profiles,
 )
-from timeformers.real_corpus import SPECIAL_TOKENS, read_period_corpora  # noqa: E402
-from timeformers.real_models import RealStaticMLM  # noqa: E402
-from timeformers.relational import contextual_centroids  # noqa: E402
+from tracoformer.real_corpus import SPECIAL_TOKENS, read_period_corpora  # noqa: E402
+from tracoformer.real_models import RealStaticMLM  # noqa: E402
+from tracoformer.relational import contextual_centroids  # noqa: E402
 
 
 @torch.no_grad()

@@ -1,8 +1,8 @@
 import unittest
 
-from timeformers.corpus import STRUCTURAL_CONDITIONS, SUBJECTS
-from timeformers.dataset import CLASS2ID, ContextPairMLMDataset
-from timeformers.structural_corpus import (
+from tracoformer.corpus import STRUCTURAL_CONDITIONS, SUBJECTS
+from tracoformer.dataset import CLASS2ID, ContextPairMLMDataset
+from tracoformer.structural_corpus import (
     N_STRUCTURAL_QUARTETS,
     STRUCTURAL_CLASS_NAMES,
     STRUCTURAL_TARGETS,

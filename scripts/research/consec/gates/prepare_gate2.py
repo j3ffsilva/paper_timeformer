@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / "src"))
 
-from timeformers.real_corpus import read_period_corpora  # noqa: E402
+from tracoformer.real_corpus import read_period_corpora  # noqa: E402
 
 
 GRAFT_KEYWORDS = {

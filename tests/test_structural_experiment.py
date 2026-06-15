@@ -2,8 +2,8 @@ import unittest
 
 import torch
 
-from timeformers.corpus import SUBJECTS
-from timeformers.structural_experiment import structural_metric_rows, summarize_structural_rows
+from tracoformer.corpus import SUBJECTS
+from tracoformer.structural_experiment import structural_metric_rows, summarize_structural_rows
 
 
 def profiles_with_shared_change(values: list[float]) -> list[torch.Tensor]:

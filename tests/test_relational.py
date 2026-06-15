@@ -2,10 +2,10 @@ import unittest
 
 import torch
 
-from timeformers.corpus import Example, SUBJECTS, generate_subject_probe_examples, generate_trajectories
-from timeformers.dataset import ContextPairMLMDataset, MASK_ID, POS_OBJECT, POS_VERB
-from timeformers.models import build_model
-from timeformers.relational import (
+from tracoformer.corpus import Example, SUBJECTS, generate_subject_probe_examples, generate_trajectories
+from tracoformer.dataset import ContextPairMLMDataset, MASK_ID, POS_OBJECT, POS_VERB
+from tracoformer.models import build_model
+from tracoformer.relational import (
     centered_cosine_similarity_matrix,
     cosine_similarity_matrix,
     jensen_shannon_divergence_rows,
@@ -15,12 +15,12 @@ from timeformers.relational import (
     pmi_cosine_displacement,
     ppmi_jsd_displacement,
 )
-from timeformers.relational_metrics import (
+from tracoformer.relational_metrics import (
     placebo_reference_relational_change,
     relational_change_by_subject,
     representation_cka,
 )
-from timeformers.representations import extract_occurrence_representations
+from tracoformer.representations import extract_occurrence_representations
 
 
 class RelationalMetricsTest(unittest.TestCase):

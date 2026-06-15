@@ -10,7 +10,7 @@ Reuses, without duplicating formulas:
 
 - variant-D centering, `relational_profile` and `displacement` (the
   `Delta(w) = 1 - cos(P_t0(w), P_t1(w))`) from
-  `timeformers.token_time_repository.TokenTimeIndex`;
+  `tracoformer.token_time_repository.TokenTimeIndex`;
 - `neighborhood_rows`/`standardize`/`rank_descending`/`format_table` from
   `neighborhood_report.py`.
 
@@ -33,7 +33,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT))
 
-from timeformers.token_time_repository import TokenTimeIndex  # noqa: E402
+from tracoformer.token_time_repository import TokenTimeIndex  # noqa: E402
 
 try:
     from scripts.token_time.neighborhood_report import (

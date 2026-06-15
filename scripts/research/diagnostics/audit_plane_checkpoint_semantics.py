@@ -21,8 +21,8 @@ from scripts.research.community_profiles.evaluate_seed_profiles import (  # noqa
     DEFAULT_FIELDS,
     community_memberships,
 )
-from timeformers.real_corpus import read_period_corpora  # noqa: E402
-from timeformers.relational import contextual_centroids  # noqa: E402
+from tracoformer.real_corpus import read_period_corpora  # noqa: E402
+from tracoformer.relational import contextual_centroids  # noqa: E402
 
 
 PLANE_KEYWORDS = {

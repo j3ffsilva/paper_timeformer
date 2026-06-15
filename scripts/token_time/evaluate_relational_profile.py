@@ -35,7 +35,7 @@ from sklearn.metrics import average_precision_score, roc_auc_score
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from timeformers.relational import (  # noqa: E402
+from tracoformer.relational import (  # noqa: E402
     build_active_support,
     contextual_centroids,
     displacement,

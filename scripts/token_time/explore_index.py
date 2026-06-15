@@ -27,7 +27,7 @@ import torch
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from timeformers.token_time_repository import TokenTimeIndex  # noqa: E402
+from tracoformer.token_time_repository import TokenTimeIndex  # noqa: E402
 
 
 def show_profile_top(idx: TokenTimeIndex, word: str, reference_ids: torch.Tensor, *, period_index: int, k: int) -> None:

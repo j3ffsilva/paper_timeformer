@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from timeformers.bert_continual import (  # noqa: E402
+from tracoformer.bert_continual import (  # noqa: E402
     CheckpointDiagnostic,
     DynamicWordPieceMLMDataset,
     anchor_hidden_cosine,

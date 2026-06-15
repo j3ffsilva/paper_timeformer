@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from timeformers.structural_metrics import (
+from tracoformer.structural_metrics import (
     temporal_directional_advantage,
     temporal_directional_fidelity,
     temporal_event_metrics,

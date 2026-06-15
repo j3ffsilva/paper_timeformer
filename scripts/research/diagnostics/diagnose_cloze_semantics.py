@@ -18,9 +18,9 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from scripts.research.common.cloze import occurrence_contexts  # noqa: E402
 from scripts.research.common.encoders import build_model  # noqa: E402
-from timeformers.real_corpus import RealTargetOccurrenceDataset, read_period_corpora  # noqa: E402
-from timeformers.real_models import RealStaticMLM  # noqa: E402
-from timeformers.relational import jensen_shannon_divergence_rows  # noqa: E402
+from tracoformer.real_corpus import RealTargetOccurrenceDataset, read_period_corpora  # noqa: E402
+from tracoformer.real_models import RealStaticMLM  # noqa: E402
+from tracoformer.relational import jensen_shannon_divergence_rows  # noqa: E402
 
 
 def entropy(distribution: torch.Tensor) -> float:

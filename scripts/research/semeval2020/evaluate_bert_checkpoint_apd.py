@@ -18,7 +18,7 @@ from torch import Tensor
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from timeformers.bert_continual import strip_pos_suffix  # noqa: E402
+from tracoformer.bert_continual import strip_pos_suffix  # noqa: E402
 
 
 def read_targets(path: Path) -> list[str]:

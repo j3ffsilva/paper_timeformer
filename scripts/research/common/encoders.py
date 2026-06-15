@@ -12,8 +12,8 @@ from torch.utils.data import Dataset
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from timeformers.real_corpus import encode_document  # noqa: E402
-from timeformers.real_models import RealStaticMLM  # noqa: E402
+from tracoformer.real_corpus import encode_document  # noqa: E402
+from tracoformer.real_models import RealStaticMLM  # noqa: E402
 
 
 class ContextChunkDataset(Dataset):

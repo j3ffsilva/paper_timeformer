@@ -23,7 +23,7 @@ from scripts.research.common.profiles import (  # noqa: E402
     occurrence_profiles,
     relational_profiles,
 )
-from timeformers.relational import contextual_centroids  # noqa: E402
+from tracoformer.relational import contextual_centroids  # noqa: E402
 
 
 def balanced_apd(

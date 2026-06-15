@@ -35,9 +35,9 @@ from torch import Tensor
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from timeformers.bert_continual import read_tokenized_documents, strip_pos_suffix  # noqa: E402
-from timeformers.token_time_occurrences import OccurrenceCache  # noqa: E402
-from timeformers.token_time_statistics import PeriodStatistics  # noqa: E402
+from tracoformer.bert_continual import read_tokenized_documents, strip_pos_suffix  # noqa: E402
+from tracoformer.token_time_occurrences import OccurrenceCache  # noqa: E402
+from tracoformer.token_time_statistics import PeriodStatistics  # noqa: E402
 
 
 def read_targets(path: Path) -> list[str]:
@@ -115,7 +115,7 @@ def encode_windows_with_doc_index(
     seq_len: int,
     stride: int,
 ) -> tuple[list[list[int]], list[int]]:
-    """Same chunking as `timeformers.bert_continual.encode_windows`, but also
+    """Same chunking as `tracoformer.bert_continual.encode_windows`, but also
     returns each window's source document index (its position in
     `documents`), for `OccurrenceCache.doc_index`."""
     if seq_len < 4:

@@ -4,8 +4,8 @@ import unittest
 import torch
 import torch.nn as nn
 
-from timeformers.pretrained_init import initialize_from_bert
-from timeformers.real_models import RealStaticMLM
+from tracoformer.pretrained_init import initialize_from_bert
+from tracoformer.real_models import RealStaticMLM
 
 
 class FakeTokenizer:

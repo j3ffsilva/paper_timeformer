@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from timeformers.real_corpus import (
+from tracoformer.real_corpus import (
     RealMLMDataset,
     RealTargetOccurrenceDataset,
     RealWordProbeDataset,

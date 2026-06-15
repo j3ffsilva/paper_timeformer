@@ -28,7 +28,7 @@ from scripts.research.diagnostics.evaluate_contextual_usage_clusters import (  #
     pooled_reference_anchors,
     relational_occurrence_vectors,
 )
-from timeformers.real_corpus import read_period_corpora  # noqa: E402
+from tracoformer.real_corpus import read_period_corpora  # noqa: E402
 
 
 FIELD_CONTROLS = {

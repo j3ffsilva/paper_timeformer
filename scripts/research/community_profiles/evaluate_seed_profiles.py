@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 
 from scripts.research.common.io import read_truth, write_csv  # noqa: E402
-from timeformers.relational import (  # noqa: E402
+from tracoformer.relational import (  # noqa: E402
     contextual_centroids,
     jensen_shannon_divergence_rows,
 )

@@ -21,8 +21,8 @@ from scripts.research.common.cloze import (  # noqa: E402
     SENSE_KEYWORDS,
     high_confidence_sense,
 )
-from timeformers.bert_continual import strip_pos_suffix  # noqa: E402
-from timeformers.real_corpus import read_period_corpora  # noqa: E402
+from tracoformer.bert_continual import strip_pos_suffix  # noqa: E402
+from tracoformer.real_corpus import read_period_corpora  # noqa: E402
 
 
 PLANE_SENSES = {

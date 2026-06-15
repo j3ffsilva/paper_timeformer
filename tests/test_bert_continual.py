@@ -3,7 +3,7 @@ import unittest
 import torch
 from transformers import BertConfig, BertForMaskedLM
 
-from timeformers.bert_continual import (
+from tracoformer.bert_continual import (
     CheckpointDiagnostic,
     assert_weight_tying,
     random_pseudo_periods,

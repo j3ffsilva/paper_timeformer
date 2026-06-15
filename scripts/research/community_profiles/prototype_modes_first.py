@@ -50,7 +50,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 
 from scripts.research.common.profiles import occurrences_for_target  # noqa: E402
-from timeformers.relational import build_active_support  # noqa: E402
+from tracoformer.relational import build_active_support  # noqa: E402
 
 DEFAULT_TARGETS = ["plane_nn", "graft_nn", "chairman_nn", "tree_nn"]
 DEFAULT_STABLE_CONTROLS = ["ball_nn", "face_nn", "lane_nn", "multitude_nn"]
