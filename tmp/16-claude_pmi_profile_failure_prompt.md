@@ -10,7 +10,7 @@ parecer crítico e autocontido.
 
 Escreva obrigatoriamente o parecer final em:
 
-`./tmp/17-timeformer_pmi_profile_failure_review.md`
+`./tmp/17-tracoformer_pmi_profile_failure_review.md`
 
 Não assuma que nossa hipótese diagnóstica está correta. Procure ativamente
 explicações alternativas, erros de implementação, inconsistências matemáticas e
@@ -106,9 +106,9 @@ arquivos, não apenas o histórico Git:
 - `scripts/run_diachronic_relational_experiment.py`
 - `scripts/evaluate_semeval2020_relational.py`
 - `scripts/diagnose_semeval2020_relational.py`
-- `src/timeformers/relational.py`
-- `src/timeformers/real_corpus.py`
-- `src/timeformers/real_models.py`
+- `src/tracoformer/relational.py`
+- `src/tracoformer/real_corpus.py`
+- `src/tracoformer/real_models.py`
 
 ---
 
@@ -462,7 +462,7 @@ O parecer deve responder, de maneira direta e tecnicamente fundamentada:
 
 ## 11. Formato obrigatório do parecer
 
-Estruture o arquivo `./tmp/17-timeformer_pmi_profile_failure_review.md` assim:
+Estruture o arquivo `./tmp/17-tracoformer_pmi_profile_failure_review.md` assim:
 
 1. **Veredito executivo**
 2. **Auditoria da implementação**

@@ -9,7 +9,7 @@ Quanto do deslocamento temporal do centróide contextual aponta na direção
 explicada pela mudança da mistura de sentidos ConSeC?
 
 A decomposição simétrica foi aplicada às 25 palavras, em três amostras ConSeC,
-duas seeds TimeFormer e duas camadas. Foram executados 2.000 embaralhamentos
+duas seeds TraçoFormer e duas camadas. Foram executados 2.000 embaralhamentos
 por alvo e combinação.
 
 ## Validação algébrica
@@ -59,7 +59,7 @@ Contribuição geométrica da composição = GO
 
 ## Replicação
 
-| ConSeC | TimeFormer | excesso médio | mediana | positivas |
+| ConSeC | TraçoFormer | excesso médio | mediana | positivas |
 |---|---|---:|---:|---:|
 | 20260613 | 1000 | 0,060 | 0,043 | 23 |
 | 20260613 | 1001 | 0,061 | 0,042 | 22 |
@@ -68,7 +68,7 @@ Contribuição geométrica da composição = GO
 | 20260615 | 1000 | 0,053 | 0,029 | 19 |
 | 20260615 | 1001 | 0,052 | 0,028 | 19 |
 
-As duas seeds TimeFormer são quase idênticas. A variação principal continua
+As duas seeds TraçoFormer são quase idênticas. A variação principal continua
 vindo da amostragem das ocorrências.
 
 ## Comparação entre camadas
@@ -155,7 +155,7 @@ APD mede deslocamento contextual amplo;
 JSD mede recomposição em um inventário de sentidos
 ```
 
-O TimeFormer não falha por medir uma mudança mais ampla. Essa é sua saída
+O TraçoFormer não falha por medir uma mudança mais ampla. Essa é sua saída
 principal. A decomposição apenas testa quanto dela recebe uma atribuição
 automática mais estrita segundo ConSeC/WordNet.
 
@@ -176,7 +176,7 @@ artigo.
 ## Artefatos
 
 ```text
-outputs/consec_timeformer_soft_decomposition/
-scripts/decompose_consec_timeformer_change.py
+outputs/consec_tracoformer_soft_decomposition/
+scripts/decompose_consec_tracoformer_change.py
 docs/33-soft_sense_vector_decomposition_preregistration.md
 ```

@@ -1,4 +1,4 @@
-# Reframing: TimeFormer como instrumento de consulta temporal
+# Reframing: TraçoFormer como instrumento de consulta temporal
 
 **Data:** 2026-06-06  
 **Para:** codex  
@@ -12,7 +12,7 @@ Estávamos tentando construir um *detector* de mudança semântica — um sistem
 que produz um score escalar e compete com o Spearman do SemEval. Isso criou uma
 barreira artificial e um objetivo errado.
 
-O TimeFormer não é um detector. É um **instrumento de consulta temporal**.
+O TraçoFormer não é um detector. É um **instrumento de consulta temporal**.
 
 A pergunta que ele responde é:
 
@@ -121,7 +121,7 @@ top-20 D0, top-20 D1, ganhos e perdas
 Spearman graded e AUC binário
 ```
 
-Isso posiciona a contribuição concretamente: o TimeFormer produz vizinhanças
+Isso posiciona a contribuição concretamente: o TraçoFormer produz vizinhanças
 comparáveis ou melhores com representações contextuais in-domain e sem
 alinhamento geométrico? Se produzir, a contribuição é clara. Se word2vec
 produzir vizinhanças igualmente coerentes com muito menos custo, precisamos
@@ -157,13 +157,13 @@ alvos disponíveis).
 
 ### 4. Narrativa do paper: instrumento, não detector
 
-Reescrever a introdução e seção de contribuição para posicionar o TimeFormer
+Reescrever a introdução e seção de contribuição para posicionar o TraçoFormer
 como instrumento de consulta temporal, não como sistema de detecção de mudança
 semântica. A mudança é de framing, não de conteúdo técnico.
 
 A reivindicação central passa a ser:
 
-> TimeFormer permite que pesquisadores consultem vizinhanças lexicais de
+> TraçoFormer permite que pesquisadores consultem vizinhanças lexicais de
 > qualquer palavra em qualquer ponto do tempo, com representações contextuais
 > treinadas in-domain e sem dependência de alinhamento geométrico post-hoc.
 
@@ -200,7 +200,7 @@ demonstração primária. O SemEval é validação de que o instrumento não é 
 
 ## Estado do repositório
 
-Código da arquitetura TimeFormer: estável, testado.  
+Código da arquitetura TraçoFormer: estável, testado.  
 Dataset SemEval processado: `data/processed/semeval2020_task1/eng_lemma/`  
 Checkpoints: `outputs/semeval2020_pmi_dynamic_mlm_12_8_d128/continual_real/`  
 Vizinhanças qualitativas: `outputs/.../temporal_relational_neighborhoods/`  

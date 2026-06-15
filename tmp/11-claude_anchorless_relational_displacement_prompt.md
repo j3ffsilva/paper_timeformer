@@ -10,7 +10,7 @@ parecer crítico.
 
 Escreva obrigatoriamente o parecer final em:
 
-`./tmp/timeformer_anchorless_relational_displacement_review.md`
+`./tmp/tracoformer_anchorless_relational_displacement_review.md`
 
 O parecer deve ser autocontido e deve nos ajudar a decidir se esta é a
 formulação matemática correta antes de reescrever código e planejamento.
@@ -337,12 +337,12 @@ Leia, se necessário:
 
 - `docs/02-novo_planejamento.md`
 - `docs/07-data_layout.md`
-- `src/timeformers/real_corpus.py`
-- `src/timeformers/relational.py`
+- `src/tracoformer/real_corpus.py`
+- `src/tracoformer/relational.py`
 - `scripts/run_diachronic_relational_experiment.py`
 - `scripts/evaluate_semeval2020_relational.py`
 - `scripts/diagnose_semeval2020_relational.py`
-- `tmp/14-timeformer_occurrence_probe_semantic_measure_review.md`
+- `tmp/14-tracoformer_occurrence_probe_semantic_measure_review.md`
 
 Mas o foco principal deve ser a formulação matemática, não uma auditoria de
 código.
@@ -353,7 +353,7 @@ código.
 
 Escreva em:
 
-`./tmp/timeformer_anchorless_relational_displacement_review.md`
+`./tmp/tracoformer_anchorless_relational_displacement_review.md`
 
 Use esta estrutura:
 
@@ -380,4 +380,4 @@ No veredito, responda diretamente:
   deslocamento semântico temporal?
 
 Novamente: não altere outros arquivos. Escreva apenas o parecer solicitado em
-`./tmp/timeformer_anchorless_relational_displacement_review.md`.
+`./tmp/tracoformer_anchorless_relational_displacement_review.md`.

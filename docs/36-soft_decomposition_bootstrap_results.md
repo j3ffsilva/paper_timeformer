@@ -9,7 +9,7 @@ A contribuição de composição permanece positiva quando as ocorrências de D0
 D1 são reamostradas?
 
 Foram executadas 2.000 réplicas estratificadas por palavra, período e amostra
-ConSeC. Os mesmos índices foram usados nas duas seeds TimeFormer.
+ConSeC. Os mesmos índices foram usados nas duas seeds TraçoFormer.
 
 ## Resultado agregado
 
@@ -163,7 +163,7 @@ saídas, não substituir as vizinhanças como resultado.
 ## Artefatos
 
 ```text
-outputs/consec_timeformer_soft_decomposition_bootstrap/
+outputs/consec_tracoformer_soft_decomposition_bootstrap/
 scripts/bootstrap_soft_sense_decomposition.py
 scripts/audit_soft_decomposition_senses.py
 docs/35-soft_decomposition_stratified_bootstrap_preregistration.md

@@ -1,7 +1,7 @@
 # Perfil Relacional e Trajetória Semântica — Definição Canônica v2
 
 **Status:** definição canônica (substitui a v1)
-**Projeto:** Timeformer
+**Projeto:** Traçoformer
 **Escopo:** perfil relacional, decomposição em modos semânticos, persistência de modos, trajetória semântica, protocolo de validação e implementação
 
 ---
@@ -228,7 +228,7 @@ A ressalva honesta: frequência muito baixa afeta a **variância** da estimativa
 
 ## 6. Nuvem de Embeddings e o Problema da Média
 
-O Timeformer produz embeddings contextuais — cada ocorrência de w numa sentença produz um vetor diferente. Para cada palavra w no período t, o resultado é uma **nuvem**:
+O Traçoformer produz embeddings contextuais — cada ocorrência de w numa sentença produz um vetor diferente. Para cada palavra w no período t, o resultado é uma **nuvem**:
 
 ```
 { ê¹_t(w), ê²_t(w), ..., ê^N_t(w) },     N = N_t(w)

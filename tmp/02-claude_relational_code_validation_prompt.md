@@ -11,7 +11,7 @@ antes da execução com múltiplas seeds.
 Não altere arquivos de código, documentação ou resultados. Escreva somente seu
 parecer final em:
 
-`./tmp/08-timeformer_relational_code_validation_review.md`
+`./tmp/08-tracoformer_relational_code_validation_review.md`
 
 O parecer deve ser autocontido, concreto e baseado na inspeção do código e dos
 artefatos produzidos.
@@ -273,13 +273,13 @@ construção circular.
 
 Inspecione pelo menos:
 
-- `src/timeformers/corpus.py`
-- `src/timeformers/dataset.py`
-- `src/timeformers/models.py`
-- `src/timeformers/train.py`
-- `src/timeformers/representations.py`
-- `src/timeformers/relational.py`
-- `src/timeformers/relational_metrics.py`
+- `src/tracoformer/corpus.py`
+- `src/tracoformer/dataset.py`
+- `src/tracoformer/models.py`
+- `src/tracoformer/train.py`
+- `src/tracoformer/representations.py`
+- `src/tracoformer/relational.py`
+- `src/tracoformer/relational_metrics.py`
 - `scripts/run_relational_continual_sanity.py`
 - `tests/test_relational.py`
 - `docs/05-relational_change_current_plan.md`
@@ -287,7 +287,7 @@ Inspecione pelo menos:
 Consulte também:
 
 - `docs/02-novo_planejamento.md`, para entender a direção anterior;
-- `tmp/07-timeformer_relational_change_second_opinion.md`;
+- `tmp/07-tracoformer_relational_change_second_opinion.md`;
 - `outputs/relational_continual_validated/seed_1000/config.json`;
 - `outputs/relational_continual_validated/seed_1000/relational_summary.csv`;
 - `outputs/relational_continual_validated/seed_1000/counterfactual_summary.csv`;
@@ -421,7 +421,7 @@ representação possui justificativa científica mais forte?
 
 Escreva o parecer somente em:
 
-`./tmp/08-timeformer_relational_code_validation_review.md`
+`./tmp/08-tracoformer_relational_code_validation_review.md`
 
 Use esta estrutura:
 

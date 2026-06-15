@@ -75,7 +75,7 @@ Replicação da Porta 3 = SUCESSO
 2. Produzir JSD excedente e p por palavra.
 3. Comparar JSD bruta, JSD excedente e correlação parcial.
 4. Corrigir múltiplos testes nas análises por palavra.
-5. Integrar as distribuições de sentido às explicações do TimeFormer.
+5. Integrar as distribuições de sentido às explicações do TraçoFormer.
 
 ## Artefatos
 

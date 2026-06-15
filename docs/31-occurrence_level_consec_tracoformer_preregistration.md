@@ -1,7 +1,7 @@
-# Pré-registração ConSeC-TimeFormer no nível da ocorrência
+# Pré-registração ConSeC-TraçoFormer no nível da ocorrência
 
 **Data:** 2026-06-14
-**Estado:** anterior à extração dos vetores TimeFormer nas ocorrências ConSeC.
+**Estado:** anterior à extração dos vetores TraçoFormer nas ocorrências ConSeC.
 
 ## Motivação
 
@@ -13,7 +13,7 @@ Agora os dois instrumentos serão aplicados às **mesmas ocorrências**:
 ```text
 ocorrência histórica
   -> posterior ConSeC sobre sentidos
-  -> vetor contextual TimeFormer
+  -> vetor contextual TraçoFormer
 ```
 
 ## Dados congelados
@@ -62,7 +62,7 @@ serão formados:
 
 ```text
 distância semântica = JSD entre posteriores ConSeC
-distância geométrica = 1 - cosseno entre vetores TimeFormer
+distância geométrica = 1 - cosseno entre vetores TraçoFormer
 cross_period = 1 se o par liga D0 a D1
 ```
 
@@ -80,7 +80,7 @@ dois instrumentos seja confundida com alinhamento entre sentido e geometria.
 O resultado será repetido nas seis combinações:
 
 ```text
-3 seeds ConSeC × 2 seeds TimeFormer
+3 seeds ConSeC × 2 seeds TraçoFormer
 ```
 
 Para cada combinação serão reportados mediana e média dos 25 coeficientes por
@@ -134,7 +134,7 @@ Período residual positivo após controlar sentido:
 ## Saídas
 
 ```text
-outputs/consec_timeformer_occurrence_alignment/embeddings.npz
-outputs/consec_timeformer_occurrence_alignment/per_target.csv
-outputs/consec_timeformer_occurrence_alignment/summary.json
+outputs/consec_tracoformer_occurrence_alignment/embeddings.npz
+outputs/consec_tracoformer_occurrence_alignment/per_target.csv
+outputs/consec_tracoformer_occurrence_alignment/summary.json
 ```

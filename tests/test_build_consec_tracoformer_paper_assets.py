@@ -1,6 +1,6 @@
 import unittest
 
-from scripts.build_consec_timeformer_paper_assets import latex_escape
+from scripts.build_consec_tracoformer_paper_assets import latex_escape
 
 
 class BuildPaperAssetsTest(unittest.TestCase):

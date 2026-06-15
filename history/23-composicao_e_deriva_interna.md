@@ -54,7 +54,7 @@ O resultado não diz que apenas 5% da semântica mudou. Ele diz:
 > aleatória. A natureza do restante não é identificada por esta análise.
 
 Esse restante pode ser investigado por especialistas usando as vizinhanças e
-os contextos recuperados pelo TimeFormer. A decomposição, sozinha, não permite
+os contextos recuperados pelo TraçoFormer. A decomposição, sozinha, não permite
 classificá-lo como mudança contextual, semântica, de gênero, domínio ou
 qualquer combinação dessas possibilidades.
 

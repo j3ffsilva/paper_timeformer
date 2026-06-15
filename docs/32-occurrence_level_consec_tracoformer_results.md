@@ -1,4 +1,4 @@
-# Alinhamento ConSeC-TimeFormer por ocorrência
+# Alinhamento ConSeC-TraçoFormer por ocorrência
 
 **Data:** 2026-06-14
 **Decisão pré-registrada:** alinhamento estabelecido.
@@ -7,17 +7,17 @@
 
 Dentro de uma mesma palavra, ocorrências com posteriores ConSeC mais
 diferentes também ocupam posições mais distantes na geometria contextual do
-TimeFormer?
+TraçoFormer?
 
 Foram codificadas 3.383 ocorrências confirmatórias únicas. Cada ocorrência
 recebeu:
 
 ```text
 posterior ConSeC sobre sentidos WordNet
-vetor layer_1 e layer_2 em dois checkpoints TimeFormer
+vetor layer_1 e layer_2 em dois checkpoints TraçoFormer
 ```
 
-A análise foi replicada em três amostras ConSeC e duas seeds TimeFormer.
+A análise foi replicada em três amostras ConSeC e duas seeds TraçoFormer.
 
 ## Resultado principal
 
@@ -57,7 +57,7 @@ O efeito é pequeno, mas consistente.
 
 ## Replicação
 
-| ConSeC | TimeFormer | média dos 25 rhos | mediana | positivas |
+| ConSeC | TraçoFormer | média dos 25 rhos | mediana | positivas |
 |---|---|---:|---:|---:|
 | 20260613 | 1000 | 0,048 | 0,032 | 18 |
 | 20260613 | 1001 | 0,048 | 0,033 | 20 |
@@ -66,7 +66,7 @@ O efeito é pequeno, mas consistente.
 | 20260615 | 1000 | 0,064 | 0,032 | 22 |
 | 20260615 | 1001 | 0,064 | 0,032 | 21 |
 
-As duas seeds TimeFormer produzem números quase idênticos dentro de cada
+As duas seeds TraçoFormer produzem números quase idênticos dentro de cada
 amostra ConSeC. A maior variação vem da seleção das ocorrências.
 
 ## Controle do período
@@ -78,7 +78,7 @@ amostra ConSeC. A maior variação vem da seleção das ocorrências.
 | todos, controlando período | 0,062 | [0,047; 0,078] | 23 |
 
 O alinhamento é mais forte dentro do mesmo período. Logo, não surge apenas
-porque ConSeC e TimeFormer distinguem D0 de D1.
+porque ConSeC e TraçoFormer distinguem D0 de D1.
 
 ## Resultado exploratório de `layer_2`
 
@@ -175,7 +175,7 @@ troca de mistura e quanto permanece como deriva contextual dentro do sentido.
 ## Artefatos
 
 ```text
-outputs/consec_timeformer_occurrence_alignment/
-scripts/evaluate_consec_timeformer_occurrences.py
-docs/31-occurrence_level_consec_timeformer_preregistration.md
+outputs/consec_tracoformer_occurrence_alignment/
+scripts/evaluate_consec_tracoformer_occurrences.py
+docs/31-occurrence_level_consec_tracoformer_preregistration.md
 ```

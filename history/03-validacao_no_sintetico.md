@@ -1,8 +1,8 @@
 # Capítulo 3 — Antes de acreditar: validando a ideia relacional
 
-> Fontes originais: `tmp/07-timeformer_relational_change_second_opinion.md`,
-> `tmp/08-timeformer_relational_code_validation_review.md`,
-> `tmp/10-timeformer_structural_relational_change_review.md`.
+> Fontes originais: `tmp/07-tracoformer_relational_change_second_opinion.md`,
+> `tmp/08-tracoformer_relational_code_validation_review.md`,
+> `tmp/10-tracoformer_structural_relational_change_review.md`.
 
 O capítulo 02 terminou com um resultado que parecia bom: o experimento
 estrutural (`docs/06`) detectou as quatro formas temporais

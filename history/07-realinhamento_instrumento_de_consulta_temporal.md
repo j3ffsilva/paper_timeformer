@@ -34,7 +34,7 @@ compatíveis com representações de glosses sem treinamento conjunto
 explícito — isso exigiria um encoder externo de WSD (BEM/ConSeC), o que
 "transfere a contribuição central para um componente de terceiros".
 **Decisão registrada: o atlas WSD é uma direção de paper separada, não o
-TimeFormer.**
+TraçoFormer.**
 
 ## A "régua móvel": de problema a achado
 
@@ -62,16 +62,16 @@ próprio dado**:
 
 Essa frase é o gancho conceitual de todo o capítulo: se a "régua" (a
 geometria interna do modelo) se move de forma sistemática entre `theta_0`
-e `theta_1`, talvez o produto interessante do TimeFormer não seja "um
+e `theta_1`, talvez o produto interessante do TraçoFormer não seja "um
 número que diz o quanto uma palavra mudou", mas **a própria régua em cada
 momento** — isto é, a vizinhança lexical de uma palavra, vista por aquele
 checkpoint específico.
 
-## Onde o TimeFormer está, na paisagem da literatura
+## Onde o TraçoFormer está, na paisagem da literatura
 
 `tmp/24` situa o projeto em relação a dois tipos de trabalho prévio:
 
-| propriedade | Hamilton et al. 2016 | APD+BERT (SemEval) | TimeFormer |
+| propriedade | Hamilton et al. 2016 | APD+BERT (SemEval) | TraçoFormer |
 |---|---|---|---|
 | embeddings | estáticos (1 vetor/palavra/período) | contextuais | contextuais |
 | modelos | 2 independentes | 1 fixo externo | 1 contínuo |
@@ -84,7 +84,7 @@ A limitação de Hamilton 2016: embeddings estáticos borram polissemia —
 um único vetor. A limitação dos sistemas BERT do SemEval (melhor
 Spearman ≈ 0,42 para inglês): aplicam um modelo pré-treinado em inglês
 *moderno* a texto de 1810 — saem do domínio de treino. A proposta do
-TimeFormer não é "transformers em vez de word2vec" (isso já existe) — é
+TraçoFormer não é "transformers em vez de word2vec" (isso já existe) — é
 **um único modelo que viveu a transição cronológica**, com representações
 in-domain nos dois períodos e sem necessidade de alinhamento post-hoc.
 
@@ -106,13 +106,13 @@ os 50 vizinhos mais próximos em pelo menos um período.
 
 A conclusão registrada para esta etapa é deliberadamente modesta:
 
-> TimeFormer consegue caracterizar **algumas** transições relacionais
+> TraçoFormer consegue caracterizar **algumas** transições relacionais
 > temporais por vizinhanças lexicais interpretáveis e locais a cada
 > checkpoint, sem alinhamento geométrico post-hoc.
 
 E explicitamente **não**:
 
-> TimeFormer identifica consistentemente os sentidos lexicais de
+> TraçoFormer identifica consistentemente os sentidos lexicais de
 > qualquer palavra.
 
 O critério qualitativo foi satisfeito claramente por `plane_nn` e pela
@@ -128,7 +128,7 @@ capítulos 02 (Amnesia by Design, falha de protótipo médio) e 06
 > Estávamos tentando construir um *detector* de mudança semântica — um
 > sistema que produz um score escalar e compete com o Spearman do
 > SemEval. Isso criou uma barreira artificial e um objetivo errado. O
-> TimeFormer não é um detector. É um **instrumento de consulta temporal**.
+> TraçoFormer não é um detector. É um **instrumento de consulta temporal**.
 
 A pergunta que o instrumento responde é simplesmente:
 
@@ -242,7 +242,7 @@ A resposta de `tmp/26` à proposta identifica o erro conceitual central:
 > O documento trata `c(plate, boat) = 0,299` como possível defeito... Isso
 > não é um defeito do OT. É a consequência de uma escolha de custo... O
 > erro conceitual é esperar que um custo definido sobre o espaço do
-> TimeFormer corrija um padrão de representação que o próprio TimeFormer
+> TraçoFormer corrija um padrão de representação que o próprio TraçoFormer
 > aprendeu.
 
 Em outras palavras: **OT não extrapola a qualidade das representações —

@@ -1,6 +1,6 @@
 # paper_timeformer
 
-Laboratorio experimental do paper 2 do Timeformer. Este repositório reimplementa
+Laboratorio experimental do paper 2 do Traçoformer. Este repositório reimplementa
 o necessário do paper 1 em uma base independente, para testar a hipótese antes
 de partir para a escrita e para o corpus natural.
 

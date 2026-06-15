@@ -29,7 +29,7 @@ melhores e controles necessários.
 
 ## Posição científica do projeto
 
-O Timeformer não precisa classificar automaticamente sentidos lexicais para ser
+O Traçoformer não precisa classificar automaticamente sentidos lexicais para ser
 bem-sucedido. Seu objeto principal é:
 
 ```text
@@ -418,12 +418,12 @@ docs/39-token_time_analysis_framework.md
 Implementação:
 
 ```text
-src/timeformers/token_time.py
-src/timeformers/token_time_repository.py
-src/timeformers/token_time_statistics.py
-src/timeformers/token_time_metrics.py
-src/timeformers/token_time_index.py
-src/timeformers/relational.py
+src/tracoformer/token_time.py
+src/tracoformer/token_time_repository.py
+src/tracoformer/token_time_statistics.py
+src/tracoformer/token_time_metrics.py
+src/tracoformer/token_time_index.py
+src/tracoformer/relational.py
 scripts/token_time/build_profiles.py
 scripts/token_time/explore_index.py
 ```
@@ -645,7 +645,7 @@ Casos de borda já tratados na implementação:
   silenciosamente retornar zeros.
 
 Estado da implementação (já feito nesta sessão):
-- `src/timeformers/token_time_statistics.py`: campo `standalone_counts` em
+- `src/tracoformer/token_time_statistics.py`: campo `standalone_counts` em
   `PeriodStatistics`, lido/escrito em `load`/`save`, método
   `lexical_validity()`.
 - `scripts/token_time/build_profiles.py`: `continuation_mask` calculada uma
@@ -653,7 +653,7 @@ Estado da implementação (já feito nesta sessão):
   vetorizada de `standalone_counts` no laço principal, e
   `standalone_counts[id_virtual] = counts[id_virtual]` para alvos
   multi-subtoken.
-- `src/timeformers/token_time_repository.py`: `build_reference_set` ganhou
+- `src/tracoformer/token_time_repository.py`: `build_reference_set` ganhou
   parâmetros opcionais `lexical_validity_d0`/`lexical_validity_d1`/
   `min_lexical_validity` -- candidatos com validade abaixo do limiar em
   qualquer um dos dois períodos são excluídos do conjunto de referências
@@ -961,7 +961,7 @@ re-extração do seed1001.
 
 **Passo 2 (feito):** removido `TokenTimeDisplacement.standard_error` e a
 propagação `sqrt(profile_a.standard_error**2 + profile_b.standard_error**2)`
-em `compare_profiles` (`src/timeformers/token_time.py`), e a respectiva
+em `compare_profiles` (`src/tracoformer/token_time.py`), e a respectiva
 impressão em `scripts/token_time/explore_index.py`. `TokenTimeProfile.
 standard_error` (diagnóstico por palavra/período, de
 `PeriodStatistics.standard_error(layer)`) e `PeriodStatistics.dispersion`/
@@ -970,7 +970,7 @@ por tipo/período, só não são mais somados em quadratura para produzir uma
 "incerteza do score de deslocamento" (que não tinha justificativa, já que
 `score = 1 - cos(...)` não é uma diferença simples das duas centroides).
 
-**Passo 3 (feito):** novo módulo `src/timeformers/token_time_occurrences.py`
+**Passo 3 (feito):** novo módulo `src/tracoformer/token_time_occurrences.py`
 com `OccurrenceCache`: para cada palavra-alvo (id real de vocabulário ou id
 "virtual" multi-subtoken), guarda `layer_1`/`layer_2` com o hidden state de
 cada ocorrência individual (`(n_ocorrencias, hidden_size)`) e `doc_index`
@@ -1014,7 +1014,7 @@ por documento preservando n0/n1).
 
 ## Atualização (Claude, 2026-06): passo 4 -- nulo B implementado
 
-Novo módulo `src/timeformers/token_time_null.py`:
+Novo módulo `src/tracoformer/token_time_null.py`:
 `document_permutation_null(occurrences_a, occurrences_b, centroids_a,
 centroids_b, mu_a, mu_b, reference_ids, layer, n_permutations, generator)`.
 

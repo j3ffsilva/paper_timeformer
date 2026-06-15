@@ -6,7 +6,7 @@ Durante a validação com ConSeC, o projeto passou a falar como se seu sucesso
 dependesse de inferir automaticamente sentidos WordNet. Isso invertia a
 hierarquia científica.
 
-O TimeFormer foi construído primeiro como instrumento de consulta temporal:
+O TraçoFormer foi construído primeiro como instrumento de consulta temporal:
 
 ```text
 palavra + período
@@ -54,7 +54,7 @@ ConSeC mostrou que:
   da mistura de sentidos;
 - essa associação é robusta em dez palavras individuais.
 
-Isso fornece validade semântica adicional. Não redefine o TimeFormer como um
+Isso fornece validade semântica adicional. Não redefine o TraçoFormer como um
 classificador de sentidos.
 
 ## O papel do pesquisador

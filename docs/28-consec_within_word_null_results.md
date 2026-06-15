@@ -105,12 +105,12 @@ Nenhum p-valor individual será interpretado sem replicação entre amostras.
 
 ## Próximo experimento
 
-O próximo passo é integrar o instrumento externo de sentido ao TimeFormer.
+O próximo passo é integrar o instrumento externo de sentido ao TraçoFormer.
 Sem ajustar modelos ou escolher readouts pelo gold, compararemos por palavra:
 
 ```text
 ConSeC: JSD bruta e JSD excedente
-TimeFormer: layer 1 e resposta adaptativa layer 2 - layer 1
+TraçoFormer: layer 1 e resposta adaptativa layer 2 - layer 1
 ```
 
 A análise deve responder se a reorganização da camada superior acompanha

@@ -1,6 +1,6 @@
-# Avaliação de Maturidade do Código — Timeformers
+# Avaliação de Maturidade do Código — TraçoFormer
 **Data:** 2026-06-03
-**Escopo:** `src/timeformers/` (16 arquivos, ~1.741 linhas)
+**Escopo:** `src/tracoformer/` (16 arquivos, ~1.741 linhas)
 
 ---
 
@@ -255,11 +255,11 @@ Todos os outros hiperparâmetros do SSL são expostos como parâmetros de `train
 ### 5.3 `__init__.py` não exporta nada
 
 ```python
-# src/timeformers/__init__.py
+# src/tracoformer/__init__.py
 # 2 linhas, vazias ou com comentário
 ```
 
-Para código de pesquisa é aceitável. Para quem importar o pacote de fora, `from timeformers import ...` não funcionará sem conhecer os submódulos. Se isso for para acompanhar um paper com código público, vale exportar pelo menos as funções principais do pipeline.
+Para código de pesquisa é aceitável. Para quem importar o pacote de fora, `from tracoformer import ...` não funcionará sem conhecer os submódulos. Se isso for para acompanhar um paper com código público, vale exportar pelo menos as funções principais do pipeline.
 
 ### 5.4 Scripts com boilerplate `argparse` duplicado
 
@@ -289,4 +289,4 @@ Para código de pesquisa é aceitável. Para quem importar o pacote de fora, `fr
 | Média | Usar `itertools.chain` em vez de `list(...) + list(...)` para `clip_grad_norm_` | `aggregator_ssl.py:119`, `aggregator_train.py:76` |
 | Baixa | Expor `subset_fraction` em `_sample_subset` | `aggregator_ssl.py:31` |
 | Baixa | Extrair `_build_subject_sequence` de `build_trajectory_sequences` | `trajectories.py` |
-| Baixa | Adicionar exports em `__init__.py` | `src/timeformers/__init__.py` |
+| Baixa | Adicionar exports em `__init__.py` | `src/tracoformer/__init__.py` |

@@ -370,7 +370,7 @@ Para palavras Stable, `neighbors(w@t)` deve ser estável ao longo de t. Métrica
 
 ## 9. Auditoria do Código Atual e Classificação por Arquivo
 
-### 9.1 `src/timeformers/models.py`
+### 9.1 `src/tracoformer/models.py`
 
 **Conteúdo:** Define `BaseModel`, `Static`, `Additive`, `TokenTime`, `FiLM`.
 
@@ -380,7 +380,7 @@ Para palavras Stable, `neighbors(w@t)` deve ser estável ao longo de t. Métrica
 
 **Ação necessária:** nenhuma modificação no arquivo. Apenas mudança na semântica de uso: `Static` é promovido a papel central; os modelos com condicionamento temporal são rebaixados a baseline.
 
-### 9.2 `src/timeformers/representations.py`
+### 9.2 `src/tracoformer/representations.py`
 
 **Conteúdo:** Extrai `h_s^i(t)` por ocorrência do modelo semântico.
 
@@ -389,7 +389,7 @@ Para palavras Stable, `neighbors(w@t)` deve ser estável ao longo de t. Métrica
 - A variável `context` (linha 33: `model.token_emb(context_ids).mean(dim=1)`) continua útil para o sinal SSL do agregador, mas precisa ser explicitamente documentada como "embeddings de co-ocorrentes do modelo base", não como representação contextual completa.
 - Acrescentar função `compute_word_centroids(reps, period=t0)` para calcular `b̄(w)` por palavra no período base.
 
-### 9.3 `src/timeformers/aggregators.py`
+### 9.3 `src/tracoformer/aggregators.py`
 
 **Conteúdo:** Define `MeanAggregator`, `AttentionPoolingAggregator`, `SetTransformerAggregator`, `SetSlotsAggregator`.
 
@@ -401,7 +401,7 @@ Há um bug não corrigido a documentar: `SetSlotsAggregator` retorna `R` com dim
 
 **Ação necessária:** acrescentar função `compute_base_centroids(reps, t0)` que usa `MeanAggregator` exclusivamente sobre o período base.
 
-### 9.4 `src/timeformers/aggregator_ssl.py`
+### 9.4 `src/tracoformer/aggregator_ssl.py`
 
 **Conteúdo:** SSL do Set Transformer usando embeddings de co-ocorrentes como sinal.
 
@@ -411,7 +411,7 @@ Se a proposta evoluir para `delta` occurrence-level, o sinal de co-ocorrência d
 
 **Ação necessária:** nenhuma, exceto renomear `context_similarity_contrastive_loss` para `cooccurrence_contrastive_loss` para clareza semântica (esse era um ponto identificado na revisão anterior).
 
-### 9.5 `src/timeformers/trajectory_models.py`
+### 9.5 `src/tracoformer/trajectory_models.py`
 
 **Conteúdo:** Define `TemporalEncoder`, `TrajectoryTeacher`, `TrajectoryStudent`.
 
@@ -423,7 +423,7 @@ Se a proposta futura quiser comparar "trajetória derivada dos deltas" com "traj
 
 **Bug documentado anteriormente:** o construtor de `TrajectoryTeacher` usa `encoder_variant="linear"` como default — potencialmente enganoso. Não é necessário corrigir se o componente for descontinuado da configuração principal, mas deve ser documentado.
 
-### 9.6 `src/timeformers/trajectory_train.py`
+### 9.6 `src/tracoformer/trajectory_train.py`
 
 **Conteúdo:** Treinadores do teacher e do student; avaliação D5a.
 
@@ -433,7 +433,7 @@ Mesma lógica de `trajectory_models.py`. O pipeline de distillation pode ser man
 
 **Bug potencial documentado na revisão anterior:** desalinhamento entre `losses` e `class_ids` em `evaluate_all_masked_reconstruction` quando um batch tem posições completamente inválidas. Não precisa ser corrigido se o componente for descontinuado.
 
-### 9.7 `src/timeformers/trajectory_metrics.py`
+### 9.7 `src/tracoformer/trajectory_metrics.py`
 
 **Conteúdo:** Métricas D2, D5a, D6, probes lineares, CKA.
 
@@ -448,7 +448,7 @@ Mesma lógica de `trajectory_models.py`. O pipeline de distillation pode ser man
 - `cosine_axis_scores` e `d2_context_drift_metrics`: os protótipos N1/N2 derivados de `p_n1` precisam ser repensados. Na nova proposta, a métrica natural é `||delta(w,t)||` comparado com a mudança esperada de `p_n1`. Isso é mais limpo e não usa os protótipos como leakage.
 - Novas métricas M1–M5 definidas na Seção 8.2 precisam ser implementadas.
 
-### 9.8 `src/timeformers/trajectories.py`
+### 9.8 `src/tracoformer/trajectories.py`
 
 **Conteúdo:** Constrói `TrajectorySequences` com interpolação linear e máscaras de validade.
 
@@ -456,7 +456,7 @@ Mesma lógica de `trajectory_models.py`. O pipeline de distillation pode ser man
 
 Na nova proposta, a "trajetória" é derivada dos deltas. A sequência `delta(w,t0), delta(w,t1), ..., delta(w,tn)` pode ser armazenada em estrutura análoga a `TrajectorySequences`. O código de interpolação e construção de máscaras é reutilizável. O conceito de `observed_mask` vs. `valid_mask` continua relevante para distinguir períodos observados de períodos interpolados.
 
-### 9.9 `src/timeformers/trajectory_losses.py`
+### 9.9 `src/tracoformer/trajectory_losses.py`
 
 **Conteúdo:** `masked_mse`, `linear_cka`, `variance_regularizer`, `anti_identity_loss`.
 
@@ -484,22 +484,22 @@ Se o paper incluir comparação entre agregadores como ablação, este script co
 
 | Arquivo | Classificação | Ação |
 |---|---|---|
-| `src/timeformers/models.py` | Manter sem mudança | `Static` vira componente central; `TokenTime/Additive/FiLM` viram baseline |
-| `src/timeformers/representations.py` | Reuso com adaptação menor | Acrescentar `compute_word_centroids` |
-| `src/timeformers/aggregators.py` | Manter como auxiliar | Documentar bug `SetSlotsAggregator`; papel reduzido |
-| `src/timeformers/aggregator_ssl.py` | Manter como baseline/ablação | Renomear `context_similarity_contrastive_loss` |
-| `src/timeformers/trajectory_models.py` | Descontinuar da config principal | Manter para ablação |
-| `src/timeformers/trajectory_train.py` | Descontinuar da config principal | Manter para ablação |
-| `src/timeformers/trajectory_metrics.py` | Reuso com adaptação | Reimplementar D2; acrescentar M1–M5 |
-| `src/timeformers/trajectories.py` | Manter como auxiliar | Reutilizar estrutura de sequências |
-| `src/timeformers/trajectory_losses.py` | Manter, reutilizar | Reutilizar direto |
+| `src/tracoformer/models.py` | Manter sem mudança | `Static` vira componente central; `TokenTime/Additive/FiLM` viram baseline |
+| `src/tracoformer/representations.py` | Reuso com adaptação menor | Acrescentar `compute_word_centroids` |
+| `src/tracoformer/aggregators.py` | Manter como auxiliar | Documentar bug `SetSlotsAggregator`; papel reduzido |
+| `src/tracoformer/aggregator_ssl.py` | Manter como baseline/ablação | Renomear `context_similarity_contrastive_loss` |
+| `src/tracoformer/trajectory_models.py` | Descontinuar da config principal | Manter para ablação |
+| `src/tracoformer/trajectory_train.py` | Descontinuar da config principal | Manter para ablação |
+| `src/tracoformer/trajectory_metrics.py` | Reuso com adaptação | Reimplementar D2; acrescentar M1–M5 |
+| `src/tracoformer/trajectories.py` | Manter como auxiliar | Reutilizar estrutura de sequências |
+| `src/tracoformer/trajectory_losses.py` | Manter, reutilizar | Reutilizar direto |
 | `scripts/run_synthetic_pipeline.py` | Descontinuar na forma atual | Criar novo script para pipeline base+delta |
 | `scripts/run_d5a_student_ablation.py` | Manter para baseline | Não modificar |
 | `scripts/run_ssl_aggregator_sanity.py` | Manter para ablação | Não modificar |
 
 **Arquivos novos a criar:**
-- `src/timeformers/displacement_module.py`: módulo `delta_φ(w,t)`, variantes tabela/bilinear/adapter
-- `src/timeformers/displacement_metrics.py`: métricas M1–M5
+- `src/tracoformer/displacement_module.py`: módulo `delta_φ(w,t)`, variantes tabela/bilinear/adapter
+- `src/tracoformer/displacement_metrics.py`: métricas M1–M5
 - `scripts/run_displacement_pipeline.py`: pipeline end-to-end da nova proposta
 - `scripts/run_displacement_sanity.py`: verificações de sanidade específicas
 
@@ -523,7 +523,7 @@ Se o paper incluir comparação entre agregadores como ablação, este script co
 **Objetivo:** verificar se `delta(w,t)` word-level como tabela de embeddings captura sinal temporal no sintético, antes de qualquer compromisso arquitetural maior.
 
 **Implementação mínima necessária:**
-- Criar `src/timeformers/displacement_module.py` com `DisplacementTable(vocab_size, n_periods, d_model)`.
+- Criar `src/tracoformer/displacement_module.py` com `DisplacementTable(vocab_size, n_periods, d_model)`.
 - Modificar o treinamento para usar `Static` em t0 apenas, congelar, e treinar `DisplacementTable` com MLM + L_anchor sobre os demais períodos.
 - Criar `scripts/run_displacement_sanity.py` para rodar as verificações de sanidade M1–M5 no sintético.
 
@@ -705,7 +705,7 @@ treino de delta com MLM padrão
 No entanto, a implementação atual do corpus e do MLM apresenta uma
 incompatibilidade com essa proposta.
 
-Em `src/timeformers/dataset.py`, o sujeito nunca é mascarado:
+Em `src/tracoformer/dataset.py`, o sujeito nunca é mascarado:
 
 ```python
 mask_pos = rng.choice([POS_VERB, POS_OBJECT])
@@ -713,7 +713,7 @@ mask_pos = rng.choice([POS_VERB, POS_OBJECT])
 
 Somente verbo ou objeto recebem label de MLM.
 
-Em `src/timeformers/models.py`, o `MLMHead` produz logits separadamente para
+Em `src/tracoformer/models.py`, o `MLMHead` produz logits separadamente para
 cada posição da saída do Transformer:
 
 ```python

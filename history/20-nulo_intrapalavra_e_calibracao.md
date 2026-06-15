@@ -57,12 +57,12 @@ cada alvo.
 O projeto agora dispõe de duas réguas complementares:
 
 ```text
-TimeFormer -> como as representações internas respondem ao tempo
+TraçoFormer -> como as representações internas respondem ao tempo
 ConSeC     -> como distribuições explícitas de sentido mudam
 ```
 
 O passo seguinte não é criar outra métrica de WSD. É verificar se a resposta
-adaptativa entre as camadas do TimeFormer se alinha à mudança explícita de
+adaptativa entre as camadas do TraçoFormer se alinha à mudança explícita de
 sentidos medida pelo ConSeC.
 
 Detalhes: `docs/28-consec_within_word_null_results.md`.

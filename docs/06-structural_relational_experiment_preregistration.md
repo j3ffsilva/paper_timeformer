@@ -350,7 +350,7 @@ observável serão tratadas como experimento posterior.
 Os critérios abaixo serão avaliados sobre as seeds confirmatórias agregadas.
 Não serão redefinidos após observar os resultados.
 
-### Q1: o Timeformer registra acumulação gradual?
+### Q1: o Traçoformer registra acumulação gradual?
 
 H1 será sustentada se, para `G`:
 
@@ -484,7 +484,7 @@ memória dos períodos anteriores.
 > perfis preditivos por período bastam?
 
 Se `independent_period` empatar ou superar `continual_chronological`, a tese
-arquitetural do Timeformer enfraquece. Ainda poderemos ter uma boa metodologia
+arquitetural do Traçoformer enfraquece. Ainda poderemos ter uma boa metodologia
 relacional, mas não uma evidência forte de que o treinamento contínuo seja
 essencial.
 
@@ -597,7 +597,7 @@ detecção acima do nulo.
 
 `cumulative_retrain` testa uma pergunta diferente:
 
-> A vantagem do Timeformer vem da continuidade dos pesos ou apenas do fato de
+> A vantagem do Traçoformer vem da continuidade dos pesos ou apenas do fato de
 > o modelo ver dados acumulados de períodos anteriores?
 
 ### Definição do regime
@@ -654,9 +654,9 @@ As métricas primárias permanecem:
 - proporção acima do p95 nulo em `gradual` e `abrupt_persistent`;
 - `M_final`, `path_length` e `F_acc` como diagnósticos.
 
-### Resultado esperado que favorece o Timeformer
+### Resultado esperado que favorece o Traçoformer
 
-O Timeformer será considerado superior ao `cumulative_retrain` se:
+O Traçoformer será considerado superior ao `cumulative_retrain` se:
 
 1. tiver `shape_error` mediano menor em `gradual`;
 2. tiver `shape_error` mediano menor em `abrupt_persistent`;

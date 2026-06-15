@@ -24,7 +24,7 @@ O resultado muda o diagnóstico anterior:
 Novos arquivos:
 
 ```text
-src/timeformers/bert_continual.py
+src/tracoformer/bert_continual.py
 scripts/run_bert_tiny_continual_option_d.py
 scripts/evaluate_bert_checkpoint_apd.py
 scripts/select_frequency_matched_controls.py

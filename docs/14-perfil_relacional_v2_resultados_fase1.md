@@ -139,11 +139,11 @@ contam como `binary=0`/estáveis no truth.tsv.)
 
 ### 3.3 Implementação
 
-- `src/timeformers/gap_criterion.py`: `relative_gaps`, `select_gap_index`,
+- `src/tracoformer/gap_criterion.py`: `relative_gaps`, `select_gap_index`,
   `adjacent_gaps_valid` -- 14 testes unitários (`tests/test_gap_criterion.py`),
   incluindo o exemplo numérico de §8.3 do documento canônico
   (`[0.41,0.31,0.18,0.04,0.03]`, gamma=0.3 -> i*=3).
-- `src/timeformers/semantic_modes.py`: `filter_support` (gap sobre
+- `src/tracoformer/semantic_modes.py`: `filter_support` (gap sobre
   positivos de `P_t(w)`), `filter_support_topn` (variante: restringe a
   top-N candidatos por `|P_t(w)[v]|` antes do gap), `cohesion_svd` (SVD de
   `D E`), `select_num_modes` (gap sobre autovalores), `top_tokens_per_mode`.
@@ -1044,7 +1044,7 @@ Este resultado decide o cenário previsto em 7.17/Tarefa 2: **BERT
 **Recomendação prática (substitui a prioridade 4 de 7.17 e a ablação de
 capacidade "d_model 256/512 do zero"):** o próximo passo de maior retorno
 não é aumentar `d_model` treinando do zero, e sim **inicializar o
-Timeformer a partir de um checkpoint pré-treinado (ex.: BERT-base ou um
+Traçoformer a partir de um checkpoint pré-treinado (ex.: BERT-base ou um
 encoder pequeno pré-treinado equivalente) antes do treino contínuo
 temporal**, mantendo o restante do pipeline (perfil relacional v2,
 encoder fixo da Tarefa 1, agrupamento de ocorrências da Tarefa 3) como
@@ -1112,7 +1112,7 @@ qualitativo, não como métrica principal.
 Arquivos:
 
 - `scripts/init_pretrained_encoder.py`
-- `src/timeformers/pretrained_init.py`
+- `src/tracoformer/pretrained_init.py`
 - `outputs/semeval2020_pmi_pretrained_init_d128/`
 - `outputs/semeval2020_pmi_pretrained_init_d128/pretrained_oracle_bert_tiny/`
 - `outputs/semeval2020_pmi_pretrained_init_d128/init_encoder_fixed_eval/`
@@ -1126,7 +1126,7 @@ Arquivos:
   "Fase 1 / 1.5 do Perfil Relacional v2 (2026-06-11)")
 - `scripts/evaluate_relational_profile_v2.py` -- Fase 0A/1
 - `scripts/evaluate_semantic_modes_v2.py` -- Fase 1.5
-- `src/timeformers/gap_criterion.py`, `src/timeformers/semantic_modes.py`
+- `src/tracoformer/gap_criterion.py`, `src/tracoformer/semantic_modes.py`
 - `tests/test_gap_criterion.py` (14 testes)
 - `tmp/28-codex_perfil_relacional_v2_plan_review.md` -- revisão do plano de
   implementação (antes da Fase 1)

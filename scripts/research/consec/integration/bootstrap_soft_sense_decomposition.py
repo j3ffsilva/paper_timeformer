@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT))
 
 from scripts.research.common.consec import collect_unique_rows  # noqa: E402
 from scripts.research.common.stats import spearman  # noqa: E402
-from scripts.research.consec.integration.decompose_timeformer_change import (  # noqa: E402
+from scripts.research.consec.integration.decompose_tracoformer_change import (  # noqa: E402
     LAYERS,
     decomposition_components,
 )

@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from scripts.decompose_consec_timeformer_change import decomposition_components
+from scripts.decompose_consec_tracoformer_change import decomposition_components
 
 
 class SoftSenseDecompositionTest(unittest.TestCase):

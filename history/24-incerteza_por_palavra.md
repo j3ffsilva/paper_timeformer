@@ -8,7 +8,7 @@ frases.
 ## Bootstrap estratificado
 
 D0 e D1 foram reamostrados separadamente, com reposição. As duas seeds do
-TimeFormer receberam exatamente os mesmos índices, preservando o pareamento.
+TraçoFormer receberam exatamente os mesmos índices, preservando o pareamento.
 O processo foi repetido 2.000 vezes.
 
 ## A conclusão global

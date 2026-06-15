@@ -9,7 +9,7 @@ Não altere código, documentação ou resultados existentes. Sua tarefa é ler 
 material relevante, compreender o ponto atual da pesquisa, avaliar criticamente
 a nova interpretação proposta e escrever um parecer autocontido em:
 
-`./tmp/10-timeformer_structural_relational_change_review.md`
+`./tmp/10-tracoformer_structural_relational_change_review.md`
 
 Este pedido não busca apenas confirmação. Procure ativamente falhas conceituais,
 riscos à validade, mudança oportunista de objetivo, alternativas melhores e
@@ -153,9 +153,9 @@ relacionais não é uma definição realista de estabilidade.
 Consulte principalmente:
 
 - `docs/05-relational_change_current_plan.md`
-- `src/timeformers/relational.py`
-- `src/timeformers/relational_change.py`
-- `src/timeformers/corpus.py`
+- `src/tracoformer/relational.py`
+- `src/tracoformer/relational_change.py`
+- `src/tracoformer/corpus.py`
 - `scripts/run_relational_continual_sanity.py`
 - `scripts/summarize_relational_sensitivity.py`
 - `tests/test_relational.py`
@@ -515,7 +515,7 @@ Classifique recomendações como:
 
 Escreva o parecer em:
 
-`./tmp/10-timeformer_structural_relational_change_review.md`
+`./tmp/10-tracoformer_structural_relational_change_review.md`
 
 Use esta estrutura:
 
@@ -543,4 +543,4 @@ No veredito, responda diretamente:
 - O que provavelmente ainda não estamos enxergando?
 
 Novamente: não altere nenhum outro arquivo. Escreva somente o parecer solicitado
-em `./tmp/10-timeformer_structural_relational_change_review.md`.
+em `./tmp/10-tracoformer_structural_relational_change_review.md`.

@@ -47,7 +47,7 @@ antes dos capítulos. O percurso mais eficiente é:
 
 ## A pergunta central do projeto
 
-O projeto se chama TimeFormer e investiga **mudança temporal relacional**:
+O projeto se chama TraçoFormer e investiga **mudança temporal relacional**:
 como o entorno de uma palavra se reorganiza entre períodos históricos.
 
 O objeto principal é diretamente inspecionável:
@@ -59,7 +59,7 @@ token@time
   -> deslocamento temporal do perfil
 ```
 
-Formalmente, o TimeFormer estima primeiro:
+Formalmente, o TraçoFormer estima primeiro:
 
 ```text
 Delta_rel(w) = D(R_0(w), R_1(w))
@@ -77,7 +77,7 @@ Delta_sense(w) = D(P_0(s | w), P_1(s | w))?
 ```
 
 Essa pergunta exige informação adicional sobre sentidos. No projeto, ela é
-investigada com ConSeC e WordNet, não pressuposta pela saída do TimeFormer.
+investigada com ConSeC e WordNet, não pressuposta pela saída do TraçoFormer.
 
 O benchmark usado para validar qualquer método é o **SemEval-2020 Task
 1** (mudança semântica lexical, inglês, lematizado), com:
@@ -124,7 +124,7 @@ topo".
 | 04 | Refinando a pergunta | "Estrutural vs microvariação"; abandono de listas fixas de palavras-âncora |
 | 05 | Primeiras tentativas no SemEval real | PMI/cloze sobre o corpus real; um bug de fronteiras de documento invalida meses de resultados |
 | 06 | Hidden states e as paredes de identificabilidade | Muda-se de "prever palavras" para "comparar representações internas"; aparecem as paredes A-D |
-| 07 | Realinhamento: instrumento de consulta temporal | TimeFormer redefinido como instrumento de consulta, não "detector de mudança" |
+| 07 | Realinhamento: instrumento de consulta temporal | TraçoFormer redefinido como instrumento de consulta, não "detector de mudança" |
 | 08 | Perfil relacional v2 e o gargalo do encoder | Tentativa de detectar "modos de sentido" automaticamente falha (NO-GO); descobre-se que o gargalo real é a capacidade do encoder |
 | 09 | bert-tiny, Option D e L2-SP | Inicializar com BERT pré-treinado; layer 1 vs layer 2; por que a regularização do encoder foi abandonada |
 | 10 | WSD externo, Gate 1 | Primeira porta de um desambiguador de sentido externo congelado — resultado misto (NO-GO parcial) |

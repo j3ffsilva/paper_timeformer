@@ -1,4 +1,4 @@
-# Parecer Técnico e Científico: TimeFormer — Pós-Correção de Fronteiras de Documento
+# Parecer Técnico e Científico: TraçoFormer — Pós-Correção de Fronteiras de Documento
 
 **Data:** 2026-06-06
 **Escopo:** Auditoria independente do experimento `semeval2020_pmi_line_documents_3_2`
@@ -245,7 +245,7 @@ Os experimentos abaixo usam **exclusivamente os checkpoints existentes** em `out
 - Alternativamente, filtrar as ocorrências de graft_nn para manter apenas as que já caem na posição 16 (n=33 de 119) e reexecutar o diagnóstico.
 - Comparar H(q)/log|V|, rank do alvo, e top-tokens antes e após recentralização.
 
-**Arquivos:** Modificação em `src/timeformers/real_corpus.py` (apenas para o probe, não o treino) ou filtro no CSV `occurrences.csv` já existente.
+**Arquivos:** Modificação em `src/tracoformer/real_corpus.py` (apenas para o probe, não o treino) ou filtro no CSV `occurrences.csv` já existente.
 
 **Custo:** Modificação de 5-10 linhas de código. Inferência: < 30 minutos de CPU com os checkpoints existentes.
 

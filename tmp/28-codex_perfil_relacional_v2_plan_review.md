@@ -6,7 +6,7 @@ melhor. Procure: erros conceituais, dependências entre fases que invalidam a
 ordem proposta, escolhas de engenharia que vão exigir retrabalho, e
 oportunidades de simplificar ou eliminar fases.
 
-O contexto é o projeto Timeformer: medir mudança semântica diacrônica via
+O contexto é o projeto Traçoformer: medir mudança semântica diacrônica via
 embeddings contextuais de um Transformer MLM treinado continuamente
 (`theta_0 = treino(D_0)`, `theta_t = continua_treino(theta_{t-1}, D_t)`).
 
@@ -57,9 +57,9 @@ posso fornecer trechos adicionais se necessário.
 
 ## Estado atual do código (v1)
 
-- `src/timeformers/real_corpus.py`: já constrói vocabulário fixo V sobre a
+- `src/tracoformer/real_corpus.py`: já constrói vocabulário fixo V sobre a
   união dos corpora de todos os períodos (✅ atende §3).
-- `src/timeformers/real_models.py`: Transformer MLM (`RealStaticMLM`) treinado
+- `src/tracoformer/real_models.py`: Transformer MLM (`RealStaticMLM`) treinado
   continuamente; checkpoints `theta0_d0.pt`, `theta1_d1.pt` etc. já existem
   para o corpus SemEval-2020 Task 1 (inglês, 2 períodos: 1810-1860, 1960-2010).
 - Cache de extração atual (`cache/theta0_d0.pt` etc.) guarda **apenas**
@@ -72,10 +72,10 @@ posso fornecer trechos adicionais se necessário.
   - opera só sobre essas ~3.216 referências, não sobre V completo;
   - não há decomposição em modos, não há nuvem de ocorrências, não há
     matching entre períodos.
-- `src/timeformers/relational.py`: utilidades de similaridade/perfil log-PMI
+- `src/tracoformer/relational.py`: utilidades de similaridade/perfil log-PMI
   (abordagem log-PMI já foi **abandonada** por correlacionar com mudança de
   entropia, não com mudança semântica — ver `docs/05-relational_change_current_plan.md`).
-- `src/timeformers/corpus.py`: gerador de corpus sintético com 10 períodos e
+- `src/tracoformer/corpus.py`: gerador de corpus sintético com 10 períodos e
   classes de trajetória conhecidas (`stable`, `drift`, `abrupt`,
   `bifurcating`) — usado como banco de testes controlado.
 - Não há FAISS/HNSW; `scipy.optimize.linear_sum_assignment` (Hungarian) está
@@ -199,10 +199,10 @@ existentes).
 docs/12-novo_perfil_relacional.md
 docs/05-relational_change_current_plan.md
 docs/09-relational_profile_formalization.md
-src/timeformers/real_corpus.py
-src/timeformers/real_models.py
-src/timeformers/relational.py
-src/timeformers/corpus.py
+src/tracoformer/real_corpus.py
+src/tracoformer/real_models.py
+src/tracoformer/relational.py
+src/tracoformer/corpus.py
 scripts/report_temporal_relational_neighborhoods.py
 tmp/21-claude_semantic_neighborhood_plan_review.md
 ```

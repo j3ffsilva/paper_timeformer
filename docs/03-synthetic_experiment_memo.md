@@ -1,4 +1,4 @@
-# Synthetic Experiment Memo — Timeformer Paper 2
+# Synthetic Experiment Memo — Traçoformer Paper 2
 
 Data: 2026-05-30
 

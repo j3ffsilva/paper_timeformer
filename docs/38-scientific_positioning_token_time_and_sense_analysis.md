@@ -4,7 +4,7 @@
 
 ## Contribuição principal
 
-O TimeFormer é um instrumento de investigação temporal. Para uma palavra `w`
+O TraçoFormer é um instrumento de investigação temporal. Para uma palavra `w`
 e um período `t`, ele produz um objeto consultável:
 
 ```text
@@ -54,7 +54,7 @@ mudança de R_t(palavra)
 ```
 
 Essa análise oferece validade semântica adicional, mas não é a definição de
-sucesso do TimeFormer.
+sucesso do TraçoFormer.
 
 ## Interpretação dos resultados atuais
 
@@ -76,7 +76,7 @@ Essas são hipóteses para investigação, não conclusões do método.
 
 ## Papel da análise especializada
 
-O TimeFormer pode oferecer a pesquisadores:
+O TraçoFormer pode oferecer a pesquisadores:
 
 1. listas de vizinhos em cada período;
 2. vizinhos ganhos e perdidos;
@@ -123,7 +123,7 @@ em `docs/39-token_time_analysis_framework.md`.
 - `history/07-realinhamento_instrumento_de_consulta_temporal.md`
 - `history/21-duas_reguas_que_nao_sao_equivalentes.md`
 - `history/26-token_time_como_resultado_principal.md`
-- `docs/32-occurrence_level_consec_timeformer_results.md`
+- `docs/32-occurrence_level_consec_tracoformer_results.md`
 - `docs/34-soft_sense_vector_decomposition_results.md`
-- `docs/37-consec_timeformer_article_package.md`
+- `docs/37-consec_tracoformer_article_package.md`
 - `docs/39-token_time_analysis_framework.md`

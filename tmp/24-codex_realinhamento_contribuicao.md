@@ -1,11 +1,11 @@
-# Realinhamento: contribuição real do TimeFormer
+# Realinhamento: contribuição real do TraçoFormer
 
 Este documento resume o estado dos experimentos e redefine o alvo da contribuição
 científica. Leia completo antes de propor qualquer experimento novo.
 
 ---
 
-## O que é o TimeFormer
+## O que é o TraçoFormer
 
 Um único Transformer MLM treinado continuamente na ordem cronológica dos corpora:
 
@@ -94,7 +94,7 @@ glosses sem treinamento conjunto explícito. Essa arquitetura exigiria encoder
 externo de WSD (BEM/ConSeC), o que transfere a contribuição central para um
 componente de terceiros.
 
-**Decisão: o atlas externo é uma direção de paper separada. Não é o TimeFormer.**
+**Decisão: o atlas externo é uma direção de paper separada. Não é o TraçoFormer.**
 
 ---
 
@@ -144,9 +144,9 @@ A mudança da régua IS o dado.
   de 1810 é sair do domínio de treinamento. O modelo não conhece a distribuição
   léxica histórica.
 
-### TimeFormer — o que é diferente
+### TraçoFormer — o que é diferente
 
-| propriedade | Hamilton 2016 | APD+BERT (SemEval) | TimeFormer |
+| propriedade | Hamilton 2016 | APD+BERT (SemEval) | TraçoFormer |
 |---|---|---|---|
 | embeddings | estáticos | contextuais | contextuais |
 | modelos | 2 independentes | 1 fixo externo | 1 contínuo |
@@ -167,7 +167,7 @@ fazem isso. A contribuição é:
 
 Não é maximizar o Spearman de 37 palavras.
 
-O alvo é demonstrar que TimeFormer produz **vizinhanças semânticas temporais
+O alvo é demonstrar que TraçoFormer produz **vizinhanças semânticas temporais
 coerentes** sem nenhuma anotação externa:
 
 ```
@@ -197,13 +197,13 @@ modelo sem supervisão.
 Os sistemas APD+BERT mostram que as distribuições de embeddings de D0 e D1
 são diferentes. Eles não caracterizam **o que mudou**.
 
-TimeFormer, via perfis relacionais, dá uma resposta interpretável:
+TraçoFormer, via perfis relacionais, dá uma resposta interpretável:
 - r_0(w) top-20: as palavras mais próximas de w no vocabulário de D0
 - r_1(w) top-20: as palavras mais próximas de w no vocabulário de D1
 - Δr(w) = r_1(w) - r_0(w): o que w ganhou e perdeu em proximidade
 
 Esse Δr é uma caracterização semântica da mudança. Hamilton 2016 faz algo
-análogo, mas com vetores estáticos. TimeFormer faz com representações
+análogo, mas com vetores estáticos. TraçoFormer faz com representações
 contextuais, domain-adapted, de um modelo que viveu a transição.
 
 ---
@@ -340,13 +340,13 @@ para medicina/corrupção.
 
 Os resultados sustentam a reivindicação estreita:
 
-> TimeFormer consegue caracterizar algumas transições relacionais temporais
+> TraçoFormer consegue caracterizar algumas transições relacionais temporais
 > por vizinhanças lexicais interpretáveis e locais a cada checkpoint, sem
 > alinhamento geométrico post-hoc.
 
 Ainda não sustentam:
 
-> TimeFormer identifica consistentemente os sentidos lexicais de qualquer
+> TraçoFormer identifica consistentemente os sentidos lexicais de qualquer
 > palavra.
 
 O critério qualitativo foi satisfeito claramente por `plane` e pela estabilidade
@@ -379,7 +379,7 @@ ganhos e perdas entre referências salientes
 Spearman graded
 ```
 
-Esse teste passou à frente dos demais porque as vizinhanças TimeFormer, embora
+Esse teste passou à frente dos demais porque as vizinhanças TraçoFormer, embora
 promissoras, não estabelecem contribuição por si mesmas. Se word2vec produzir
 a mesma caracterização com menor custo e maior clareza, a novidade atribuída ao
 treinamento contínuo enfraquece substancialmente.
@@ -390,7 +390,7 @@ Critérios comparativos:
 2. separação de `plane` e estabilidade de `chairman`;
 3. qualidade dos ganhos e perdas;
 4. desempenho quantitativo no SemEval;
-5. capacidade exclusiva do TimeFormer de fornecer trajetórias com N
+5. capacidade exclusiva do TraçoFormer de fornecer trajetórias com N
    checkpoints, que não pode ser demonstrada neste corpus de apenas dois
    períodos.
 
@@ -421,7 +421,7 @@ treinamento contínuo; se não, há algo mais fundamental.
 
 1. **Atlas WSD externo como arquitetura principal**: exige BEM/ConSeC como
    componente central. A contribuição vira do encoder externo, não do
-   TimeFormer. É paper separado se os resultados justificarem.
+   TraçoFormer. É paper separado se os resultados justificarem.
 
 2. **Clustering como estimador de sentido**: muro de identificabilidade é
    formal, não de implementação. Mais épocas ou melhores algoritmos não
@@ -435,11 +435,11 @@ treinamento contínuo; se não, há algo mais fundamental.
 
 ## A contribuição como seria descrita num paper
 
-> Apresentamos o TimeFormer, uma arquitetura de Transformer treinado
+> Apresentamos o TraçoFormer, uma arquitetura de Transformer treinado
 > continuamente sobre corpora cronologicamente ordenados para detecção de
 > mudança semântica temporal. Ao contrário de abordagens que treinam modelos
 > independentes por período e os alinham post-hoc, ou que aplicam modelos
-> pré-treinados fora do domínio histórico, o TimeFormer aprende a transição
+> pré-treinados fora do domínio histórico, o TraçoFormer aprende a transição
 > semântica diretamente durante o treinamento. Introduzimos perfis relacionais
 > como mecanismo de comparação sem alinhamento entre checkpoints, e mostramos
 > que o modelo produz vizinhanças semânticas temporalmente coerentes para

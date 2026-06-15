@@ -19,7 +19,7 @@ precisão a proposta que queremos investigar agora.
 Não altere código, documentação ou resultados existentes. Analise a proposta,
 identifique riscos à validade, proponha alternativas e escreva seu parecer em:
 
-`./tmp/07-timeformer_relational_change_second_opinion.md`
+`./tmp/07-tracoformer_relational_change_second_opinion.md`
 
 O parecer deve ser autocontido. Não suponha que o leitor tenha acompanhado as
 discussões anteriores.
@@ -468,14 +468,14 @@ Inspecione o repositório e classifique:
 
 Considere especialmente:
 
-- `src/timeformers/corpus.py`
-- `src/timeformers/dataset.py`
-- `src/timeformers/models.py`
-- `src/timeformers/train.py`
-- `src/timeformers/representations.py`
-- `src/timeformers/metrics.py`
-- `src/timeformers/trajectory_metrics.py`
-- `src/timeformers/experiment.py`
+- `src/tracoformer/corpus.py`
+- `src/tracoformer/dataset.py`
+- `src/tracoformer/models.py`
+- `src/tracoformer/train.py`
+- `src/tracoformer/representations.py`
+- `src/tracoformer/metrics.py`
+- `src/tracoformer/trajectory_metrics.py`
+- `src/tracoformer/experiment.py`
 - scripts de execução e sumarização
 
 Avalie se precisamos criar componentes como:
@@ -544,7 +544,7 @@ Para cada alternativa, discuta:
 
 Escreva o parecer exclusivamente em:
 
-`./tmp/07-timeformer_relational_change_second_opinion.md`
+`./tmp/07-tracoformer_relational_change_second_opinion.md`
 
 Não modifique outros arquivos.
 

@@ -10,7 +10,7 @@ SemEval e escrever um parecer.
 
 Escreva obrigatoriamente o parecer final em:
 
-`./tmp/15-timeformer_semeval_relational_diagnostics_review.md`
+`./tmp/15-tracoformer_semeval_relational_diagnostics_review.md`
 
 O parecer deve ser autocontido e detalhado o suficiente para orientar a próxima
 decisão experimental.
@@ -70,8 +70,8 @@ Leia estes arquivos:
 
 - `docs/02-novo_planejamento.md`
 - `docs/07-data_layout.md`
-- `src/timeformers/real_corpus.py`
-- `src/timeformers/real_models.py`
+- `src/tracoformer/real_corpus.py`
+- `src/tracoformer/real_models.py`
 - `scripts/prepare_semeval2020_task1.py`
 - `scripts/run_diachronic_relational_experiment.py`
 - `scripts/evaluate_semeval2020_relational.py`
@@ -409,7 +409,7 @@ resolverá?
 
 Escreva em:
 
-`./tmp/15-timeformer_semeval_relational_diagnostics_review.md`
+`./tmp/15-tracoformer_semeval_relational_diagnostics_review.md`
 
 Use a seguinte estrutura:
 
@@ -434,4 +434,4 @@ No veredito, responda diretamente:
 - Qual é o menor experimento que pode falsificar ou fortalecer a direção atual?
 
 Novamente: não altere outros arquivos. Escreva apenas o parecer solicitado em
-`./tmp/15-timeformer_semeval_relational_diagnostics_review.md`.
+`./tmp/15-tracoformer_semeval_relational_diagnostics_review.md`.

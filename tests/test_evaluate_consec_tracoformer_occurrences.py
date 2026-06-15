@@ -2,13 +2,13 @@ import unittest
 
 import numpy as np
 
-from scripts.evaluate_consec_timeformer_occurrences import (
+from scripts.evaluate_consec_tracoformer_occurrences import (
     pair_metrics,
     sign_flip_p,
 )
 
 
-class ConsecTimeformerOccurrenceTest(unittest.TestCase):
+class ConsecTracoformerOccurrenceTest(unittest.TestCase):
     def test_pair_metrics_detect_semantic_geometry_alignment(self):
         rows = []
         for index, probability in enumerate([0.99, 0.9, 0.1, 0.01]):

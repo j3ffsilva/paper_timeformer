@@ -2,7 +2,7 @@
 
 > Fontes originais: `docs/01-synthetic_results_current.md`,
 > `docs/03-synthetic_experiment_memo.md`,
-> `tmp/04-code_quality_review.md`, `tmp/06-timeformer_external_review.md`.
+> `tmp/04-code_quality_review.md`, `tmp/06-tracoformer_external_review.md`.
 
 ## A primeira ideia: ensinar o modelo "em que ano estamos"
 

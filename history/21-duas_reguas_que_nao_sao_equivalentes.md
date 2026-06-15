@@ -4,7 +4,7 @@ Depois de validar e calibrar o ConSeC, o projeto tinha duas medidas por
 palavra:
 
 ```text
-TimeFormer layer_1 -> APD entre contextos de D0 e D1
+TraçoFormer layer_1 -> APD entre contextos de D0 e D1
 ConSeC             -> JSD entre distribuições de sentidos
 ```
 
@@ -16,7 +16,7 @@ outra. Essa hipótese foi congelada antes da comparação.
 Foram usados os 25 alvos confirmatórios da Porta 3. Para reduzir ruído:
 
 - ConSeC foi agregado sobre três amostras;
-- TimeFormer foi agregado sobre duas seeds de treino cronológico;
+- TraçoFormer foi agregado sobre duas seeds de treino cronológico;
 - JSD bruta e JSD excedente foram testadas separadamente;
 - gold e número de sentidos foram usados como controles.
 
@@ -62,11 +62,11 @@ passo usa exatamente as mesmas ocorrências:
 
 ```text
 frase -> posterior ConSeC
-      -> vetor TimeFormer
+      -> vetor TraçoFormer
 ```
 
 Dentro de cada palavra, será possível verificar se a geometria contextual
 separa sentidos, medir deriva dentro do mesmo sentido e decompor mudança de
 mistura versus mudança contextual.
 
-Detalhes: `docs/30-consec_timeformer_integration_results.md`.
+Detalhes: `docs/30-consec_tracoformer_integration_results.md`.

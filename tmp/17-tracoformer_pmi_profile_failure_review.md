@@ -20,7 +20,7 @@ Antes de reformular o prior ou o estimador de distância, é necessário verific
 
 ### 2.1 Correspondência com a formalização matemática
 
-A formalização em `docs/09-relational_profile_formalization.md` e a implementação em `src/timeformers/relational.py` são consistentes entre si nas fórmulas fundamentais. A função `log_pmi_profiles` (linha 73) implementa corretamente:
+A formalização em `docs/09-relational_profile_formalization.md` e a implementação em `src/tracoformer/relational.py` são consistentes entre si nas fórmulas fundamentais. A função `log_pmi_profiles` (linha 73) implementa corretamente:
 
 ```
 R_t(w)[v] = log(q_t(w)[v] + eps) - log(p_t[v] + eps)

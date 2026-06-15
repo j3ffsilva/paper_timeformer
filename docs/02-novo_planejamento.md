@@ -1,4 +1,4 @@
-# Planejamento Paper 2 — Timeformer
+# Planejamento Paper 2 — Traçoformer
 ## Mudança semântica relacional entre checkpoints cronológicos
 
 ### Documento autocontido — versão reorientada
@@ -428,7 +428,7 @@ As métricas locais mostram que o pico observado ocorre no período correto:
 
 Interpretação refinada:
 
-> Timeformer recupera o momento e a direção local de rupturas abruptas, mas
+> Traçoformer recupera o momento e a direção local de rupturas abruptas, mas
 > distribui parte do caminho relacional em deriva pré- e pós-evento.
 
 Ou seja, a limitação não é "não ver a ruptura". A limitação é que apenas cerca
@@ -458,7 +458,7 @@ em si é localizado, direcional e mais concentrado que os controles.
 Propomos medir mudança semântica como alteração no perfil relacional de uma
 palavra entre checkpoints cronológicos.
 
-### C2. Timeformer como treinamento contínuo, não como input temporal
+### C2. Traçoformer como treinamento contínuo, não como input temporal
 
 O modelo não recebe tempo como feature. A temporalidade é induzida pela ordem
 cronológica de treinamento.
@@ -524,11 +524,11 @@ posterior.
 
 Componentes principais:
 
-- `src/timeformers/structural_corpus.py`: gera benchmark estrutural com
+- `src/tracoformer/structural_corpus.py`: gera benchmark estrutural com
   âncoras, quartetos e formas temporais;
-- `src/timeformers/structural_metrics.py`: métricas de trajetória, direção,
+- `src/tracoformer/structural_metrics.py`: métricas de trajetória, direção,
   forma e evento local;
-- `src/timeformers/structural_experiment.py`: exporta linhas por sujeito e
+- `src/tracoformer/structural_experiment.py`: exporta linhas por sujeito e
   séries temporais;
 - `scripts/run_structural_relational_experiment.py`: executa regimes principal
   e controles;
@@ -596,10 +596,10 @@ conhecido de lexical semantic change detection.
 
 Infraestrutura inicial criada:
 
-- `src/timeformers/real_corpus.py`: leitura de corpora por período,
+- `src/tracoformer/real_corpus.py`: leitura de corpora por período,
   tokenização simples, vocabulário dinâmico, dataset MLM real e probes por
   palavra;
-- `src/timeformers/real_models.py`: Transformer MLM com vocabulário e
+- `src/tracoformer/real_models.py`: Transformer MLM com vocabulário e
   comprimento de sequência configuráveis;
 - `scripts/run_diachronic_relational_experiment.py`: treino contínuo em textos
   reais por período e exportação de deltas relacionais por palavra.

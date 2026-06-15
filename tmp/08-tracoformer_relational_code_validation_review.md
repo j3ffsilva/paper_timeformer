@@ -219,11 +219,11 @@ Isso significa que parte do que o `excess` mede não é "mudança específica de
 
 ## 9. Auditoria por arquivo
 
-### `src/timeformers/relational.py` (25 linhas)
+### `src/tracoformer/relational.py` (25 linhas)
 **Classificação:** Manter sem alteração.
 Implementação correta de `cosine_similarity_matrix`, `topk_neighbors`, `relational_delta`. Simples e bem testado.
 
-### `src/timeformers/relational_metrics.py` (90 linhas)
+### `src/tracoformer/relational_metrics.py` (90 linhas)
 **Classificação:** Manter com ajuste menor (Spearman normalização).
 `relational_change_by_subject` e `counterfactual_relational_change` estão corretamente implementados. O único ajuste sugerido é normalizar `spearman_change` para [0,1].
 
@@ -233,19 +233,19 @@ O script orquestra corretamente os três regimes (real, placebo, frozen), coleta
 1. Salvar `opt.state_dict()` junto com o modelo em `ContinualPeriodTrainer` (via ajuste em `train.py`)
 2. Adicionar registro de número de atualizações por período no history
 
-### `src/timeformers/train.py:ContinualPeriodTrainer`
+### `src/tracoformer/train.py:ContinualPeriodTrainer`
 **Classificação:** Reutilizar com correção do checkpoint (salvar opt state).
 O treinamento contínuo está correto: single optimizer, early stopping com restauração de ambos model e opt, sem CosineAnnealingLR (importante para evitar artefatos de restart). A única correção necessária é o salvamento do opt state.
 
-### `src/timeformers/dataset.py:ContextPairMLMDataset`
+### `src/tracoformer/dataset.py:ContextPairMLMDataset`
 **Classificação:** Manter sem alteração.
 Mascaramento correto: ambas as posições de contexto são mascaradas, labels corretos nas duas posições, sujeito fica visível. O teste `test_context_pair_masking_hides_both_context_markers` valida explicitamente ✓.
 
-### `src/timeformers/dataset.py:RepresentationDataset`
+### `src/tracoformer/dataset.py:RepresentationDataset`
 **Classificação:** Manter sem alteração.
 Dataset sem mascaramento para extração de representações. Correto.
 
-### `src/timeformers/corpus.py` (funções novas)
+### `src/tracoformer/corpus.py` (funções novas)
 **Classificação:** Manter sem alteração.
 `generate_fixed_probe_examples`, `generate_subject_probe_examples`, `examples_for_epoch` são implementações corretas e simples. O teste `test_subject_probes_have_one_neutral_example_per_subject` valida a estrutura dos probes ✓.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Align ConSeC posteriors and TimeFormer vectors on identical occurrences."""
+"""Align ConSeC posteriors and TraçoFormer vectors on identical occurrences."""
 
 from __future__ import annotations
 

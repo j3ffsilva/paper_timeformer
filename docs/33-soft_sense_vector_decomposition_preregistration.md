@@ -15,7 +15,7 @@ Serão reutilizados:
 
 ```text
 3 amostras ConSeC da Porta 3
-2 seeds TimeFormer cronológicas
+2 seeds TraçoFormer cronológicas
 cache de 3.383 ocorrências × layer_1/layer_2
 25 palavras confirmatórias
 ```
@@ -85,7 +85,7 @@ opõem. Portanto, elas são contribuições direcionais, não percentuais limita
 
 ## Nulo
 
-Para cada palavra, período, seed ConSeC, seed TimeFormer e camada:
+Para cada palavra, período, seed ConSeC, seed TraçoFormer e camada:
 
 1. preservar os vetores;
 2. preservar os posteriores e a mistura média de cada período;
@@ -142,7 +142,7 @@ share_D dominante:
 ## Saídas
 
 ```text
-outputs/consec_timeformer_soft_decomposition/per_combination_target.csv
-outputs/consec_timeformer_soft_decomposition/per_target.csv
-outputs/consec_timeformer_soft_decomposition/summary.json
+outputs/consec_tracoformer_soft_decomposition/per_combination_target.csv
+outputs/consec_tracoformer_soft_decomposition/per_target.csv
+outputs/consec_tracoformer_soft_decomposition/summary.json
 ```

@@ -50,14 +50,14 @@ para separar sentidos de palavras (ex.: `plane_nn` = geometria vs avião).
 
 ## 2. O que fazer nesta máquina (GPU)
 
-**Objetivo**: inicializar o Timeformer a partir de um encoder
+**Objetivo**: inicializar o Traçoformer a partir de um encoder
 pré-treinado pequeno, em vez de treinar do zero, e então continuar o
 treino contínuo temporal normalmente (mesmo pipeline de sempre:
 `theta_0 = treino(D_0)`, `theta_1 = continua_treino(theta_0, D_1)`).
 
 ### 2.1 Por que `bert-tiny` (e não `bert-base`)
 
-A arquitetura atual (`RealStaticMLM` em `src/timeformers/real_models.py`)
+A arquitetura atual (`RealStaticMLM` em `src/tracoformer/real_models.py`)
 é uma implementação própria (vocabulário próprio de ~27k tokens lematizados
 do SemEval, embeddings próprios, `nn.TransformerEncoder` do PyTorch). Não
 dá para simplesmente carregar os pesos do `bert-base-uncased` (768 dim, 12
@@ -109,7 +109,7 @@ Implementado em `scripts/init_pretrained_encoder.py` e no flag
 3. Aplica o mapeamento de pesos do passo 2.1 acima.
 4. Salva o `state_dict` resultante como um checkpoint "init" (ex.:
    `outputs/<run>/init_pretrained.pt`).
-5. O `ContinualPeriodTrainer` (já existe, `src/timeformers/train.py`)
+5. O `ContinualPeriodTrainer` (já existe, `src/tracoformer/train.py`)
    carrega esse `state_dict` como ponto de partida em vez de pesos
    aleatórios, e prossegue normalmente com `theta_0 = treino(D_0)`,
    `theta_1 = continua_treino(theta_0, D_1)`.
@@ -194,8 +194,8 @@ está confirmada e essa passa a ser a configuração de referência do projeto.
 ## 4. Arquivos de referência
 
 ```
-src/timeformers/real_models.py            # RealStaticMLM (arquitetura atual)
-src/timeformers/train.py                  # ContinualPeriodTrainer
+src/tracoformer/real_models.py            # RealStaticMLM (arquitetura atual)
+src/tracoformer/train.py                  # ContinualPeriodTrainer
 scripts/run_diachronic_relational_experiment.py   # pipeline de treino principal
 scripts/evaluate_fixed_encoder_v2.py      # Tarefa 1 (encoder fixo)
 scripts/prototype_modes_first_v2.py       # Tarefa 3 (modos primeiro)

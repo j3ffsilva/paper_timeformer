@@ -284,7 +284,7 @@ plane@1900 → line, angle, surface
 
 ## 8. Inserir um período intermediário
 
-Agora vem o ponto onde o TimeFormer pode ser mais interessante que uma simples
+Agora vem o ponto onde o TraçoFormer pode ser mais interessante que uma simples
 comparação D0/D1.
 
 Suponha que exista um período intermediário:
@@ -399,7 +399,7 @@ plane mudou muito.
 
 E pode listar vizinhos nos dois períodos.
 
-Mas a versão forte do TimeFormer quer dizer algo mais estruturado:
+Mas a versão forte do TraçoFormer quer dizer algo mais estruturado:
 
 ```text
 plane perdeu relações com line/angle/surface
@@ -547,11 +547,11 @@ JSD/OT entre distribuições normalizadas de R
 
 ```text
 Hamilton: vetor mudou quanto?
-TimeFormer: perfil relacional mudou como?
+TraçoFormer: perfil relacional mudou como?
 ```
 
 O ponto não é apenas vencer no Spearman. O ponto é mostrar que o deslocamento
-do TimeFormer tem conteúdo linguístico auditável.
+do TraçoFormer tem conteúdo linguístico auditável.
 
 ---
 
@@ -586,7 +586,7 @@ estabilização
 
 Esse é o território onde a contribuição fica mais forte:
 
-> TimeFormer como instrumento de geometria temporal relacional, capaz de
+> TraçoFormer como instrumento de geometria temporal relacional, capaz de
 > consultar e acompanhar a reorganização das vizinhanças lexicais ao longo de
 > checkpoints cronológicos.
 

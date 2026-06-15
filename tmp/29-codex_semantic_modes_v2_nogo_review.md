@@ -77,7 +77,7 @@ argmax(gaps) = índice 2 (0-indexado) -> i* = 3 (seleciona os 3 primeiros)
 
 ## 2. Código relevante (implementação atual)
 
-### `src/timeformers/gap_criterion.py` (completo)
+### `src/tracoformer/gap_criterion.py` (completo)
 
 ```python
 """Gap criterion for automatic threshold/rank selection (§8 of
@@ -122,7 +122,7 @@ def adjacent_gaps_valid(values: Tensor, index: int, gamma: float) -> bool:
     return left_ok and right_ok
 ```
 
-### `src/timeformers/semantic_modes.py` (completo, incluindo a nova `filter_support_topn`)
+### `src/tracoformer/semantic_modes.py` (completo, incluindo a nova `filter_support_topn`)
 
 ```python
 """Semantic mode decomposition via SVD of the cohesion matrix (§7-9 of
@@ -399,8 +399,8 @@ fronteira semântica".
 ## 6. Arquivos para referência (se o codex tiver acesso ao repo)
 
 - `docs/12-novo_perfil_relacional.md` (documento canônico completo)
-- `src/timeformers/gap_criterion.py`
-- `src/timeformers/semantic_modes.py`
+- `src/tracoformer/gap_criterion.py`
+- `src/tracoformer/semantic_modes.py`
 - `tests/test_gap_criterion.py`
 - `scripts/evaluate_relational_profile_v2.py` (Fase 0A/1, variante D)
 - `scripts/evaluate_semantic_modes_v2.py` (Fase 1.5, script que produziu os

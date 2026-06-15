@@ -8,20 +8,20 @@ resultados da validação semântica externa, incerteza por palavra, exemplos
 textuais e figuras reproduzíveis em:
 
 ```text
-outputs/paper_assets/consec_timeformer/
+outputs/paper_assets/consec_tracoformer/
 ```
 
 O gerador único é:
 
 ```text
-scripts/build_consec_timeformer_paper_assets.py
+scripts/build_consec_tracoformer_paper_assets.py
 ```
 
 ## Hierarquia das alegações
 
 ### Relação com a alegação principal
 
-A alegação principal do projeto é que o TimeFormer oferece consultas
+A alegação principal do projeto é que o TraçoFormer oferece consultas
 `token@time` e vizinhanças relacionais específicas de cada período. Essa
 alegação não depende de converter automaticamente vizinhos em sentidos
 WordNet.
@@ -30,7 +30,7 @@ WordNet.
 
 Distribuições explícitas de sentido estimadas pelo ConSeC capturam mudança
 lexical diacrônica no benchmark e possuem correspondência local com a
-geometria contextual do TimeFormer.
+geometria contextual do TraçoFormer.
 
 ### Alegação de decomposição
 
@@ -81,7 +81,7 @@ uma nova amostra confirmatória.
 > ConSeC sense-distribution divergence replicated across three independent
 > occurrence samples (mean Spearman rho = 0.585; joint permutation p =
 > 0.0011). On the same occurrences, posterior sense dissimilarity was
-> positively associated with TimeFormer contextual distance within target
+> positively associated with TraçoFormer contextual distance within target
 > words, both in layer 1 (mean partial rho = 0.062, 95% CI [0.047, 0.078])
 > and, exploratorily, in layer 2 (0.187, [0.146, 0.231]). A soft
 > decomposition of temporal centroid displacement showed that changes in
@@ -108,7 +108,7 @@ tabelas existem em CSV e em fragmentos LaTeX compatíveis com `booktabs`.
 
 ## O que não afirmar
 
-- Não afirmar que o sucesso do TimeFormer depende da inferência automática de
+- Não afirmar que o sucesso do TraçoFormer depende da inferência automática de
   sentidos WordNet.
 - Não afirmar que APD e divergência de sentidos são métricas equivalentes.
 - Não atribuir automaticamente qualquer natureza à componente complementar.

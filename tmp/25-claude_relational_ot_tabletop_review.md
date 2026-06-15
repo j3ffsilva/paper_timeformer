@@ -2,7 +2,7 @@
 
 Queremos avaliar uma ideia antes de transformá-la em um novo estimador completo.
 O objetivo imediato é medir o deslocamento semântico de uma palavra entre dois
-períodos usando somente a geometria relacional aprendida pelo TimeFormer:
+períodos usando somente a geometria relacional aprendida pelo TraçoFormer:
 
 ```text
 plane em D0 (1810-1860)
@@ -16,7 +16,7 @@ A hipótese é que não basta medir quantos vizinhos mudaram. Devemos medir o
 Este documento faz:
 
 1. um exemplo fictício mínimo;
-2. o mesmo cálculo com números reais do TimeFormer;
+2. o mesmo cálculo com números reais do TraçoFormer;
 3. análise de sensibilidade a `k`, temperatura e seleção;
 4. avaliação preliminar nas 37 palavras;
 5. enumeração dos pontos que podem invalidar a proposta.
@@ -26,7 +26,7 @@ robusta ou se os resultados já aconselham abandoná-la.
 
 ## Contexto
 
-O TimeFormer é um único Transformer MLM treinado continuamente:
+O TraçoFormer é um único Transformer MLM treinado continuamente:
 
 ```text
 theta_0 = treino em D0
@@ -195,7 +195,7 @@ A média pode:
 2. reduzir artificialmente o custo porque os referenciais convergiram;
 3. aumentar o custo porque um dos referenciais mudou por conta própria.
 
-Logo, `c(u,v)` ainda incorpora a régua móvel do TimeFormer.
+Logo, `c(u,v)` ainda incorpora a régua móvel do TraçoFormer.
 
 ## Passo 3: resolver o transporte
 
@@ -313,7 +313,7 @@ Esse é o comportamento desejado.
 
 ---
 
-# Teste com números reais do TimeFormer
+# Teste com números reais do TraçoFormer
 
 Usamos:
 
@@ -653,7 +653,7 @@ identificada olhando os resultados e seria tuning no gold.
 
 ## 1. O custo aprende as mesmas confusões que queremos corrigir
 
-Se o TimeFormer aproxima `plate` e `boat` por ambos serem objetos
+Se o TraçoFormer aproxima `plate` e `boat` por ambos serem objetos
 físicos/estruturais:
 
 ```text
@@ -663,7 +663,7 @@ c(plate, boat) = 0,299
 o transporte declara essa substituição relativamente barata.
 
 Assim, OT não acrescenta semântica externa. Ele reorganiza a própria semântica
-já presente no TimeFormer.
+já presente no TraçoFormer.
 
 Pergunta:
 

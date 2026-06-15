@@ -293,8 +293,8 @@ projeto, sobre as mesmas frases (apenas destokenizando `plane_nn` →
 
 | Encoder | Camada | APD Spearman (p) | ROC-AUC | AP |
 |---|---|---:|---:|---:|
-| TimeFormer, diagonal | mean_last_2 | 0,124-0,130 (p≈0,45) | ≈0,59 | ≈0,60 |
-| TimeFormer, `theta_1` fixo | mean_last_2 | 0,202-0,204 (p≈0,23) | ≈0,62 | ≈0,66 |
+| TraçoFormer, diagonal | mean_last_2 | 0,124-0,130 (p≈0,45) | ≈0,59 | ≈0,60 |
+| TraçoFormer, `theta_1` fixo | mean_last_2 | 0,202-0,204 (p≈0,23) | ≈0,62 | ≈0,66 |
 | **BERT-base, congelado** | última camada | **0,594 (p=0,0001)** | **0,693** | **0,659** |
 | BERT-base, congelado | média das últimas 4 | 0,591 (p=0,0001) | 0,676 | 0,592 |
 
@@ -317,7 +317,7 @@ intersection of the planes"); em D1, todas são do sentido **aviação**
 ("by plane", "his private plane to Vienna's airport"). O BERT separa essas
 duas nuvens quase exatamente ao longo da linha do período (NMI=0,487) —
 **exatamente o "modo geométrico vs. modo aviação" que o encoder pequeno do
-TimeFormer não conseguiu separar** no protótipo "modos primeiro" desta
+TraçoFormer não conseguiu separar** no protótipo "modos primeiro" desta
 mesma seção. E `tree_nn` (estável) tem NMI≈0 sob BERT — como esperado para
 uma palavra que não mudou de sentido.
 
@@ -344,7 +344,7 @@ Esse é o cenário "**gargalo = encoder**":
 
 A recomendação que sai deste capítulo, e que abre o capítulo 09, é
 explícita: o próximo passo de maior retorno não é aumentar `d_model`
-treinando do zero — é **inicializar o TimeFormer a partir de um checkpoint
+treinando do zero — é **inicializar o TraçoFormer a partir de um checkpoint
 pré-treinado** (BERT-base ou um encoder pequeno pré-treinado equivalente)
 **antes** do treino contínuo temporal, mantendo o restante do pipeline
 (perfil relacional v2, encoder fixo, agrupamento de ocorrências) como

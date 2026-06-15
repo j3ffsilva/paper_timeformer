@@ -2,7 +2,7 @@
 
 ## O que queremos avaliar
 
-Implementamos uma tentativa de inicializar o Timeformer com
+Implementamos uma tentativa de inicializar o Traçoformer com
 `prajjwal1/bert-tiny` antes do treino MLM cronológico:
 
 ```text
@@ -147,7 +147,7 @@ Essas diferenças são importantes para interpretar o experimento.
 Foram criados:
 
 ```text
-src/timeformers/pretrained_init.py
+src/tracoformer/pretrained_init.py
 scripts/init_pretrained_encoder.py
 tests/test_pretrained_init.py
 ```
@@ -562,7 +562,7 @@ a necessidade de uma régua semântica estável.
 5. Como escolher checkpoint sem usar os 37 rótulos do SemEval?
 6. L2-SP, distillation, EWC, adapters ou LoRA fazem sentido neste regime?
 7. Há um desenho melhor para separar encoder semântico estável e dinâmica
-   temporal sem perder a contribuição científica do Timeformer?
+   temporal sem perder a contribuição científica do Traçoformer?
 8. Que controles adicionais são necessários para distinguir:
 
 ```text
@@ -582,9 +582,9 @@ artefato do readout/métrica
 Código:
 
 ```text
-src/timeformers/real_models.py
-src/timeformers/pretrained_init.py
-src/timeformers/train.py
+src/tracoformer/real_models.py
+src/tracoformer/pretrained_init.py
+src/tracoformer/train.py
 scripts/init_pretrained_encoder.py
 scripts/run_diachronic_relational_experiment.py
 scripts/evaluate_hidden_relational_profiles.py

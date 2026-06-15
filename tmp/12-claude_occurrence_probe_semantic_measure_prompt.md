@@ -10,7 +10,7 @@ um parecer crítico.
 
 Escreva obrigatoriamente o parecer final em:
 
-`./tmp/14-timeformer_occurrence_probe_semantic_measure_review.md`
+`./tmp/14-tracoformer_occurrence_probe_semantic_measure_review.md`
 
 O parecer deve ser autocontido e deve responder diretamente se ainda estamos
 medindo o objeto errado.
@@ -61,8 +61,8 @@ Essa é a dúvida principal:
 
 Leia estes arquivos:
 
-- `src/timeformers/real_corpus.py`
-- `src/timeformers/relational.py`
+- `src/tracoformer/real_corpus.py`
+- `src/tracoformer/relational.py`
 - `scripts/run_diachronic_relational_experiment.py`
 - `scripts/evaluate_semeval2020_relational.py`
 - `scripts/diagnose_semeval2020_relational.py`
@@ -447,7 +447,7 @@ Mas antes de gastar muito em escala, queremos saber:
 
 Escreva em:
 
-`./tmp/14-timeformer_occurrence_probe_semantic_measure_review.md`
+`./tmp/14-tracoformer_occurrence_probe_semantic_measure_review.md`
 
 Use esta estrutura:
 
@@ -474,4 +474,4 @@ No veredito, responda diretamente:
 - Qual teste barato pode dizer se o problema é métrica ou modelo fraco?
 
 Novamente: não altere outros arquivos. Escreva apenas o parecer solicitado em
-`./tmp/14-timeformer_occurrence_probe_semantic_measure_review.md`.
+`./tmp/14-tracoformer_occurrence_probe_semantic_measure_review.md`.

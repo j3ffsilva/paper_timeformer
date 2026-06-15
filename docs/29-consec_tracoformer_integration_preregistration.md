@@ -1,4 +1,4 @@
-# Pré-registração da integração ConSeC-TimeFormer
+# Pré-registração da integração ConSeC-TraçoFormer
 
 **Data:** 2026-06-14
 **Estado:** anterior ao cálculo das correlações entre os dois instrumentos.
@@ -25,7 +25,7 @@ consec_excess = média da JSD excedente nas mesmas três seeds
 consec_z = média do z do nulo intrapalavra
 ```
 
-### TimeFormer
+### TraçoFormer
 
 A condição principal será o fine-tuning cronológico completo, já selecionado
 sem gold:
@@ -65,7 +65,7 @@ inventário. A JSD bruta permanece importante por ser o ranking mais estável.
 1. correlação parcial entre `layer1_apd` e cada score ConSeC controlando:
    - gold graduado;
    - número de sentidos WordNet;
-2. estabilidade da correlação ao usar cada seed TimeFormer separadamente;
+2. estabilidade da correlação ao usar cada seed TraçoFormer separadamente;
 3. repetição no subconjunto de cobertura `high`;
 4. comparação descritiva com:
    - `layer2_apd`;
@@ -101,6 +101,6 @@ Parcial por gold positiva:
 ## Saídas
 
 ```text
-outputs/consec_timeformer_integration/per_target.csv
-outputs/consec_timeformer_integration/summary.json
+outputs/consec_tracoformer_integration/per_target.csv
+outputs/consec_tracoformer_integration/summary.json
 ```

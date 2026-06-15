@@ -1,9 +1,9 @@
 # Capítulo 5 — Primeiro contato com o SemEval real: ruído, entropia e um bug de fronteiras
 
 > Fontes originais: `tmp/16-claude_pmi_profile_failure_prompt.md`,
-> `tmp/17-timeformer_pmi_profile_failure_review.md`,
+> `tmp/17-tracoformer_pmi_profile_failure_review.md`,
 > `tmp/18-claude_post_boundary_fix_prompt.md`,
-> `tmp/19-timeformer_post_boundary_fix_review.md`.
+> `tmp/19-tracoformer_post_boundary_fix_review.md`.
 
 O capítulo 04 deixou uma formulação elegante — perfil relacional via
 log-PMI sobre a saída do MLM head, sem âncoras pré-definidas — e uma

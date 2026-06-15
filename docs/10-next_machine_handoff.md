@@ -10,7 +10,7 @@
 Estamos estudando **mudança semântica temporal** com um Transformer treinado
 continuamente em ordem cronológica, sem nenhum sinal explícito de período.
 
-A arquitetura ("Timeformer") é:
+A arquitetura ("Traçoformer") é:
 
 ```
 theta_0 = treino(D_0)
@@ -186,9 +186,9 @@ ou passar `--max-anchors 300` com uma lista filtrada manualmente.
 ## Arquivos relevantes
 
 ```
-src/timeformers/real_corpus.py          # RealTargetOccurrenceDataset, vocabulário
-src/timeformers/real_models.py          # RealStaticMLM
-src/timeformers/relational.py           # log_pmi_profiles, pmi_cosine_displacement, ppmi_jsd_displacement
+src/tracoformer/real_corpus.py          # RealTargetOccurrenceDataset, vocabulário
+src/tracoformer/real_models.py          # RealStaticMLM
+src/tracoformer/relational.py           # log_pmi_profiles, pmi_cosine_displacement, ppmi_jsd_displacement
 scripts/run_diachronic_relational_experiment.py   # pipeline completo
 scripts/evaluate_semeval2020_relational.py        # avaliação gold
 scripts/diagnose_semeval2020_relational.py        # diagnóstico de artefatos

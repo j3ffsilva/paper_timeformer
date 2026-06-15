@@ -168,7 +168,7 @@ amostras de ocorrência.
 4. Estimar incerteza por reamostragem de ocorrências dentro de cada palavra.
 5. Manter os nove alvos parciais fora do resultado confirmatório.
 6. Usar as distribuições de sentido para explicar casos individuais e
-   compará-las aos perfis relacionais do TimeFormer.
+   compará-las aos perfis relacionais do TraçoFormer.
 
 ## Artefatos
 

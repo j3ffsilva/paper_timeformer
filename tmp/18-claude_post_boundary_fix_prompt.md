@@ -10,7 +10,7 @@ um parecer independente.
 
 Escreva obrigatoriamente sua resposta em:
 
-`./tmp/19-timeformer_post_boundary_fix_review.md`
+`./tmp/19-tracoformer_post_boundary_fix_review.md`
 
 O objetivo é decidir se a ausência de sinal decorre principalmente:
 
@@ -66,9 +66,9 @@ Formalização:
 
 Implementação:
 
-- `src/timeformers/real_corpus.py`
-- `src/timeformers/real_models.py`
-- `src/timeformers/relational.py`
+- `src/tracoformer/real_corpus.py`
+- `src/tracoformer/real_models.py`
+- `src/tracoformer/relational.py`
 - `scripts/run_diachronic_relational_experiment.py`
 
 ---
@@ -112,7 +112,7 @@ documents = [
 
 Leia a mudança local em:
 
-`src/timeformers/real_corpus.py`
+`src/tracoformer/real_corpus.py`
 
 E o teste de regressão em:
 
@@ -626,7 +626,7 @@ Responda diretamente:
 
 Escreva em:
 
-`./tmp/19-timeformer_post_boundary_fix_review.md`
+`./tmp/19-tracoformer_post_boundary_fix_review.md`
 
 Com as seções:
 

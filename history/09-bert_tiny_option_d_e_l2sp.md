@@ -7,7 +7,7 @@
 > `tmp/35-codex_followup_to_claude_option_d_second_opinion.md`.
 
 O capítulo 08 terminou com uma recomendação concreta: inicializar o
-TimeFormer a partir de um checkpoint pré-treinado (`bert-tiny`) em vez de
+TraçoFormer a partir de um checkpoint pré-treinado (`bert-tiny`) em vez de
 treinar do zero, porque o oráculo BERT-base mostrou que a tarefa é
 solúvel (Spearman=0,594) enquanto o encoder próprio (mesmo com `d=128`)
 ficava em torno de 0,13-0,20. Este capítulo conta o que aconteceu quando

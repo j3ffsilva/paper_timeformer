@@ -77,7 +77,7 @@ Aqui mudou a distribuição de sentidos, não apenas o vocabulário ao redor.
 Um **estimando** é a quantidade científica que se quer conhecer antes de
 escolher como medi-la. O projeto agora separa dois estimandos.
 
-O estimando principal do TimeFormer é o deslocamento do perfil relacional:
+O estimando principal do TraçoFormer é o deslocamento do perfil relacional:
 
 ```text
 Delta_rel(w) = D(R_0(w), R_1(w))
@@ -177,7 +177,7 @@ O histórico acabou separando duas reivindicações legítimas:
    associa a alterações em `P_t(sentido | palavra)` segundo um inventário
    externo.
 
-O TimeFormer realiza a primeira. A linha de WSD externo investiga a segunda.
+O TraçoFormer realiza a primeira. A linha de WSD externo investiga a segunda.
 Ela qualifica e interpreta parte das saídas, mas não é condição para que uma
 vizinhança temporal seja um resultado válido.
 

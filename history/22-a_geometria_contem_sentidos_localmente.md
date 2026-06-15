@@ -1,7 +1,7 @@
 # 22. A geometria contém sentidos localmente
 
 O capítulo anterior mostrou que APD e JSD não ordenam palavras da mesma
-forma. Isso poderia significar que os vetores do TimeFormer não contêm
+forma. Isso poderia significar que os vetores do TraçoFormer não contêm
 estrutura de sentido. Mas a comparação havia reduzido cada palavra a um único
 número.
 
@@ -13,7 +13,7 @@ Cada frase da Porta 3 foi processada pelos dois instrumentos:
 
 ```text
 ConSeC     -> distribuição sobre sentidos WordNet
-TimeFormer -> vetor contextual
+TraçoFormer -> vetor contextual
 ```
 
 Para cada palavra, todos os pares de suas 50 ocorrências foram comparados. Um
@@ -77,4 +77,4 @@ deslocamento total
 + componente complementar não atribuída
 ```
 
-Detalhes: `docs/32-occurrence_level_consec_timeformer_results.md`.
+Detalhes: `docs/32-occurrence_level_consec_tracoformer_results.md`.

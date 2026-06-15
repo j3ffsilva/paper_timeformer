@@ -1,4 +1,4 @@
-# Integração ConSeC-TimeFormer
+# Integração ConSeC-TraçoFormer
 
 **Data:** 2026-06-14
 **Decisão pré-registrada:** validade convergente não estabelecida.
@@ -9,7 +9,7 @@ A APD contextual de `layer_1` ordena as palavras da mesma forma que a mudança
 explícita de distribuição de sentidos prevista pelo ConSeC?
 
 Foram comparados os 25 alvos confirmatórios da Porta 3. O score ConSeC foi a
-média de três amostras; o score TimeFormer foi a média dos dois treinos
+média de três amostras; o score TraçoFormer foi a média dos dois treinos
 cronológicos completos.
 
 ## Resultado principal
@@ -44,7 +44,7 @@ sentidos:
 | JSD excedente | -0,060 | -0,025 | -0,058 |
 | z nulo | -0,045 | -0,021 | -0,053 |
 
-Também não dependeu de uma seed TimeFormer:
+Também não dependeu de uma seed TraçoFormer:
 
 | Condição `layer_1` | × JSD bruta | × JSD excedente |
 |---|---:|---:|
@@ -69,8 +69,8 @@ Nos 25 confirmatórios:
 |---|---:|
 | ConSeC JSD bruta | 0,604 |
 | ConSeC JSD excedente | 0,409 |
-| TimeFormer `layer_1` | 0,076 |
-| TimeFormer `layer_2` | -0,025 |
+| TraçoFormer `layer_1` | 0,076 |
+| TraçoFormer `layer_2` | -0,025 |
 
 Nos 21 alvos de alta confiança, `layer_1` sobe para `0,288`, mas sua
 correlação com ConSeC continua baixa. Assim, o NO-GO não é explicado apenas
@@ -122,7 +122,7 @@ Para cada palavra e ocorrência:
 
 ```text
 ConSeC     -> posterior sobre sentidos
-TimeFormer -> vetor contextual de layer_1
+TraçoFormer -> vetor contextual de layer_1
 ```
 
 Dentro de cada palavra, será testado se:
@@ -140,7 +140,7 @@ comparar escalas absolutas entre palavras.
 ## Artefatos
 
 ```text
-outputs/consec_timeformer_integration/
-scripts/integrate_consec_timeformer.py
-docs/29-consec_timeformer_integration_preregistration.md
+outputs/consec_tracoformer_integration/
+scripts/integrate_consec_tracoformer.py
+docs/29-consec_tracoformer_integration_preregistration.md
 ```

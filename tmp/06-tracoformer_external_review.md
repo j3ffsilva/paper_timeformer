@@ -1,4 +1,4 @@
-# Revisão Técnica e Científica Independente — Timeformer Paper 2
+# Revisão Técnica e Científica Independente — Traçoformer Paper 2
 **Data:** 2026-06-03
 **Revisor:** Externo, independente
 **Projeto:** `/Users/jeff/Documents/trabalhos/papers/paper-timeformers`
@@ -352,9 +352,9 @@ Esses pontos **têm respostas defensáveis** (D2 é benchmark sintético control
 | Problema | Arquivo | Linha(s) |
 |---|---|---|
 | `d_in` hardcoded no D5a | `scripts/run_d5a_student_ablation.py` | 122 |
-| `context` = embeddings (não `true_context`) | `src/timeformers/representations.py` | 33 |
-| Protótipos de D2 calculados de toda a split | `src/timeformers/trajectory_metrics.py` | 47-56 |
-| `SetSlotsAggregator` retorna dimensão dupla | `src/timeformers/aggregators.py` | 73 |
-| Teacher default = `linear` (não bidirecional) | `src/timeformers/trajectory_models.py` | 56 |
-| D6 usa `true_context` como labels de silhouette | `src/timeformers/trajectory_metrics.py` | 134 |
+| `context` = embeddings (não `true_context`) | `src/tracoformer/representations.py` | 33 |
+| Protótipos de D2 calculados de toda a split | `src/tracoformer/trajectory_metrics.py` | 47-56 |
+| `SetSlotsAggregator` retorna dimensão dupla | `src/tracoformer/aggregators.py` | 73 |
+| Teacher default = `linear` (não bidirecional) | `src/tracoformer/trajectory_models.py` | 56 |
+| D6 usa `true_context` como labels de silhouette | `src/tracoformer/trajectory_metrics.py` | 134 |
 | Resultados SSL não documentados formalmente | `docs/01-synthetic_results_current.md` | — |

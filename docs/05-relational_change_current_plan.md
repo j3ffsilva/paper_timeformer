@@ -332,7 +332,7 @@ Leitura pelos critérios pré-registrados:
   oscilatória percorre o maior caminho, mas termina com deslocamento final baixo
   e recuperação alta.
 
-Conclusão atual: o Timeformer registra deslocamento relacional persistente,
+Conclusão atual: o Traçoformer registra deslocamento relacional persistente,
 acumulação gradual, atividade temporal e reversão. Porém, a recuperação da
 forma abrupta ainda é fraca: a arquitetura tende a suavizar ou espalhar a
 ruptura temporal.
@@ -516,7 +516,7 @@ restante aparece como deriva antes e depois do evento. Isso explica por que
 
 Para o paper, a formulação mais precisa é:
 
-> Timeformer recupera o momento e a direção local de rupturas abruptas, mas
+> Traçoformer recupera o momento e a direção local de rupturas abruptas, mas
 > distribui parte do caminho relacional em deriva pré- e pós-evento.
 
 ### Sumarização local contra controles
@@ -707,10 +707,10 @@ sistematicamente a todos os 37 alvos.
 
 **O objetivo não é maximizar o Spearman de 37 palavras.**
 
-O alvo é demonstrar que TimeFormer produz **vizinhanças semânticas temporais
+O alvo é demonstrar que TraçoFormer produz **vizinhanças semânticas temporais
 coerentes** sem alinhamento geométrico post-hoc e sem anotação externa:
 
-| Propriedade | Hamilton 2016 | APD+BERT (SemEval) | TimeFormer |
+| Propriedade | Hamilton 2016 | APD+BERT (SemEval) | TraçoFormer |
 |---|---|---|---|
 | Embeddings | estáticos | contextuais | contextuais |
 | Modelos | 2 independentes | 1 fixo externo | 1 contínuo |
@@ -836,7 +836,7 @@ não o desenho do perfil relacional, a centralização, ou a configuração
 diagonal -- embora essas três correções (encoder fixo, agrupar antes de
 medir) ajudem (~0.13 -> ~0.20) e devam ser mantidas. A ablação de
 capacidade "treinar maior do zero" (item 3 acima) é substituída por:
-**inicializar o Timeformer a partir de um checkpoint pré-treinado antes do
+**inicializar o Traçoformer a partir de um checkpoint pré-treinado antes do
 treino contínuo temporal**, mantendo o resto do pipeline (perfil relacional
 v2 + encoder fixo + agrupamento de ocorrências) como infraestrutura de
 medição.
@@ -1121,10 +1121,10 @@ passaram.
 Decisão: manter JSD bruta como ranking principal, usar JSD excedente como
 controle confirmatório e z nulo como diagnóstico por palavra. O próximo passo
 é comparar essas medidas externas com `layer 1` e com a resposta adaptativa
-`layer 2 - layer 1` do TimeFormer, sem selecionar configuração pelo gold.
+`layer 2 - layer 1` do TraçoFormer, sem selecionar configuração pelo gold.
 Detalhes em `docs/28-consec_within_word_null_results.md`.
 
-## Adendo (2026-06-14) -- Integração ConSeC-TimeFormer
+## Adendo (2026-06-14) -- Integração ConSeC-TraçoFormer
 
 A validade convergente entre scores agregados por palavra foi pré-registrada e
 testada nos 25 alvos confirmatórios:
@@ -1143,14 +1143,14 @@ e mudança explícita da mistura de sentidos não são medidas intercambiáveis.
 
 Decisão: não interpretar APD como substituto direto de mudança lexical. O
 próximo passo é uma análise no nível da ocorrência, aplicando ConSeC e
-TimeFormer aos mesmos contextos para testar alinhamento entre posterior de
+TraçoFormer aos mesmos contextos para testar alinhamento entre posterior de
 sentido e geometria contextual, além de separar mudança de mistura e deriva
 dentro do sentido. Detalhes em
-`docs/30-consec_timeformer_integration_results.md`.
+`docs/30-consec_tracoformer_integration_results.md`.
 
 ## Adendo (2026-06-14) -- Alinhamento no nível da ocorrência
 
-Foram extraídos vetores TimeFormer para 3.383 ocorrências confirmatórias
+Foram extraídos vetores TraçoFormer para 3.383 ocorrências confirmatórias
 únicas da Porta 3. Dentro de cada palavra, a distância cosseno foi comparada à
 JSD entre posteriores ConSeC, controlando se o par atravessava períodos.
 
@@ -1174,7 +1174,7 @@ Após controlar diferença semântica, permaneceu pequena separação geométric
 entre períodos. Decisão: decompor o deslocamento vetorial em mudança da
 composição dos sentidos e deriva interna aos sentidos, usando pesos suaves dos
 posteriores. Detalhes em
-`docs/32-occurrence_level_consec_timeformer_results.md`.
+`docs/32-occurrence_level_consec_tracoformer_results.md`.
 
 ## Adendo (2026-06-14) -- Decomposição suave por sentidos
 
@@ -1207,7 +1207,7 @@ casos extremos. Detalhes em
 ## Adendo (2026-06-14) -- Bootstrap da decomposição
 
 Foram executadas 2.000 reamostragens estratificadas por palavra e período,
-preservando o pareamento entre as duas seeds TimeFormer.
+preservando o pareamento entre as duas seeds TraçoFormer.
 
 ```text
 layer_2:
@@ -1247,18 +1247,18 @@ do nome pouco intuitivo do synset.
 Os artefatos estão em:
 
 ```text
-outputs/paper_assets/consec_timeformer/
+outputs/paper_assets/consec_tracoformer/
 ```
 
 Decisão: a linha de validação por sentidos está consolidada, mas o eixo
 principal `token@time` ainda deve ser apresentado diretamente por vizinhanças
 temporais, relações ganhas e perdidas e estabilidade entre seeds. O pacote
 ConSeC será uma análise secundária de validade semântica. Síntese e limites
-estão em `docs/37-consec_timeformer_article_package.md`.
+estão em `docs/37-consec_tracoformer_article_package.md`.
 
 ## Adendo (2026-06-14) -- Hierarquia científica corrigida
 
-O objetivo principal do TimeFormer não é inferir automaticamente sentidos
+O objetivo principal do TraçoFormer não é inferir automaticamente sentidos
 WordNet. É produzir perfis relacionais temporalmente consultáveis:
 
 ```text

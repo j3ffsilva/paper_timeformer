@@ -105,7 +105,7 @@ Para três ou mais períodos:
 
 As métricas `final_magnitude`, `path_length`, `displacement_efficiency`,
 `recovery`, `peak_period` e métricas locais de evento já existem em
-`src/timeformers/structural_metrics.py`, mas ainda precisam ser conectadas ao
+`src/tracoformer/structural_metrics.py`, mas ainda precisam ser conectadas ao
 pipeline real de `token@time`.
 
 ### 4. Comparar trajetórias
@@ -200,8 +200,8 @@ estabilidade entre seeds e controles de régua fixa quando aplicáveis.
 
 | Capacidade | Estado |
 |---|---|
-| matrizes relacionais e deltas | implementada em `src/timeformers/relational.py` |
-| mudança de vizinhos e rankings | implementada parcialmente em `src/timeformers/relational_metrics.py` |
+| matrizes relacionais e deltas | implementada em `src/tracoformer/relational.py` |
+| mudança de vizinhos e rankings | implementada parcialmente em `src/tracoformer/relational_metrics.py` |
 | relatório D0/D1 de vizinhanças | implementado para o encoder antigo |
 | métricas multitemporais | implementadas no benchmark sintético |
 | relatório no `bert-tiny` integral | faltante |
@@ -214,18 +214,18 @@ estabilidade entre seeds e controles de régua fixa quando aplicáveis.
 ## Arquitetura de implementação proposta
 
 ```text
-src/timeformers/token_time.py
+src/tracoformer/token_time.py
   TokenTimeProfile
   TokenTimeDisplacement
   TokenTimeTrajectory
 
-src/timeformers/token_time_metrics.py
+src/tracoformer/token_time_metrics.py
   compare_profiles
   compare_trajectories
   trajectory_signature
   rank_change
 
-src/timeformers/token_time_index.py
+src/tracoformer/token_time_index.py
   nearest_profiles
   nearest_trajectories
 

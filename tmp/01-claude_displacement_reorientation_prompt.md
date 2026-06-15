@@ -8,7 +8,7 @@ Não altere nenhum arquivo de código, documentação ou resultado existente. Su
 
 Escreva obrigatoriamente o parecer final em:
 
-`./tmp/05-timeformer_displacement_reorientation_review.md`
+`./tmp/05-tracoformer_displacement_reorientation_review.md`
 
 O parecer deve ser autocontido e detalhado o suficiente para orientar a reescrita do planejamento e a posterior refatoração do código.
 
@@ -35,19 +35,19 @@ Nela:
 Esse planejamento está descrito principalmente em:
 
 - `docs/02-novo_planejamento.md`
-- `tmp/06-timeformer_external_review.md`
+- `tmp/06-tracoformer_external_review.md`
 - `docs/01-synthetic_results_current.md`, caso exista
 
 O código correspondente está principalmente em:
 
-- `src/timeformers/models.py`
-- `src/timeformers/representations.py`
-- `src/timeformers/aggregators.py`
-- `src/timeformers/aggregator_ssl.py`
-- `src/timeformers/trajectory_models.py`
-- `src/timeformers/trajectory_train.py`
-- `src/timeformers/trajectory_metrics.py`
-- `src/timeformers/experiment.py`
+- `src/tracoformer/models.py`
+- `src/tracoformer/representations.py`
+- `src/tracoformer/aggregators.py`
+- `src/tracoformer/aggregator_ssl.py`
+- `src/tracoformer/trajectory_models.py`
+- `src/tracoformer/trajectory_train.py`
+- `src/tracoformer/trajectory_metrics.py`
+- `src/tracoformer/experiment.py`
 - `scripts/run_synthetic_pipeline.py`
 - `scripts/run_d5a_student_ablation.py`
 - `scripts/run_ssl_aggregator_sanity.py`
@@ -280,16 +280,16 @@ Inspecione o código atual e produza uma classificação concreta:
 
 Considere explicitamente:
 
-- `src/timeformers/models.py`
-- `src/timeformers/train.py`
-- `src/timeformers/representations.py`
-- `src/timeformers/aggregators.py`
-- `src/timeformers/aggregator_ssl.py`
-- `src/timeformers/trajectory_models.py`
-- `src/timeformers/trajectory_train.py`
-- `src/timeformers/trajectory_losses.py`
-- `src/timeformers/trajectory_metrics.py`
-- `src/timeformers/experiment.py`
+- `src/tracoformer/models.py`
+- `src/tracoformer/train.py`
+- `src/tracoformer/representations.py`
+- `src/tracoformer/aggregators.py`
+- `src/tracoformer/aggregator_ssl.py`
+- `src/tracoformer/trajectory_models.py`
+- `src/tracoformer/trajectory_train.py`
+- `src/tracoformer/trajectory_losses.py`
+- `src/tracoformer/trajectory_metrics.py`
+- `src/tracoformer/experiment.py`
 - scripts experimentais atuais
 
 Proponha uma arquitetura modular para a nova implementação. Por exemplo, avalie a necessidade de componentes como:
@@ -322,7 +322,7 @@ Proponha uma sequência segura e cientificamente informativa para migrar do pipe
 
 Escreva o parecer em:
 
-`./tmp/05-timeformer_displacement_reorientation_review.md`
+`./tmp/05-tracoformer_displacement_reorientation_review.md`
 
 Use esta estrutura:
 
@@ -345,4 +345,4 @@ No veredito, responda diretamente:
 - Qual é o menor experimento que deve ser realizado antes de uma grande reescrita?
 - Quais suposições nossas estão provavelmente erradas?
 
-Novamente: não altere outros arquivos. Escreva apenas o parecer solicitado em `./tmp/05-timeformer_displacement_reorientation_review.md`.
+Novamente: não altere outros arquivos. Escreva apenas o parecer solicitado em `./tmp/05-tracoformer_displacement_reorientation_review.md`.

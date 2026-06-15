@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Measure convergent validity between ConSeC and TimeFormer word scores."""
+"""Measure convergent validity between ConSeC and TraçoFormer word scores."""
 
 from __future__ import annotations
 

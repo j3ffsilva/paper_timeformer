@@ -82,13 +82,13 @@ def write_report(
     *,
     comparison_rows: list[dict],
     target_sections: list[dict],
-    timeformer_metrics: dict | None,
+    tracoformer_metrics: dict | None,
     hamilton_metrics: dict | None,
     top_k: int,
     salience_rank: int,
 ) -> None:
     lines = [
-        "# TimeFormer vs Hamilton temporal-neighborhood comparison",
+        "# TraçoFormer vs Hamilton temporal-neighborhood comparison",
         "",
         "This report compares temporal lexical neighborhoods, not only scalar",
         "semantic-change scores. The current SemEval corpus has only two broad",
@@ -103,11 +103,11 @@ def write_report(
         "## Quantitative validation",
         "",
     ]
-    if timeformer_metrics:
+    if tracoformer_metrics:
         lines.extend(
             [
-                "TimeFormer:",
-                f"- Spearman/APD or selected metric: `{timeformer_metrics}`",
+                "TraçoFormer:",
+                f"- Spearman/APD or selected metric: `{tracoformer_metrics}`",
                 "",
             ]
         )
@@ -122,7 +122,7 @@ def write_report(
             ]
         )
 
-    avg_tf_turnover = sum(row["timeformer_turnover"] for row in comparison_rows) / len(comparison_rows)
+    avg_tf_turnover = sum(row["tracoformer_turnover"] for row in comparison_rows) / len(comparison_rows)
     avg_ham_turnover = sum(row["hamilton_turnover"] for row in comparison_rows) / len(comparison_rows)
     lines.extend(
         [
@@ -130,7 +130,7 @@ def write_report(
             "",
             "`turnover@k = 1 - |top_k(D0) ∩ top_k(D1)| / k`.",
             "",
-            f"- TimeFormer mean turnover@{top_k}: `{avg_tf_turnover:.3f}`",
+            f"- TraçoFormer mean turnover@{top_k}: `{avg_tf_turnover:.3f}`",
             f"- Hamilton mean turnover@{top_k}: `{avg_ham_turnover:.3f}`",
             "",
             "High turnover means the visible lexical neighborhood changed more.",
@@ -139,26 +139,26 @@ def write_report(
             "",
             "## Targets with largest turnover disagreement",
             "",
-            "| target | gold graded | TimeFormer turnover | Hamilton turnover | difference |",
+            "| target | gold graded | TraçoFormer turnover | Hamilton turnover | difference |",
             "|---|---:|---:|---:|---:|",
         ]
     )
     disagreement = sorted(
         comparison_rows,
-        key=lambda row: abs(row["timeformer_turnover"] - row["hamilton_turnover"]),
+        key=lambda row: abs(row["tracoformer_turnover"] - row["hamilton_turnover"]),
         reverse=True,
     )[:10]
     for row in disagreement:
         lines.append(
             f"| `{row['target']}` | {row['graded']:.3f} | "
-            f"{row['timeformer_turnover']:.3f} | {row['hamilton_turnover']:.3f} | "
-            f"{row['timeformer_turnover'] - row['hamilton_turnover']:.3f} |"
+            f"{row['tracoformer_turnover']:.3f} | {row['hamilton_turnover']:.3f} | "
+            f"{row['tracoformer_turnover'] - row['hamilton_turnover']:.3f} |"
         )
 
     lines.extend(["", "## Per-target neighborhoods", ""])
     for section in target_sections:
         target = section["target"]
-        tf = section["timeformer"]
+        tf = section["tracoformer"]
         ham = section["hamilton"]
         lines.extend(
             [
@@ -169,7 +169,7 @@ def write_report(
                 "| Method | D0 top | D1 top | gains | losses | turnover |",
                 "|---|---|---|---|---|---:|",
                 (
-                    f"| TimeFormer | {fmt_refs(tf['d0'])} | {fmt_refs(tf['d1'])} | "
+                    f"| TraçoFormer | {fmt_refs(tf['d0'])} | {fmt_refs(tf['d1'])} | "
                     f"{fmt_refs(tf['gains'])} | {fmt_refs(tf['losses'])} | {tf['turnover']:.3f} |"
                 ),
                 (
@@ -186,7 +186,7 @@ def write_report(
             "",
             "This report should be read as a qualitative audit. Hamilton is expected",
             "to be strong on two-period static changes because it directly optimizes",
-            "one vector per word per period and then aligns the spaces. TimeFormer",
+            "one vector per word per period and then aligns the spaces. TraçoFormer",
             "must earn its contribution through contextuality, in-domain continual",
             "training, and eventually multi-checkpoint temporal consultation.",
             "",
@@ -202,9 +202,9 @@ def load_json_if_exists(path: Path) -> dict | None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Compare TimeFormer and Hamilton temporal neighborhoods.")
+    parser = argparse.ArgumentParser(description="Compare TraçoFormer and Hamilton temporal neighborhoods.")
     parser.add_argument(
-        "--timeformer-neighborhoods",
+        "--tracoformer-neighborhoods",
         type=Path,
         default=Path("outputs/semeval2020_pmi_dynamic_mlm_12_8_d128/temporal_relational_neighborhoods/neighborhoods.csv"),
     )
@@ -219,35 +219,35 @@ def main() -> None:
         default=Path("outputs/hamilton2016_word2vec_baseline/metrics.json"),
     )
     parser.add_argument(
-        "--timeformer-metrics",
+        "--tracoformer-metrics",
         type=Path,
         default=Path("outputs/semeval2020_pmi_dynamic_mlm_12_8_d128/hidden_relational_profiles/metrics.json"),
     )
     parser.add_argument("--truth", type=Path, default=Path("data/processed/semeval2020_task1/eng_lemma/truth.tsv"))
-    parser.add_argument("--output-dir", type=Path, default=Path("outputs/timeformer_vs_hamilton_neighborhood_comparison"))
+    parser.add_argument("--output-dir", type=Path, default=Path("outputs/tracoformer_vs_hamilton_neighborhood_comparison"))
     parser.add_argument("--top-k", type=int, default=10)
     parser.add_argument("--salience-rank", type=int, default=50)
     args = parser.parse_args()
 
-    timeformer = read_rows(args.timeformer_neighborhoods)
+    tracoformer = read_rows(args.tracoformer_neighborhoods)
     hamilton = read_rows(args.hamilton_neighborhoods)
     truth = read_truth(args.truth)
-    targets = sorted(set(timeformer) & set(hamilton) & set(truth))
+    targets = sorted(set(tracoformer) & set(hamilton) & set(truth))
     if not targets:
         raise ValueError("No shared targets across both neighborhood files and truth")
 
     comparison_rows = []
     target_sections = []
     for target in targets:
-        tf = method_summary(timeformer[target], top_k=args.top_k, salience_rank=args.salience_rank)
+        tf = method_summary(tracoformer[target], top_k=args.top_k, salience_rank=args.salience_rank)
         ham = method_summary(hamilton[target], top_k=args.top_k, salience_rank=args.salience_rank)
         comparison_rows.append(
             {
                 "target": target,
                 "binary": truth[target]["binary"],
                 "graded": truth[target]["graded"],
-                "timeformer_overlap": tf["overlap"],
-                "timeformer_turnover": tf["turnover"],
+                "tracoformer_overlap": tf["overlap"],
+                "tracoformer_turnover": tf["turnover"],
                 "hamilton_overlap": ham["overlap"],
                 "hamilton_turnover": ham["turnover"],
                 "turnover_difference": tf["turnover"] - ham["turnover"],
@@ -258,7 +258,7 @@ def main() -> None:
                 "target": target,
                 "binary": truth[target]["binary"],
                 "graded": truth[target]["graded"],
-                "timeformer": tf,
+                "tracoformer": tf,
                 "hamilton": ham,
             }
         )
@@ -269,14 +269,14 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     write_csv(args.output_dir / "turnover_comparison.csv", comparison_rows)
     hamilton_metrics = load_json_if_exists(args.hamilton_metrics)
-    timeformer_metrics = load_json_if_exists(args.timeformer_metrics)
-    if isinstance(timeformer_metrics, list):
-        timeformer_metrics = timeformer_metrics[0] if timeformer_metrics else None
+    tracoformer_metrics = load_json_if_exists(args.tracoformer_metrics)
+    if isinstance(tracoformer_metrics, list):
+        tracoformer_metrics = tracoformer_metrics[0] if tracoformer_metrics else None
     write_report(
         args.output_dir / "report.md",
         comparison_rows=comparison_rows,
         target_sections=target_sections,
-        timeformer_metrics=timeformer_metrics,
+        tracoformer_metrics=tracoformer_metrics,
         hamilton_metrics=hamilton_metrics,
         top_k=args.top_k,
         salience_rank=args.salience_rank,
@@ -285,7 +285,7 @@ def main() -> None:
         "n_targets": len(targets),
         "top_k": args.top_k,
         "salience_rank": args.salience_rank,
-        "mean_timeformer_turnover": sum(row["timeformer_turnover"] for row in comparison_rows) / len(comparison_rows),
+        "mean_tracoformer_turnover": sum(row["tracoformer_turnover"] for row in comparison_rows) / len(comparison_rows),
         "mean_hamilton_turnover": sum(row["hamilton_turnover"] for row in comparison_rows) / len(comparison_rows),
     }
     (args.output_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")

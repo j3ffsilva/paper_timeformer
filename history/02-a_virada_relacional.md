@@ -3,7 +3,7 @@
 > Fontes originais: `tmp/01-claude_displacement_reorientation_prompt.md`,
 > `docs/02-novo_planejamento.md`,
 > `docs/06-structural_relational_experiment_preregistration.md`,
-> `docs/13-paper1_iberamia_timeformer.pdf` ("Amnesia by Design").
+> `docs/13-paper1_iberamia_tracoformer.pdf` ("Amnesia by Design").
 
 ## A pergunta que disparou a virada
 
@@ -114,9 +114,9 @@ r_t(w)[v] = 1 - JS(q_t(w), q_t(v)) / log(2)
 ## O parente próximo: "Amnesia by Design" (paper IberAMIA)
 
 Em paralelo a essa reorientação, o mesmo grupo produziu um trabalho
-formal — submetido ao IberAMIA, `docs/13-paper1_iberamia_timeformer.pdf`,
+formal — submetido ao IberAMIA, `docs/13-paper1_iberamia_tracoformer.pdf`,
 "Amnesia by Design: Diagnosing Temporal Traceability in Transformer
-Representations" — que **não é o TimeFormer em si**, mas testa, num
+Representations" — que **não é o TraçoFormer em si**, mas testa, num
 ambiente totalmente controlado, uma pergunta vizinha e complementar:
 
 > Se um Transformer recebe o tempo como entrada explícita (Token-Time,
@@ -161,7 +161,7 @@ achado prevê ser difícil para qualquer método baseado em protótipo médio.
 A relação entre os dois trabalhos, então, é de **complementaridade, não
 de sequência**: "Amnesia by Design" testa arquiteturas *com*
 condicionamento temporal explícito e mostra onde a agregação por média
-falha; o TimeFormer (a partir deste capítulo) testa a hipótese
+falha; o TraçoFormer (a partir deste capítulo) testa a hipótese
 **oposta** — um modelo *sem* condicionamento temporal, medido depois via
 perfis relacionais — e tenta evitar exatamente esse tipo de armadilha
 desde o desenho.
@@ -242,7 +242,7 @@ localização = 0 nos três casos), mas **só cerca de 29-30% do caminho
 relacional total fica concentrado no evento** — o resto se distribui
 como "deriva" antes e depois do salto. A leitura honesta registrada foi:
 
-> Timeformer recupera o momento e a direção local de rupturas abruptas,
+> Traçoformer recupera o momento e a direção local de rupturas abruptas,
 > mas distribui parte do caminho relacional em deriva pré- e pós-evento.
 
 Essa limitação — rupturas abruptas (como `plane_nn`, que troca de sentido
@@ -260,7 +260,7 @@ relacional — é uma sombra que acompanha o projeto até os capítulos finais.
   testa o cenário *oposto* (condicionamento temporal explícito) e mostra
   que, **mesmo nesse cenário**, agregação por protótipo médio falha para
   palavras com sentidos coexistentes — um aviso que se aplica a
-  `graft_nn` e que o TimeFormer também precisará enfrentar (capítulos 04 e
+  `graft_nn` e que o TraçoFormer também precisará enfrentar (capítulos 04 e
   08).
 - O experimento estrutural (`docs/06`) validou as quatro formas temporais
   (gradual/abrupta/transitória/oscilatória) com controles nulos e

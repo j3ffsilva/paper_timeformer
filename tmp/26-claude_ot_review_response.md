@@ -34,8 +34,8 @@ média dos dois períodos?" Se o modelo aprendeu que plate e boat compartilham
 o frame físico (objeto plano/flutuante), o custo é legitimamente baixo nessa
 geometria.
 
-O erro conceitual é esperar que um custo definido sobre o espaço do TimeFormer
-corrija um padrão de representação que o próprio TimeFormer aprendeu.
+O erro conceitual é esperar que um custo definido sobre o espaço do TraçoFormer
+corrija um padrão de representação que o próprio TraçoFormer aprendeu.
 
 **Consequência direta:** OT não extrapola a qualidade das representações —
 ele as reorganiza de forma interpretável. Onde a geometria do modelo separa
@@ -365,7 +365,7 @@ O fluxo é uma **caracterização semântica auditável** da mudança. Não apen
 "quanto mudou" mas "de quê para quê, com que custo."
 
 Esse é o dado qualitativo que a contribuição do paper necessita para ser mais
-do que um número de Spearman. Sistemas APD+BERT publicam um Spearman. TimeFormer
+do que um número de Spearman. Sistemas APD+BERT publicam um Spearman. TraçoFormer
 com OT publica um Spearman + uma fingerprint interpretável por palavra.
 
 O fluxo de chairman:
