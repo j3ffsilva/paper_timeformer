@@ -144,6 +144,8 @@ topo".
 | 25 | Consolidação da análise de sentidos | A validação semântica externa vira um pacote reproduzível, sem encerrar o eixo `token@time` |
 | 26 | Recolocando `token@time` no centro | Vizinhanças são o resultado principal; sentidos externos são uma análise adicional |
 | 27 | Framework de consultas temporais | Consulta, comparação, busca e rankings de `token@time` recebem um contrato operacional |
+| 28 | Resíduo de pré-treino e limitação de corpus | A proximidade `plane`-`flight` em d0 já vem do pré-treino do bert-tiny; é limitação de corpus/capacidade, não do método |
+| 29 | Confiabilidade do `token@time` | Nulo B, pseudo-períodos e split-half dão a `D_obs` uma régua de ruído; `Z_robusto` correlaciona muito melhor com o gold do que `D_obs` cru |
 | 11 | Estado em 2026-06-13 | Onde o projeto está agora e o que vem a seguir |
 
 ## Mapa dos conceitos
@@ -163,6 +165,7 @@ mentalmente.
 | 07 | O que está sendo medido | Qual a diferença entre mudança de corpus, contexto, representação e sentido? |
 | 08 | Desenhos temporais e réguas | O que significam diagonal, encoder fixo, treino contínuo e controles? |
 | 09 | Dados, tokenização e ocorrências | Como uma linha do corpus vira tokens, WordPieces, janelas e vetores? |
+| 10 | Confiabilidade e significância | `D_obs` é grande comparado com o quê? Nulo B, `Z_robusto`, split-half, pseudo-períodos, `lexical_validity` |
 
 Se uma pessoa entender especialmente os conceitos 07, 08 e 09, ela
 consegue visualizar o fluxo completo:
