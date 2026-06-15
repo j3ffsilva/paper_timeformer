@@ -35,7 +35,8 @@ from torch import Tensor
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from timeformers.bert_continual import encode_windows, read_tokenized_documents, strip_pos_suffix  # noqa: E402
+from timeformers.bert_continual import read_tokenized_documents, strip_pos_suffix  # noqa: E402
+from timeformers.token_time_occurrences import OccurrenceCache  # noqa: E402
 from timeformers.token_time_statistics import PeriodStatistics  # noqa: E402
 
 
@@ -76,18 +77,85 @@ def build_target_ids(
     return target_ids, multi_subtoken_targets, extra_vocab
 
 
+def document_standalone_counts(
+    documents: list[list[str]],
+    tokenizer,
+    continuation_mask: Tensor,
+    total_vocab: int,
+) -> Tensor:
+    """`(total_vocab,)`: how many times each vocabulary item occurs as a
+    standalone word (see `PeriodStatistics`/`standalone_counts`), counted
+    from each document's full WordPiece tokenization.
+
+    This must run on whole, unwindowed documents: a word whose subtokens
+    straddle an `encode_windows` chunk boundary would otherwise have its
+    first piece misclassified as standalone (its continuation piece falls
+    in the next window, out of view).
+    """
+    standalone_counts = torch.zeros(total_vocab, dtype=torch.long)
+    for tokens in documents:
+        encoded = tokenizer(
+            tokens, is_split_into_words=True, add_special_tokens=False, truncation=False
+        )["input_ids"]
+        if not encoded:
+            continue
+        ids = torch.tensor(encoded, dtype=torch.long)
+        is_continuation = continuation_mask[ids]
+        next_is_continuation = torch.zeros_like(is_continuation)
+        next_is_continuation[:-1] = is_continuation[1:]
+        standalone = ~is_continuation & ~next_is_continuation
+        standalone_counts += torch.bincount(ids[standalone], minlength=total_vocab)
+    return standalone_counts
+
+
+def encode_windows_with_doc_index(
+    documents: list[list[str]],
+    tokenizer,
+    *,
+    seq_len: int,
+    stride: int,
+) -> tuple[list[list[int]], list[int]]:
+    """Same chunking as `timeformers.bert_continual.encode_windows`, but also
+    returns each window's source document index (its position in
+    `documents`), for `OccurrenceCache.doc_index`."""
+    if seq_len < 4:
+        raise ValueError("seq_len must be at least 4")
+    content_len = seq_len - 2
+    windows: list[list[int]] = []
+    doc_indices: list[int] = []
+    for doc_index, tokens in enumerate(documents):
+        encoded = tokenizer(
+            tokens, is_split_into_words=True, add_special_tokens=False, truncation=False
+        )["input_ids"]
+        if not encoded:
+            continue
+        if len(encoded) <= content_len:
+            chunks = [encoded]
+        else:
+            starts = list(range(0, len(encoded) - content_len + 1, stride))
+            final_start = len(encoded) - content_len
+            if starts[-1] != final_start:
+                starts.append(final_start)
+            chunks = [encoded[start : start + content_len] for start in starts]
+        windows.extend(chunks)
+        doc_indices.extend([doc_index] * len(chunks))
+    return windows, doc_indices
+
+
 @torch.no_grad()
 def extract_context_statistics(
     model,
     tokenizer,
     windows: list[list[int]],
+    doc_indices: list[int],
     *,
     total_vocab: int,
+    target_ids: dict[str, int],
     multi_subtoken_targets: dict[int, list[int]],
     layers: tuple[int, ...],
     batch_size: int,
     device: str,
-) -> PeriodStatistics:
+) -> tuple[PeriodStatistics, OccurrenceCache]:
     cls_id = tokenizer.cls_token_id
     sep_id = tokenizer.sep_token_id
     pad_id = tokenizer.pad_token_id
@@ -97,7 +165,19 @@ def extract_context_statistics(
         f"layer_{layer}": torch.zeros(total_vocab, hidden_size, dtype=torch.float32)
         for layer in layers
     }
+    sum_sq = {
+        f"layer_{layer}": torch.zeros(total_vocab, dtype=torch.float32)
+        for layer in layers
+    }
     counts = torch.zeros(total_vocab, dtype=torch.long)
+    standalone_counts = torch.zeros(total_vocab, dtype=torch.long)
+
+    occurrence_ids = set(target_ids.values())
+    real_occurrence_ids = occurrence_ids - set(multi_subtoken_targets.keys())
+    occurrence_layers: dict[int, dict[str, list[Tensor]]] = {
+        target_id: {f"layer_{layer}": [] for layer in layers} for target_id in occurrence_ids
+    }
+    occurrence_doc_index: dict[int, list[Tensor]] = {target_id: [] for target_id in occurrence_ids}
 
     for start in range(0, len(windows), batch_size):
         batch = windows[start : start + batch_size]
@@ -127,10 +207,27 @@ def extract_context_statistics(
             & input_ids_t.ne(sep_id)
         )
         flat_ids = input_ids_t[valid].cpu()
+        valid_hidden_by_layer: dict[str, Tensor] = {}
         for layer in layers:
             hidden = outputs.hidden_states[layer]
-            sums[f"layer_{layer}"].index_add_(0, flat_ids, hidden[valid].float().cpu())
+            valid_hidden = hidden[valid].float().cpu()
+            valid_hidden_by_layer[f"layer_{layer}"] = valid_hidden
+            sums[f"layer_{layer}"].index_add_(0, flat_ids, valid_hidden)
+            sum_sq[f"layer_{layer}"].index_add_(0, flat_ids, valid_hidden.pow(2).sum(dim=-1))
         counts += torch.bincount(flat_ids, minlength=total_vocab)
+
+        if real_occurrence_ids:
+            batch_doc_index = torch.tensor(doc_indices[start : start + len(batch)], dtype=torch.long)
+            doc_index_grid = batch_doc_index.unsqueeze(1).expand(-1, valid.shape[1])
+            flat_doc_index = doc_index_grid[valid.cpu()]
+            for target_id in real_occurrence_ids:
+                mask = flat_ids == target_id
+                if mask.any():
+                    occurrence_doc_index[target_id].append(flat_doc_index[mask])
+                    for layer in layers:
+                        occurrence_layers[target_id][f"layer_{layer}"].append(
+                            valid_hidden_by_layer[f"layer_{layer}"][mask]
+                        )
 
         if multi_subtoken_targets:
             for batch_index, ids in enumerate(input_ids):
@@ -143,10 +240,35 @@ def extract_context_statistics(
                                 hidden = outputs.hidden_states[layer][
                                     batch_index, position : position + n
                                 ].mean(dim=0)
-                                sums[f"layer_{layer}"][virtual_id] += hidden.float().cpu()
+                                hidden_f = hidden.float().cpu()
+                                sums[f"layer_{layer}"][virtual_id] += hidden_f
+                                sum_sq[f"layer_{layer}"][virtual_id] += hidden_f.pow(2).sum()
+                                occurrence_layers[virtual_id][f"layer_{layer}"].append(hidden_f.unsqueeze(0))
+                            occurrence_doc_index[virtual_id].append(
+                                torch.tensor([doc_indices[start + batch_index]], dtype=torch.long)
+                            )
                             counts[virtual_id] += 1
+                            standalone_counts[virtual_id] += 1
 
-    return PeriodStatistics(counts=counts, sums=sums)
+    occurrence_targets: dict[int, dict[str, Tensor]] = {}
+    for target_id in occurrence_ids:
+        tensors: dict[str, Tensor] = {
+            "doc_index": (
+                torch.cat(occurrence_doc_index[target_id])
+                if occurrence_doc_index[target_id]
+                else torch.empty(0, dtype=torch.long)
+            )
+        }
+        for layer in layers:
+            layer_chunks = occurrence_layers[target_id][f"layer_{layer}"]
+            tensors[f"layer_{layer}"] = (
+                torch.cat(layer_chunks, dim=0) if layer_chunks else torch.empty(0, hidden_size, dtype=torch.float32)
+            )
+        occurrence_targets[target_id] = tensors
+
+    stats = PeriodStatistics(counts=counts, sums=sums, sum_sq=sum_sq, standalone_counts=standalone_counts)
+    occurrences = OccurrenceCache(targets=occurrence_targets)
+    return stats, occurrences
 
 
 def main() -> None:
@@ -178,6 +300,10 @@ def main() -> None:
     )
     total_vocab = vocab_size + len(extra_vocab)
     vocab = [tokenizer.convert_ids_to_tokens(token_id) for token_id in range(vocab_size)] + extra_vocab
+    continuation_mask = torch.zeros(total_vocab, dtype=torch.bool)
+    for token_id in range(vocab_size):
+        if vocab[token_id].startswith("##"):
+            continuation_mask[token_id] = True
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "vocab.json").write_text(
@@ -194,7 +320,8 @@ def main() -> None:
             {
                 "checkpoint": str(args.checkpoint),
                 "corpus_dir": str(args.corpus_dir),
-                "period_files": args.period_files,
+                "period_files": [f"d{index}" for index in range(len(args.period_files))],
+                "period_corpus_files": args.period_files,
                 "seq_len": args.seq_len,
                 "stride": stride,
                 "layers": args.layers,
@@ -213,18 +340,26 @@ def main() -> None:
             print(json.dumps({"period": period_index, "cache": "reused"}), flush=True)
             continue
         documents = read_tokenized_documents(args.corpus_dir / filename)
-        windows = encode_windows(documents, tokenizer, seq_len=args.seq_len, stride=stride)
-        stats = extract_context_statistics(
+        windows, doc_indices = encode_windows_with_doc_index(
+            documents, tokenizer, seq_len=args.seq_len, stride=stride
+        )
+        stats, occurrences = extract_context_statistics(
             model,
             tokenizer,
             windows,
+            doc_indices,
             total_vocab=total_vocab,
+            target_ids=target_ids,
             multi_subtoken_targets=multi_subtoken_targets,
             layers=tuple(args.layers),
             batch_size=args.batch_size,
             device=args.device,
         )
+        stats.standalone_counts = stats.standalone_counts + document_standalone_counts(
+            documents, tokenizer, continuation_mask, total_vocab
+        )
         stats.save(cache_path)
+        occurrences.save(cache_dir / f"occurrences_d{period_index}.pt")
         print(
             json.dumps(
                 {

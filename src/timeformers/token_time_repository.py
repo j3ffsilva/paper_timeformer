@@ -41,6 +41,8 @@ from .real_corpus import SPECIAL_TOKENS
 from .relational import build_active_support, type_uniform_mean
 from .token_time import TokenTimeDisplacement, TokenTimeProfile, build_profile, compare_profiles
 from .token_time_index import nearest_displacements
+from .token_time_null import document_permutation_null
+from .token_time_occurrences import OccurrenceCache
 from .token_time_statistics import PeriodStatistics
 
 
@@ -52,6 +54,9 @@ def build_reference_set(
     counts_d0: Tensor,
     counts_d1: Tensor,
     max_references: int,
+    lexical_validity_d0: Tensor | None = None,
+    lexical_validity_d1: Tensor | None = None,
+    min_lexical_validity: float = 0.0,
 ) -> list[int]:
     """Whole-word, alphabetic, non-special tokens from V_active (see
     `relational.build_active_support`).
@@ -63,6 +68,13 @@ def build_reference_set(
     target words themselves -- ordered by how frequent each candidate is in
     its *less frequent* period (so the reported references are reliably
     well-estimated in both periods), and capped at `max_references`.
+
+    If `lexical_validity_d0`/`lexical_validity_d1` are given (see
+    `PeriodStatistics.lexical_validity`), candidates whose validity in
+    either period is below `min_lexical_validity` are also excluded. This
+    catches WordPiece *fragments* that pass the `isalpha()`/no-`"##"` check
+    but rarely occur as a whole word on their own (e.g. "graf" in
+    "graf" + "##t" for "graft"), without depending on an external wordlist.
     """
     counts_min = torch.minimum(counts_d0, counts_d1).float()
     candidates = []
@@ -75,6 +87,11 @@ def build_reference_set(
             continue
         if not token.isalpha():
             continue
+        if min_lexical_validity > 0.0:
+            if lexical_validity_d0 is not None and lexical_validity_d0[index] < min_lexical_validity:
+                continue
+            if lexical_validity_d1 is not None and lexical_validity_d1[index] < min_lexical_validity:
+                continue
         candidates.append(index)
     candidates.sort(key=lambda index: counts_min[index].item(), reverse=True)
     return candidates[:max_references]
@@ -96,6 +113,7 @@ class TokenTimeIndex:
     checkpoint: str
     period_files: list[str]
     periods: list[PeriodStatistics]
+    occurrences: list[OccurrenceCache] | None = None
     seed: int | None = None
 
     @classmethod
@@ -112,6 +130,11 @@ class TokenTimeIndex:
         `<profile_dir>/cache/theta_<period_file>.pt` for each entry in
         `metadata.json`'s `period_files` (or `["d0", "d1"]` if there is no
         `metadata.json`).
+
+        Also loads `<profile_dir>/cache/occurrences_<period_file>.pt` into
+        `occurrences`, if present (older profile directories, written before
+        `OccurrenceCache` existed, have none -- `occurrences` stays `None`
+        and `null_b` is unavailable).
         """
         profile_dir = Path(profile_dir)
         vocab = json.loads((profile_dir / "vocab.json").read_text(encoding="utf-8"))
@@ -126,6 +149,14 @@ class TokenTimeIndex:
             cache_paths = [profile_dir / "cache" / f"theta_{name}.pt" for name in period_files]
         periods = [PeriodStatistics.load(path) for path in cache_paths]
 
+        occurrences: list[OccurrenceCache] | None = []
+        for name in period_files:
+            occurrence_path = profile_dir / "cache" / f"occurrences_{name}.pt"
+            if not occurrence_path.exists():
+                occurrences = None
+                break
+            occurrences.append(OccurrenceCache.load(occurrence_path))
+
         return cls(
             vocab=vocab,
             targets=targets,
@@ -133,6 +164,7 @@ class TokenTimeIndex:
             checkpoint=checkpoint,
             period_files=period_files,
             periods=periods,
+            occurrences=occurrences,
             seed=seed,
         )
 
@@ -179,6 +211,9 @@ class TokenTimeIndex:
         centroids = stats.centroids(layer)
         mu = type_uniform_mean(stats, layer, support=active_mask)
         target_id = self.target_ids[word]
+        standard_error = None
+        if stats.sum_sq:
+            standard_error = float(stats.standard_error(layer)[target_id])
         return build_profile(
             centroids,
             mu,
@@ -191,6 +226,7 @@ class TokenTimeIndex:
             layer=layer,
             count=int(stats.counts[target_id]),
             seed=self.seed,
+            standard_error=standard_error,
         )
 
     def displacement(
@@ -207,6 +243,48 @@ class TokenTimeIndex:
         profile_a = self.profile(word, 0, reference_ids, layer=layer, n_min_active=n_min_active)
         profile_b = self.profile(word, 1, reference_ids, layer=layer, n_min_active=n_min_active)
         return compare_profiles(profile_a, profile_b)
+
+    def null_b(
+        self,
+        word: str,
+        reference_ids: Tensor,
+        *,
+        layer: str = "layer_2",
+        n_min_active: int = 10,
+        n_permutations: int = 200,
+        generator: torch.Generator | None = None,
+    ) -> Tensor:
+        """`(n_permutations,)`: `D_null` samples for `word` under nulo B
+        (`token_time_null.document_permutation_null`).
+
+        Compare against `displacement(word, reference_ids, ...).score`
+        (`D_obs`) -- e.g. `Z_robusto = (D_obs - median) / (1.4826 * MAD)` and
+        the one-sided p-value `(1 + sum(D_null >= D_obs)) / (n_permutations + 1)`.
+
+        Raises `ValueError` if this index has no `occurrences` (profile
+        directory written before `OccurrenceCache` existed) or if `word` has
+        zero occurrences in either period.
+        """
+        if self.occurrences is None:
+            raise ValueError("this index has no occurrence caches (older profile directory)")
+        target_id = self.target_ids[word]
+        active_mask = self.active_support(n_min_active)
+        centroids_a = self.periods[0].centroids(layer)
+        centroids_b = self.periods[1].centroids(layer)
+        mu_a = type_uniform_mean(self.periods[0], layer, support=active_mask)
+        mu_b = type_uniform_mean(self.periods[1], layer, support=active_mask)
+        return document_permutation_null(
+            self.occurrences[0][target_id],
+            self.occurrences[1][target_id],
+            centroids_a=centroids_a,
+            centroids_b=centroids_b,
+            mu_a=mu_a,
+            mu_b=mu_b,
+            reference_ids=reference_ids,
+            layer=layer,
+            n_permutations=n_permutations,
+            generator=generator,
+        )
 
     def nearest(
         self,

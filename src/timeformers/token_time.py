@@ -51,6 +51,7 @@ class TokenTimeProfile:
     count: int
     seed: int | None = None
     metadata: dict = field(default_factory=dict)
+    standard_error: float | None = None
 
     def __post_init__(self) -> None:
         if self.vector.shape != self.reference_ids.shape:
@@ -77,6 +78,7 @@ def build_profile(
     count: int,
     seed: int | None = None,
     metadata: dict | None = None,
+    standard_error: float | None = None,
 ) -> TokenTimeProfile:
     """Build a `TokenTimeProfile` for `word` from precomputed `centroids`
     (`relational.contextual_centroids`) and center `mu`
@@ -86,6 +88,11 @@ def build_profile(
     identifies `word` in `centroids`, and `reference_ids` selects which
     vocabulary items to use as references (their tokens, in the same order,
     become `reference_vocab`).
+
+    `standard_error`, if given, is `PeriodStatistics.standard_error(layer)[target_id]`
+    -- how much `word`'s centroid (and therefore this profile) would be
+    expected to move if re-estimated from a different sample of the same
+    size. `None` if the underlying cache has no `sum_sq` (older caches).
     """
     vector = relational_profile(centroids, mu, target_id, reference_ids)
     reference_vocab = [vocab[index] for index in reference_ids.tolist()]
@@ -100,6 +107,7 @@ def build_profile(
         count=count,
         seed=seed,
         metadata=metadata or {},
+        standard_error=standard_error,
     )
 
 
@@ -112,6 +120,7 @@ class TokenTimeDisplacement:
     that reference, negative = less similar). `score` is a single number
     summarizing the overall change in direction: `0` = no change, up to `2`
     = the profile pointed in the exact opposite direction afterwards.
+
     """
 
     word: str
