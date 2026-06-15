@@ -1338,3 +1338,48 @@ desta sessão de trabalho) estão concluídos:
    `rho(D_half1, D_half2)~=0.95` em ambos os seeds.
 
 Pronto para revisão pelo codex / próxima etapa de planejamento.
+
+## Atualização (Claude, 2026-06): correção -- `reference_set` não aplicava `lexical_validity`
+
+Ao inspecionar `explore_index.py --words graft`, os vizinhos de maior
+similaridade para "graft" incluíam "graf" (+0.76) e "wil" (+0.40) -- ambos
+fragmentos de WordPiece sem sentido como palavra isolada
+(`lexical_validity("graf") ~= 0.5-9%`, `lexical_validity("wil") ~= 1-3.4%`).
+
+**Causa**: `TokenTimeIndex.reference_set()` chamava `build_reference_set`
+sem `lexical_validity_d0`/`lexical_validity_d1`, então `min_lexical_validity`
+ficava no default `0.0` e o filtro implementado no passo 1 nunca era
+aplicado em `displacement`/`profile`/nulo B/split-half/`explore_index` --
+apenas o *cálculo* de `lexical_validity` tinha sido corrigido, não a sua
+conexão ao `reference_set` usado de fato.
+
+**Correção**: `reference_set(max_references=3216, *, min_lexical_validity=0.5)`
+agora passa `lexical_validity_d0`/`lexical_validity_d1` (de
+`PeriodStatistics.lexical_validity()`) para `build_reference_set`. Isso troca
+356 dos 3216 candidatos (fragmentos como "graf", "wil", "mit", "ab", "anna",
+"amp", ... -> próximos candidatos válidos por contagem). Para "graft", "graf"
+e "wil" saem da lista de vizinhos; "net"/"cotton"/"wit"/"fit"/"cut" continuam.
+
+**Resultado nos passos 5/7/8 (ambos os seeds, B=200, mesmas seeds de gerador)**:
+
+| métrica | antes | depois |
+|---|---|---|
+| seed1000: Spearman(Z, graded) | 0.278 | 0.269 |
+| seed1001: Spearman(Z, graded) | 0.275 | **0.295** |
+| seed1000: point-biserial(binary, Z) | 0.330 | 0.334 |
+| seed1001: point-biserial(binary, Z) | 0.335 | 0.342 |
+| pseudo: mean percentile (ambos seeds) | 0.373 / 0.380 | 0.371 / 0.383 |
+| pseudo: FP rate @0.05/0.10 | 0/37 ambos | 0/37 ambos (inalterado) |
+| pseudo: MAD(pseudo)/MAD(real) | 0.60 / 0.59 | 0.58 / 0.58 |
+| split-half: Spearman(D_half1, D_half2) | 0.952 / 0.952 | 0.958 / 0.962 |
+| split-half: Spearman(D_obs, mean(halves)) | 0.993 / 0.992 | 0.999 / 0.996 |
+
+Todas as métricas numéricas mudam muito pouco (3ª casa decimal, dentro do
+ruído entre seeds) -- as 37 palavras-alvo já estavam, em sua maioria, longe
+o suficiente de fragmentos no `V_active` ordenado por frequência para que a
+substituição de 356/3216 candidatos não mudasse `mu_t` nem as estatísticas
+agregadas de forma perceptível. O ganho real é **qualitativo**: as listas de
+"vizinhos mais próximos" (usadas para interpretação humana em
+`explore_index.py`) agora mostram só palavras interpretáveis, sem fragmentos
+WordPiece como "graf"/"wil"/"mit" -- o que era o objetivo original do passo
+1 e agora está de fato conectado ao pipeline de avaliação.

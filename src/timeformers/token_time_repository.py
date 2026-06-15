@@ -41,7 +41,7 @@ from .real_corpus import SPECIAL_TOKENS
 from .relational import build_active_support, type_uniform_mean
 from .token_time import TokenTimeDisplacement, TokenTimeProfile, build_profile, compare_profiles
 from .token_time_index import nearest_displacements
-from .token_time_null import document_permutation_null
+from .token_time_null import document_permutation_null, split_half_displacement
 from .token_time_occurrences import OccurrenceCache
 from .token_time_statistics import PeriodStatistics
 
@@ -176,9 +176,15 @@ class TokenTimeIndex:
             self.periods[0], self.periods[1], vocab=self.vocab, targets=set(self.targets), n_min=n_min
         )
 
-    def reference_set(self, max_references: int = 3216) -> Tensor:
+    def reference_set(self, max_references: int = 3216, *, min_lexical_validity: float = 0.5) -> Tensor:
         """Whole-word subset of V_active, as vocabulary-index tensor, for
-        human-readable neighbor tables (see `build_reference_set`)."""
+        human-readable neighbor tables (see `build_reference_set`).
+
+        `min_lexical_validity` excludes WordPiece fragments that pass the
+        no-`"##"`/`isalpha()` check but rarely occur as a whole word on
+        their own (e.g. "graf" in "graf" + "##t", `lexical_validity < 0.1`
+        in practice) -- see `PeriodStatistics.lexical_validity`.
+        """
         active_mask = self.active_support()
         reference_ids = build_reference_set(
             self.vocab,
@@ -187,6 +193,9 @@ class TokenTimeIndex:
             counts_d0=self.periods[0].counts,
             counts_d1=self.periods[1].counts,
             max_references=max_references,
+            lexical_validity_d0=self.periods[0].lexical_validity(),
+            lexical_validity_d1=self.periods[1].lexical_validity(),
+            min_lexical_validity=min_lexical_validity,
         )
         return torch.tensor(reference_ids, dtype=torch.long)
 
@@ -283,6 +292,45 @@ class TokenTimeIndex:
             reference_ids=reference_ids,
             layer=layer,
             n_permutations=n_permutations,
+            generator=generator,
+        )
+
+    def split_half(
+        self,
+        word: str,
+        reference_ids: Tensor,
+        *,
+        period_index: int = 1,
+        layer: str = "layer_2",
+        n_min_active: int = 10,
+        generator: torch.Generator | None = None,
+    ) -> tuple[float, float]:
+        """`(D_half1, D_half2)`: split-half repeatability diagnostic
+        (`token_time_null.split_half_displacement`) for `word` at
+        `self.periods[period_index]`, against the *other* period's profile.
+
+        Not a null -- compare against `displacement(word, ...).score` to see
+        whether `D_obs(w)` is stable across two independent random halves of
+        `period_index`'s documents.
+
+        Raises `ValueError` if this index has no `occurrences` or `word` has
+        fewer than 2 distinct documents in `period_index`.
+        """
+        if self.occurrences is None:
+            raise ValueError("this index has no occurrence caches (older profile directory)")
+        target_id = self.target_ids[word]
+        other_index = 1 - period_index
+        active_mask = self.active_support(n_min_active)
+        centroids = self.periods[period_index].centroids(layer)
+        mu = type_uniform_mean(self.periods[period_index], layer, support=active_mask)
+        reference_profile = self.profile(word, other_index, reference_ids, layer=layer, n_min_active=n_min_active).vector
+        return split_half_displacement(
+            self.occurrences[period_index][target_id],
+            reference_profile,
+            centroids=centroids,
+            mu=mu,
+            reference_ids=reference_ids,
+            layer=layer,
             generator=generator,
         )
 

@@ -124,3 +124,52 @@ def document_permutation_null(
         d_null[i] = displacement(profile_a, profile_b)
 
     return d_null
+
+
+def split_half_displacement(
+    occurrences: dict[str, Tensor],
+    reference_profile: Tensor,
+    *,
+    centroids: Tensor,
+    mu: Tensor,
+    reference_ids: Tensor,
+    layer: str,
+    generator: torch.Generator | None = None,
+) -> tuple[float, float]:
+    """`(D_half1, D_half2)`: split-half repeatability diagnostic (step 8 of
+    `tmp/36-claude_token_time_signal_noise_measurement_proposal.md`), *not* a
+    null.
+
+    Splits `occurrences[layer]` into two random halves by document
+    (`occurrences["doc_index"]`), recomputes `centroid(w)` from each half,
+    and compares each half's profile against `reference_profile` (the other
+    period's `R(w)`, e.g. `idx.profile(word, 0, reference_ids).vector`) --
+    same fixed-reference-system construction as `document_permutation_null`,
+    but without permutation: the two halves are an independent resample of
+    the same period, used to check whether `D_obs(w)` is stable across the
+    corpus rather than driven by a handful of documents.
+
+    Raises `ValueError` if `occurrences` has fewer than 2 distinct documents
+    or either half ends up empty.
+    """
+    hidden = occurrences[layer]
+    doc_index = occurrences["doc_index"]
+    unique_docs = torch.unique(doc_index)
+    if unique_docs.numel() < 2:
+        raise ValueError("split_half_displacement requires at least 2 distinct documents")
+
+    perm = unique_docs[torch.randperm(unique_docs.numel(), generator=generator)]
+    midpoint = unique_docs.numel() // 2
+    docs_1, docs_2 = perm[:midpoint], perm[midpoint:]
+    mask_1 = torch.isin(doc_index, docs_1)
+    mask_2 = torch.isin(doc_index, docs_2)
+    if mask_1.sum() == 0 or mask_2.sum() == 0:
+        raise ValueError("split_half_displacement: a half ended up with zero occurrences")
+
+    references_normed = F.normalize(centroids[reference_ids] - mu.unsqueeze(0), dim=1)
+    d_halves = []
+    for mask in (mask_1, mask_2):
+        centroid_half = hidden[mask].mean(dim=0)
+        profile_half = _profile_for_target_centroid(centroid_half, mu, references_normed)
+        d_halves.append(float(displacement(reference_profile, profile_half)))
+    return d_halves[0], d_halves[1]

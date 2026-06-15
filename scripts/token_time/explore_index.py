@@ -58,6 +58,46 @@ def show_nearest(idx: TokenTimeIndex, word: str, reference_ids: torch.Tensor, *,
         print(f"    {other_word:<20} {similarity:+.4f}")
 
 
+def show_trust(
+    idx: TokenTimeIndex,
+    word: str,
+    reference_ids: torch.Tensor,
+    *,
+    n_permutations: int,
+    seed: int,
+) -> None:
+    """How much should we trust `D_obs(w)`? Three checks, all from
+    `tmp/36-claude_token_time_signal_noise_measurement_proposal.md` (steps
+    4/8):
+
+    - nulo B (`null_b`): is `D_obs` larger than what document-permutation
+      alone would produce by chance (`Z_robusto`, one-sided `p`)?
+    - split-half (`split_half`): does `D_obs` hold up on two independent
+      random halves of d1's documents, or is it driven by a few of them?
+
+    Both require `idx.occurrences` (profile dirs written after the
+    `OccurrenceCache` change); older profile dirs print a note and skip this.
+    """
+    if idx.occurrences is None:
+        print("  (sem OccurrenceCache nesta pasta -- nulo B / split-half indisponiveis)")
+        return
+
+    disp = idx.displacement(word, reference_ids)
+    d_null = idx.null_b(word, reference_ids, n_permutations=n_permutations, generator=torch.Generator().manual_seed(seed))
+    median = d_null.median().item()
+    mad = (d_null - median).abs().median().item()
+    z = (disp.score - median) / (1.4826 * mad) if mad > 0 else float("nan")
+    p = (1 + int((d_null >= disp.score).sum())) / (len(d_null) + 1)
+    print(f"  D_obs = {disp.score:.4f}")
+    print(f"  nulo B (B={n_permutations}): median={median:.4f} MAD={mad:.4f} -> Z_robusto={z:+.2f}, p={p:.4f}")
+
+    try:
+        d_half1, d_half2 = idx.split_half(word, reference_ids, generator=torch.Generator().manual_seed(seed))
+        print(f"  split-half: D_half1={d_half1:.4f}, D_half2={d_half2:.4f} (vs D_obs={disp.score:.4f})")
+    except ValueError as exc:
+        print(f"  split-half: indisponivel ({exc})")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Explore a token@time profile directory interactively.")
     parser.add_argument("--profile-dir", type=Path, default=ROOT / "outputs" / "token_time_fase_a" / "seed1000")
@@ -66,6 +106,9 @@ def main() -> None:
     parser.add_argument("--top-k", type=int, default=10)
     parser.add_argument("--nearest-k", type=int, default=5)
     parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--n-permutations", type=int, default=200, help="nulo B permutations for the trust section")
+    parser.add_argument("--null-seed", type=int, default=0, help="generator seed for nulo B / split-half")
+    parser.add_argument("--skip-trust", action="store_true", help="skip the nulo B / split-half trust section")
     args = parser.parse_args()
 
     idx = TokenTimeIndex.load(args.profile_dir, seed=args.seed)
@@ -87,6 +130,9 @@ def main() -> None:
         show_profile_top(idx, word, reference_ids, period_index=1, k=args.top_k)
         show_displacement(idx, word, reference_ids, k=args.top_k)
         show_nearest(idx, word, reference_ids, k=args.nearest_k)
+        if not args.skip_trust:
+            print("  --- confiabilidade (nulo B / split-half) ---")
+            show_trust(idx, word, reference_ids, n_permutations=args.n_permutations, seed=args.null_seed)
 
 
 if __name__ == "__main__":
