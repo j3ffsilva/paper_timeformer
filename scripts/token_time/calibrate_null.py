@@ -7,13 +7,13 @@ A pseudo-period pair is built by randomly splitting a single real period's
 documents in half (see `data/processed/.../corpus_pseudo/pseudo_{a,b}.txt`,
 produced once and reused across seeds for comparability). There is no real
 temporal change between `pseudo_a` and `pseudo_b` -- both halves are random
-samples of the *same* period -- so `D_obs(w)` between them is, by
+samples of the *same* period -- so `δ(w)` between them is, by
 construction, a draw from (something close to) the null itself.
 
 This script checks the three calibration properties from
 `tmp/36-claude_token_time_signal_noise_measurement_proposal.md` (step 5):
 
-1. **Percentile distribution**: `percentile(w) = P[D_null(w) <= D_obs(w)]`
+1. **Percentile distribution**: `percentile(w) = P[δ_b(w) <= δ(w)]`
    should be roughly uniform on `[0, 1]` across words, if the null is
    well-calibrated (no real change exists between pseudo_a/pseudo_b).
 2. **False-positive rate**: the fraction of words with one-sided

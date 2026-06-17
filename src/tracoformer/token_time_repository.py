@@ -208,7 +208,7 @@ class TokenTimeIndex:
         layer: str = "layer_2",
         n_min_active: int = 10,
     ) -> TokenTimeProfile:
-        """`R_t(w)[v]` for `word` at `self.periods[period_index]`, over
+        """`r_t(w)[v]` for `word` at `self.periods[period_index]`, over
         `reference_ids` (see `relational.relational_profile`).
 
         Internally computes `centroids` (`PeriodStatistics.centroids`) and
@@ -246,7 +246,7 @@ class TokenTimeIndex:
         layer: str = "layer_2",
         n_min_active: int = 10,
     ) -> TokenTimeDisplacement:
-        """`Delta(w) = R_1(w) - R_0(w)`, with `score = 1 - cos(R_0(w), R_1(w))`
+        """`Delta(w) = r_1(w) - r_0(w)`, with `score = δ(w) = 1 - cos(r_0(w), r_1(w))`
         (see `token_time.compare_profiles`). Builds `profile(word, 0, ...)`
         and `profile(word, 1, ...)` and compares them."""
         profile_a = self.profile(word, 0, reference_ids, layer=layer, n_min_active=n_min_active)
@@ -263,12 +263,12 @@ class TokenTimeIndex:
         n_permutations: int = 200,
         generator: torch.Generator | None = None,
     ) -> Tensor:
-        """`(n_permutations,)`: `D_null` samples for `word` under nulo B
+        """`(n_permutations,)`: `{δ_b(w)}` samples for `word` under nulo B
         (`token_time_null.document_permutation_null`).
 
-        Compare against `displacement(word, reference_ids, ...).score`
-        (`D_obs`) -- e.g. `Z_robusto = (D_obs - median) / (1.4826 * MAD)` and
-        the one-sided p-value `(1 + sum(D_null >= D_obs)) / (n_permutations + 1)`.
+        Compare against `displacement(word, reference_ids, ...).score` (`δ(w)`)
+        -- e.g. `ζ(w) = (δ(w) - median) / (1.4826 * MAD)` and the one-sided
+        p-value `(1 + sum({δ_b(w)} >= δ(w))) / (n_permutations + 1)`.
 
         Raises `ValueError` if this index has no `occurrences` (profile
         directory written before `OccurrenceCache` existed) or if `word` has
@@ -310,7 +310,7 @@ class TokenTimeIndex:
         `self.periods[period_index]`, against the *other* period's profile.
 
         Not a null -- compare against `displacement(word, ...).score` to see
-        whether `D_obs(w)` is stable across two independent random halves of
+        whether `δ(w)` is stable across two independent random halves of
         `period_index`'s documents.
 
         Raises `ValueError` if this index has no `occurrences` or `word` has

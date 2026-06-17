@@ -66,13 +66,13 @@ def show_trust(
     n_permutations: int,
     seed: int,
 ) -> None:
-    """How much should we trust `D_obs(w)`? Three checks, all from
+    """How much should we trust `δ(w)`? Three checks, all from
     `tmp/36-claude_token_time_signal_noise_measurement_proposal.md` (steps
     4/8):
 
-    - nulo B (`null_b`): is `D_obs` larger than what document-permutation
-      alone would produce by chance (`Z_robusto`, one-sided `p`)?
-    - split-half (`split_half`): does `D_obs` hold up on two independent
+    - nulo B (`null_b`): is `δ(w)` larger than what document-permutation
+      alone would produce by chance (`ζ(w)`, one-sided `p`)?
+    - split-half (`split_half`): does `δ(w)` hold up on two independent
       random halves of d1's documents, or is it driven by a few of them?
 
     Both require `idx.occurrences` (profile dirs written after the
@@ -88,12 +88,12 @@ def show_trust(
     mad = (d_null - median).abs().median().item()
     z = (disp.score - median) / (1.4826 * mad) if mad > 0 else float("nan")
     p = (1 + int((d_null >= disp.score).sum())) / (len(d_null) + 1)
-    print(f"  D_obs = {disp.score:.4f}")
-    print(f"  nulo B (B={n_permutations}): median={median:.4f} MAD={mad:.4f} -> Z_robusto={z:+.2f}, p={p:.4f}")
+    print(f"  delta(w) = {disp.score:.4f}")
+    print(f"  nulo B (B={n_permutations}): median={median:.4f} MAD={mad:.4f} -> zeta(w)={z:+.2f}, p={p:.4f}")
 
     try:
         d_half1, d_half2 = idx.split_half(word, reference_ids, generator=torch.Generator().manual_seed(seed))
-        print(f"  split-half: D_half1={d_half1:.4f}, D_half2={d_half2:.4f} (vs D_obs={disp.score:.4f})")
+        print(f"  split-half: D_half1={d_half1:.4f}, D_half2={d_half2:.4f} (vs delta(w)={disp.score:.4f})")
     except ValueError as exc:
         print(f"  split-half: indisponivel ({exc})")
 

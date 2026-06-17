@@ -5,12 +5,12 @@ These classes wrap the centroid-based relational profile from
 `relational.py` (`relational_profile`, `displacement`, `standardize`) in
 typed, self-describing objects:
 
-- `TokenTimeProfile`: `R_t(w)[v]`, the relational profile of word `w` at
+- `TokenTimeProfile`: `r_t(w)[v]`, the relational profile of word `w` at
   period `t`, i.e. its cosine similarity to each reference word `v` after
   centering on `mu_t`.
-- `TokenTimeDisplacement`: `Delta(w, a, b) = R_b(w) - R_a(w)`, the
+- `TokenTimeDisplacement`: `Delta(w, a, b) = r_b(w) - r_a(w)`, the
   per-reference change in `w`'s profile between periods `a` and `b`, plus a
-  single scalar `score = 1 - cos(R_a(w), R_b(w))` summarizing how much the
+  single scalar `score = 1 - cos(r_a(w), r_b(w))` summarizing how much the
   *direction* of the profile changed overall.
 - `TokenTimeTrajectory`: a sequence of profiles for the same word across
   more than two periods.
@@ -33,7 +33,7 @@ from .relational import displacement, relational_profile, standardize
 
 @dataclass
 class TokenTimeProfile:
-    """R_t(w)[v]: relational profile of `word` at `period`.
+    """r_t(w)[v]: relational profile of `word` at `period`.
 
     `vector[i]` is the cosine similarity between `word` and
     `reference_vocab[i]` (both centered on `mu_t`), so `vector` and
@@ -60,7 +60,7 @@ class TokenTimeProfile:
             raise ValueError("reference_vocab must have one entry per reference_id")
 
     def as_dict(self) -> dict[str, float]:
-        """{reference_token: R_t(w)[v]}, e.g. `{"king": 0.42, "queen": 0.38, ...}`."""
+        """{reference_token: r_t(w)[v]}, e.g. `{"king": 0.42, "queen": 0.38, ...}`."""
         return {token: float(value) for token, value in zip(self.reference_vocab, self.vector)}
 
 
@@ -113,7 +113,7 @@ def build_profile(
 
 @dataclass
 class TokenTimeDisplacement:
-    """Delta(w, a, b) = R_b(w) - R_a(w), with `score = 1 - cos(R_a(w), R_b(w))`.
+    """Delta(w, a, b) = r_b(w) - r_a(w), with `score = 1 - cos(r_a(w), r_b(w))`.
 
     `delta[i]` is how much `w`'s similarity to `reference_vocab[i]` changed
     between period `a` and period `b` (positive = `w` became more similar to
@@ -191,7 +191,7 @@ def compare_profiles(profile_a: TokenTimeProfile, profile_b: TokenTimeProfile) -
 
 @dataclass
 class TokenTimeTrajectory:
-    """T(w) = [R_0(w), R_1(w), ..., R_n(w)]: the relational profile of `w`
+    """T(w) = [r_0(w), r_1(w), ..., r_n(w)]: the relational profile of `w`
     across more than two periods, in chronological order.
 
     `displacements` pairs up consecutive profiles, so a trajectory of `n+1`

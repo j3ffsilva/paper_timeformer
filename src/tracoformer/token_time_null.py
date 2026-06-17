@@ -3,11 +3,11 @@
 Given a target word `w` observed `n_a` times in period `a` and `n_b` times
 in period `b`, `document_permutation_null` answers: "if `w`'s occurrences
 had been split between the two periods by chance (in the same proportions,
-`n_a`/`n_b`), how large would `score = 1 - cos(R_a(w), R_b(w))` typically be?"
+`n_a`/`n_b`), how large would `score = 1 - cos(r_a(w), r_b(w))` typically be?"
 
 Everything except `w`'s own centroid is held fixed at its *observed* value:
 `mu_a`/`mu_b` (the period centers) and the reference words' centroids (used
-to build `R_a(w)`/`R_b(w)`) come from the real `d0`/`d1` corpora, not from
+to build `r_a(w)`/`r_b(w)`) come from the real `d0`/`d1` corpora, not from
 the permuted split. Only `centroid(w)` is recomputed, from a resampled
 subset of `w`'s pooled occurrences (see `OccurrenceCache`).
 
@@ -17,10 +17,10 @@ pseudo-groups, preserving whatever within-document correlation real
 occurrences have (repeated word-sense priming, topic, register, ...) that an
 occurrence-level shuffle would destroy.
 
-`D_obs` (the real `TokenTimeDisplacement(w).score`) should then be compared
-against the distribution of `document_permutation_null(...)` -- e.g. via
-`Z_robusto = (D_obs - median) / (1.4826 * MAD)` and the one-sided p-value
-`p = (1 + #(D_null >= D_obs)) / (B + 1)` (see
+`δ(w)` (paper notation for `TokenTimeDisplacement.score`) should then be
+compared against the distribution of `document_permutation_null(...)` -- e.g.
+via `ζ(w) = (δ(w) - median({δ_b(w)})) / (1.4826 · MAD({δ_b(w)}))` and the
+one-sided p-value `p = (1 + #{δ_b(w) >= δ(w)}) / (B + 1)` (see
 `tmp/36-claude_token_time_signal_noise_measurement_proposal.md`).
 """
 
@@ -63,7 +63,7 @@ def document_permutation_null(
     n_permutations: int,
     generator: torch.Generator | None = None,
 ) -> Tensor:
-    """`(n_permutations,)`: `D_null` samples for nulo B.
+    """`(n_permutations,)`: `{δ_b(w)}` samples for nulo B.
 
     `occurrences_a`/`occurrences_b` are `OccurrenceCache[target_id]` for the
     same target word in periods `a`/`b` (i.e. `{"layer_1": ..., "layer_2":
@@ -143,10 +143,10 @@ def split_half_displacement(
     Splits `occurrences[layer]` into two random halves by document
     (`occurrences["doc_index"]`), recomputes `centroid(w)` from each half,
     and compares each half's profile against `reference_profile` (the other
-    period's `R(w)`, e.g. `idx.profile(word, 0, reference_ids).vector`) --
+    period's `r(w)`, e.g. `idx.profile(word, 0, reference_ids).vector`) --
     same fixed-reference-system construction as `document_permutation_null`,
     but without permutation: the two halves are an independent resample of
-    the same period, used to check whether `D_obs(w)` is stable across the
+    the same period, used to check whether `δ(w)` is stable across the
     corpus rather than driven by a handful of documents.
 
     Raises `ValueError` if `occurrences` has fewer than 2 distinct documents

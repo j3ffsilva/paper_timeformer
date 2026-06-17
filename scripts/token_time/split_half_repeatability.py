@@ -4,16 +4,16 @@ revised priority order, `tmp/36-claude_token_time_signal_noise_measurement_propo
 
 This is a diagnostic, *not* a null: it splits d1's occurrences of each
 target word `w` into two random halves by document (using
-`OccurrenceCache.doc_index`), recomputes `R_1(w)` from each half with
+`OccurrenceCache.doc_index`), recomputes `r_1(w)` from each half with
 `mu_1`/reference centroids held fixed at their full-d1 values (same
 fixed-reference-system idea as nulo B, see `token_time_null.py`), and
-compares `D_half(w) = 1 - cos(R_0(w), R_half(w))` between the two halves and
-against the full-sample `D_obs(w)`.
+compares `D_half(w) = 1 - cos(r_0(w), r_half(w))` between the two halves and
+against the full-sample `δ(w)`.
 
 If `token@time` measurements are dominated by a handful of documents (an
 artifact), the two halves should disagree; if the signal is a corpus-wide
 property of `w`, the two halves should agree with each other and with the
-full-sample `D_obs`.
+full-sample `δ(w)`.
 """
 
 from __future__ import annotations
@@ -69,7 +69,7 @@ def main() -> None:
         print(f"\n{profile_dir}")
         print(f"  n_words = {len(results)}")
         print(f"  Spearman(D_half1, D_half2) = {rho_halves:.3f} (p={p_halves:.4f})")
-        print(f"  Spearman(D_obs, mean(D_half1, D_half2)) = {rho_full:.3f} (p={p_full:.4f})")
+        print(f"  Spearman(delta(w), mean(D_half1, D_half2)) = {rho_full:.3f} (p={p_full:.4f})")
 
 
 if __name__ == "__main__":

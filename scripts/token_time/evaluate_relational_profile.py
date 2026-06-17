@@ -2,8 +2,8 @@
 """Fase 0A + Fase 1 (ablação A/B/C de centralização) + piso de drift.
 
 Reaproveita os caches já extraídos (sums/counts por token, todos os tokens
-do vocabulário) para comparar três formas de centralização do perfil
-relacional P_t(w)[v] = cos(ê_t(w), ê_t(v)):
+do vocabulário) para comparar quatro formas de centralização do perfil
+relacional r_t(w)[v] = cos(c_t(w) - mu_t, c_t(v) - mu_t):
 
   A: centra na média de um conjunto pequeno de referências frequentes
      (reproduz a abordagem v1 de report_temporal_relational_neighborhoods.py)
@@ -11,9 +11,11 @@ relacional P_t(w)[v] = cos(ê_t(w), ê_t(v)):
      observados no período (sum(sums) / sum(counts) sobre o vocabulário)
   C: como B, mas mu_t calculado apenas sobre o suporte V_ativo (tokens com
      count_t >= n_min em ambos os períodos) -- exclui ruído de tokens raros
+  D: como C (mu_t não ponderada sobre V_ativo) -- VARIANTE CANÔNICA do paper;
+     implementada em `relational.type_uniform_mean` + `relational_profile`
 
-Em todos os casos, P_t(w)[v] é calculado sobre o MESMO suporte V_ativo, de
-forma que apenas a centralização varia entre A/B/C.
+Em todos os casos, r_t(w)[v] é calculado sobre o MESMO suporte V_ativo, de
+forma que apenas a centralização varia entre A/B/C/D.
 
 Não requer reextração: opera sobre
 outputs/<experiment>/hidden_relational_profiles/cache/theta{0,1}_d{0,1}.pt

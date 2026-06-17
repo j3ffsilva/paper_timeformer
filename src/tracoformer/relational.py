@@ -223,8 +223,8 @@ def pmi_cosine_displacement(R_t0: Tensor, R_t1: Tensor) -> Tensor:
 #      (so a handful of very frequent words don't dominate the center).
 #   4. `relational_profile` expresses a target word `w` as a vector of
 #      cosine similarities -- after centering on `mu_t` -- to a chosen set of
-#      reference words. This vector is `P_t(w)`.
-#   5. `displacement` compares `P_t0(w)` and `P_t1(w)`: if they point in the
+#      reference words. This vector is `r_t(w)` (paper notation).
+#   5. `displacement` compares `r_t0(w)` and `r_t1(w)`: if they point in the
 #      same direction, `w`'s relation to the references hasn't changed.
 
 
@@ -317,7 +317,7 @@ def relational_profile(
     target_id: int,
     support_ids: Tensor,
 ) -> Tensor:
-    """P_t(w)[v] = cos(centroid(w) - mu, centroid(v) - mu) for each `v` in
+    """r_t(w)[v] = cos(centroid(w) - mu, centroid(v) - mu) for each `v` in
     `support_ids`.
 
     Both the target's centroid and every reference centroid are first
@@ -340,7 +340,7 @@ def relational_profile(
 
 
 def displacement(profile_t0: Tensor, profile_t1: Tensor) -> float:
-    """Delta(w) = 1 - cos(P_t0(w), P_t1(w)): how much `w`'s relational
+    """δ(w) = 1 - cos(r_0(w), r_1(w)): how much `w`'s relational
     profile changed between the two periods.
 
     `0` means the two profiles point in exactly the same direction -- `w`'s
